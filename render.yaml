@@ -1,4 +1,4 @@
-﻿services:
+services:
   - type: web
     name: magazine-do-skincare
     runtime: docker
@@ -19,5 +19,5 @@
       - key: BLACKCAT_API_KEY
         sync: false
       - key: STORE_FRONTEND_ORIGINS
-        value: https://magazineskincare.vercel.app
+        value: https://magazineskincare.online,https://magazineskincare.vercel.app
 

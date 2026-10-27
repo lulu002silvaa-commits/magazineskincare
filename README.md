@@ -20,7 +20,7 @@ O painel continua sendo `admin.php` e precisa de hospedagem PHP. Para conectar o
 
 1. Publique o backend PHP com a configuração Docker/Render existente, ou em hospedagem PHP compatível.
 2. Na Vercel, defina a variável pública `STORE_API_ORIGIN` com a origem HTTPS real desse servidor, sem barra de caminho. Exemplo ilustrativo: `https://seu-servidor-php.example.com`.
-3. No servidor PHP, configure `STORE_FRONTEND_ORIGINS=https://magazineskincare.vercel.app`. Se usar domínio próprio, acrescente a origem exata separada por vírgula.
+3. No servidor PHP, configure `STORE_FRONTEND_ORIGINS=https://magazineskincare.online,https://magazineskincare.vercel.app`. Se usar domínio próprio, acrescente a origem exata separada por vírgula.
 4. Faça um novo deploy da vitrine. O catálogo passa a vir do servidor e as alterações do painel aparecem na loja. Fotos enviadas pelo painel são carregadas da hospedagem PHP.
 5. Opcionalmente, use `STORE_ADMIN_URL` na Vercel caso o endereço do painel não seja a origem do backend mais `/admin.php`.
 
