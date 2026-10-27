@@ -15,6 +15,12 @@ WaitFor "document.querySelector('#productDetail') && !document.querySelector('#p
 Check 'Galeria de fotos em HTML' "document.querySelectorAll('.product-gallery-thumbnail').length===4"
 Check 'Produto com benefícios, compra e opções relacionadas' "!!document.querySelector('.product-buy-box') && document.querySelectorAll('#productBenefits li').length>0 && document.querySelectorAll('#relatedProducts .product-card').length===4"
 Check 'Pontos da galeria acompanham as fotos' "document.querySelectorAll('.product-gallery-dot').length===4"
+Evaluate "window.unitPriceText=document.querySelector('#productPrices strong').textContent;document.querySelector('#quantityPlus').click();true" | Out-Null
+Check 'Preço do produto aumenta com a quantidade' "Number(document.querySelector('#productQuantity').value)===2 && document.querySelector('#productPrices strong').textContent.replace(/[^0-9]/g,'')===String(Number(window.unitPriceText.replace(/[^0-9]/g,''))*2)"
+Evaluate "document.querySelector('#productQuantity').value='3';document.querySelector('#productQuantity').dispatchEvent(new Event('input'));true" | Out-Null
+Check 'Quantidade digitada recalcula o total' "document.querySelector('#productPrices strong').textContent.replace(/[^0-9]/g,'')===String(Number(window.unitPriceText.replace(/[^0-9]/g,''))*3)"
+Evaluate "document.querySelector('#quantityMinus').click();document.querySelector('#quantityMinus').click();true" | Out-Null
+Check 'Diminuir quantidade restaura o preço unitário' "document.querySelector('#productPrices strong').textContent===window.unitPriceText"
 Screenshot 'produto-referencia.png'
 Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
 Check 'Página do produto cabe no celular' 'document.documentElement.scrollWidth<=window.innerWidth'

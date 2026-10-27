@@ -312,13 +312,14 @@
     container.append(uses);
   }
 
-  function productPriceBlock(product, className = 'product-pricing') {
+  function productPriceBlock(product, className = 'product-pricing', quantity = 1) {
     const block = ui('div', className);
     if (!validPrice(currentPrice(product))) return block;
     const oldPrice = validPrice(product.precoRegular) && product.precoRegular > currentPrice(product) ? product.precoRegular : null;
-    if (oldPrice) block.append(ui('del', 'price-before', money(oldPrice)));
+    const total = price => Math.round(price * 100) * quantity / 100;
+    if (oldPrice) block.append(ui('del', 'price-before', money(total(oldPrice))));
     const line = ui('div', 'price-current');
-    line.append(ui('strong', '', money(currentPrice(product))), ui('span', 'price-method', 'no Pix'));
+    line.append(ui('strong', '', money(total(currentPrice(product)))), ui('span', 'price-method', 'no Pix'));
     if (validPrice(product.precoPix) && product.precoPix < product.preco) {
       const discount = Math.round((1 - product.precoPix / product.preco) * 100);
       if (discount > 0) line.append(ui('span', 'pix-extra-badge', `+${discount}% OFF`));
@@ -655,7 +656,15 @@
     Object.entries(product.especificacoes || {}).forEach(([label, value]) => { if (typeof value === 'string' && value.trim()) facts.append(ui('dt', '', label), ui('dd', '', value)); });
     const quantity = $('#productQuantity'), add = $('#addProduct');
     quantity.max = String(Math.max(1, purchaseLimit(product)));
-    const syncQuantity = () => { $('#quantityMinus').disabled = Number(quantity.value) <= 1; $('#quantityPlus').disabled = Number(quantity.value) >= purchaseLimit(product) || !canPurchase(product); };
+    $('#productPrices').setAttribute('aria-live', 'polite');
+    const syncQuantity = () => {
+      const requested = Number(quantity.value);
+      $('#quantityMinus').disabled = requested <= 1;
+      $('#quantityPlus').disabled = requested >= purchaseLimit(product) || !canPurchase(product);
+      if (Number.isInteger(requested) && requested >= 1 && requested <= purchaseLimit(product)) {
+        $('#productPrices').replaceChildren(productPriceBlock(product, 'product-pricing', requested));
+      }
+    };
     $('#quantityMinus').onclick = () => { if (Number(quantity.value) > 1) quantity.stepDown(); syncQuantity(); };
     $('#quantityPlus').onclick = () => { if (Number(quantity.value) < purchaseLimit(product)) quantity.stepUp(); syncQuantity(); };
     quantity.addEventListener('input', syncQuantity); syncQuantity();
