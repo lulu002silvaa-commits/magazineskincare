@@ -140,6 +140,9 @@ try {
   WaitFor "document.querySelector('#pixPayment') && !document.querySelector('#pixPayment').hidden"
   WaitFor "document.querySelector('#pixQrImage').naturalWidth>0"
   Check 'Pix com QR e copia e cola' "document.querySelector('#pixCopyPaste').value.startsWith('000201') && document.querySelector('#pixQrImage').naturalWidth>0"
+  Evaluate "document.querySelector('#pixInvoice').click();true" | Out-Null
+  WaitFor "!document.querySelector('#pixInvoice').disabled"
+  Check 'Confirmar pagamento consulta sem aprovar Pix pendente' "document.querySelector('#pixInvoice').tagName==='BUTTON' && document.querySelector('#pixInvoice').textContent==='Confirmar pagamento' && document.querySelector('#pixStatus').textContent.includes('ainda não') && localStorage.getItem('calma-pele-carrinho')!==null"
   Check 'Blocos da finalização ocupam largura uniforme' "getComputedStyle(document.querySelector('#pixPayment')).display==='block' && Math.abs(document.querySelector('.pix-method-review').getBoundingClientRect().width-document.querySelector('#pixPayment').getBoundingClientRect().width)<2"
   Check 'Pix por chave não inventa expiração' "document.querySelector('#pixExpiry').textContent.includes('não possui expiração') && document.querySelector('#pixExpiryProgress').hidden"
   Check 'Resumo Pix mostra entrega e valor real' "document.querySelector('#pixDeliveryReview').textContent.includes('Rua Teste') && document.querySelector('#pixOrderTotal').textContent===document.querySelector('#checkoutSubtotal').textContent"
@@ -160,6 +163,12 @@ try {
   Screenshot 'pix-contagem-mobile.png'
   WaitFor "document.querySelector('#pixCountdown').textContent==='00:00'"
   Check 'Expiração desativa código e QR' "document.querySelector('#copyPix').disabled && document.querySelector('#pixQrImage').hidden && document.querySelector('#pixCopyPaste').hidden && document.querySelector('#pixStatus').textContent.includes('prazo')"
+  Evaluate "window.PaymentService={...window.PaymentService,getPaymentStatus:async()=>{throw new Error('Falha simulada');}};document.querySelector('#pixInvoice').click();true" | Out-Null
+  WaitFor "!document.querySelector('#pixInvoice').disabled"
+  Check 'Falha na consulta não marca pedido como pago' "document.querySelector('#pixStatus').textContent.includes('Não foi possível') && localStorage.getItem('calma-pele-carrinho')!==null"
+  Evaluate "window.PaymentService={...window.PaymentService,getPaymentStatus:async id=>({success:true,data:{transactionId:id,status:'PAID'}})};document.querySelector('#pixInvoice').click();true" | Out-Null
+  WaitFor "document.querySelector('#pixTitle').textContent==='Pagamento aprovado'"
+  Check 'Resposta paga confirma e encerra cobrança na tela' "document.querySelector('#pixInvoice').disabled && document.querySelector('#pixInvoice').textContent==='Pagamento confirmado' && localStorage.getItem('calma-pele-carrinho')===null"
 
   Cdp 'Page.navigate' @{url=($base+'/admin.php')} | Out-Null
   WaitFor "document.querySelector('[data-order]')"

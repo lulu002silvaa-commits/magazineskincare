@@ -16,7 +16,7 @@
   <script src="js/pix.js" defer></script>
   <script src="js/vendor/qrcode.min.js" defer></script>
   <script src="js/payment-service.js?v=26" defer></script>
-  <script src="js/loja.js?v=26" defer></script>
+  <script src="js/loja.js?v=27" defer></script>
 </head>
 <body data-page="checkout" class="checkout-reference">
   <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
@@ -76,7 +76,7 @@
       <button id="pixViewCode" type="button" class="pix-view-code" aria-expanded="false">Ver código completo</button>
       <button class="button button-dark" id="copyPix" type="button">❖ Copiar código Pix</button>
       <p id="pixCopyStatus" class="pix-copy-status" role="status"></p>
-      <a class="button button-outline" id="pixInvoice" href="#" target="_blank" rel="noopener" hidden>Ver pagamento</a>
+      <button class="button button-outline" id="pixInvoice" type="button" hidden>Confirmar pagamento</button><p class="field-help">A confirmação depende da identificação do crédito pelo banco.</p>
       <div class="pix-method-review"><span aria-hidden="true">❖</span><div><strong>Meio de pagamento</strong><p>Pix à vista · <span id="pixMethodTotal"></span></p></div></div>
       <div class="pix-order-review"><h3>Entrega padrão · Frete grátis</h3><p class="pix-delivery-note">Entrega em até 3 dias após a confirmação do pagamento.</p><p id="pixDeliveryReview"></p></div>
       <div class="pix-totals"><div class="summary-row"><span>Total do pedido</span><strong id="pixOrderTotal"></strong></div><div class="summary-row pix-savings"><span>Você economizou</span><strong id="pixSavings"></strong></div></div>

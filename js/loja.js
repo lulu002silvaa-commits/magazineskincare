@@ -1159,10 +1159,6 @@
         $("#pixQrImage").src = qr;
         $("#pixQrImage").hidden = false;
       }
-      if (typeof payment.invoiceUrl === "string" && /^https:\/\/[^/]*blackcat[^/]*\//i.test(payment.invoiceUrl)) {
-        $("#pixInvoice").href = payment.invoiceUrl;
-        $("#pixInvoice").hidden = false;
-      }
       startPixCountdown(payment.paymentData?.expiresAt);
       $("#pixPayment").hidden = false;
       $('#pixDeliveryReview').textContent = addressReview();
@@ -1180,8 +1176,8 @@
         $("#pixStatus").textContent = "Depois de pagar, a loja confirmará o crédito manualmente.";
       } else {
         $("#pixTitle").textContent = "Realize o pagamento para garantir sua compra";
-        pollPayment(payment.transactionId);
       }
+      pollPayment(payment.transactionId, payment.paymentMethod === 'manual_pix');
     } catch (submitError) {
       error.textContent = submitError.message;
     } finally {
@@ -1223,33 +1219,53 @@
     interval = setInterval(update, 1000); stopPixCountdown = () => clearInterval(interval); update();
   }
 
-  async function pollPayment(transactionId) {
-    const refresh = async () => {
+  let stopPaymentWatch = () => {};
+  function pollPayment(transactionId, manual = false) {
+    stopPaymentWatch();
+    const button = $('#pixInvoice');
+    let timer, busy = false, terminal = false, disposed = false;
+    button.hidden = false; button.disabled = false; button.textContent = 'Confirmar pagamento';
+    stopPaymentWatch = () => { disposed = true; clearTimeout(timer); };
+    const refresh = async (requested = false) => {
+      if (busy || terminal || disposed) return;
+      clearTimeout(timer); busy = true; button.disabled = true;
+      if (requested) { button.textContent = 'Consultando pagamento…'; $('#pixStatus').textContent = 'Verificando o recebimento do Pix…'; }
       try {
         const result = await window.PaymentService.getPaymentStatus(transactionId);
+        if (disposed) return;
+        if (!result.success || result.data?.transactionId !== transactionId) throw new Error('Consulta inválida');
         const state = result.data.status;
-        if (state === "PAID") {
-          stopPixCountdown(); $('#pixExpiry').textContent = 'Pagamento confirmado'; $('#pixCountdown').textContent = ''; $('#pixExpiryProgress').hidden = true;
-          $('#copyPix').disabled = true; $('#pixQrImage').hidden = true;
-          $("#pixStatus").textContent = "Pagamento confirmado pela BlackCat.";
-          $("#pixTitle").textContent = "Pagamento aprovado";
-          localStorage.removeItem(CART_KEY);
-          updateCartCount();
-          return;
+        if (!['PENDING', 'PAID', 'CANCELLED', 'REFUNDED'].includes(state)) throw new Error('Status inválido');
+        if (state === 'PAID') {
+          terminal = true; stopPixCountdown();
+          $('#pixExpiry').textContent = 'Pagamento confirmado'; $('#pixCountdown').textContent = ''; $('#pixExpiryProgress').hidden = true;
+          $('#copyPix').disabled = true; $('#pixQrImage').hidden = true; $('#pixCopyPaste').hidden = true; $('#pixViewCode').hidden = true;
+          $('#pixStatus').textContent = 'Pagamento confirmado. Seu pedido está pago.'; $('#pixTitle').textContent = 'Pagamento aprovado';
+          button.textContent = 'Pagamento confirmado';
+          localStorage.removeItem(CART_KEY); updateCartCount();
+        } else if (state === 'CANCELLED' || state === 'REFUNDED') {
+          terminal = true; stopPixCountdown();
+          $('#copyPix').disabled = true; $('#pixQrImage').hidden = true; $('#pixCopyPaste').hidden = true; $('#pixViewCode').hidden = true;
+          $('#pixCountdown').textContent = ''; $('#pixExpiryProgress').hidden = true; $('#pixExpiry').textContent = '';
+          $('#pixStatus').textContent = state === 'REFUNDED' ? 'Este pagamento foi estornado.' : 'Este pagamento foi cancelado ou expirou.';
+          $('#pixTitle').textContent = 'Pagamento não concluído'; button.textContent = 'Pagamento encerrado';
+        } else if (!pixDeadlineExpired) {
+          $('#pixStatus').textContent = manual ? 'O crédito ainda não foi confirmado pela loja.' : (requested ? 'O Pix ainda não foi identificado. Se já pagou, aguarde e consulte novamente.' : 'Aguardando confirmação do Pix…');
+        } else if (requested) {
+          $('#pixStatus').textContent = 'O prazo terminou e o crédito ainda não foi confirmado. Consulte a loja antes de pagar novamente.';
         }
-        if (state === "CANCELLED" || state === "REFUNDED") {
-          stopPixCountdown(); $('#copyPix').disabled = true; $('#pixQrImage').hidden = true;
-          $("#pixStatus").textContent = state === "REFUNDED" ? "Este pagamento foi estornado." : "Este pagamento foi cancelado ou expirou.";
-          $("#pixTitle").textContent = "Pagamento não concluído";
-          return;
-        }
-        if (!pixDeadlineExpired) $("#pixStatus").textContent = "Aguardando confirmação do Pix...";
       } catch {
-        if (!pixDeadlineExpired) $("#pixStatus").textContent = "Não foi possível atualizar agora. O pagamento ainda pode ser consultado.";
+        if (!disposed) $('#pixStatus').textContent = 'Não foi possível consultar agora. Tente confirmar novamente em instantes; não é necessário gerar outro Pix.';
+      } finally {
+        busy = false;
+        if (!disposed) {
+          button.disabled = terminal;
+          if (!terminal) { button.textContent = 'Confirmar pagamento'; timer = setTimeout(() => refresh(), 10000); }
+        }
       }
-      window.setTimeout(refresh, 10000);
     };
-    window.setTimeout(refresh, 10000);
+    button.onclick = () => refresh(true);
+    timer = setTimeout(() => refresh(), 10000);
   }
   function initVisitorAnalytics() {
     if (!connection.apiEnabled || window.location.protocol === "file:") return;
