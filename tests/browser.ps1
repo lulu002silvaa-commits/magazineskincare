@@ -62,6 +62,7 @@ try {
   WaitFor "document.querySelector('#stats .stat')"
   Check 'Quatro indicadores no dashboard' "document.querySelectorAll('.stat').length===4"
   Check 'Menu lateral e tabelas' "!!document.querySelector('.sidebar') && document.querySelectorAll('table').length===2"
+  Check 'Painel exibe limpeza de gerados e status aprovado' "!!document.querySelector('#clearGenerated') && document.querySelector('#content').textContent.includes('Aprovado')"
   Screenshot 'dashboard.png'
   Evaluate "document.querySelector('[data-page=products]').click();true" | Out-Null
   Check 'Listagem paginada de produtos' "document.querySelectorAll('[data-edit]').length===12"

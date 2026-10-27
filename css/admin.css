@@ -15,3 +15,5 @@
 .order-details { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 10px; }
 .order-details dt { color: var(--muted); }
 .order-details dd { margin: 0; }
+
+.generated-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}.generated-heading h2{margin:0}@media(max-width:600px){.generated-heading .btn{min-height:44px;width:100%}}

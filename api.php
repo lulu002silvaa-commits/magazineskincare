@@ -113,11 +113,24 @@ try {
             unset($visit);
             $transactions = read_data('transactions');
             $charges = [];
-            foreach ($transactions as $id => $charge) { $charge['id'] = (string)$id; $charges[] = $charge; }
+            foreach ($transactions as $id => $charge) {
+                if (!empty($charge['archivedAt']) && ($charge['status'] ?? 'PENDING') === 'PENDING') continue;
+                $charge['id'] = (string)$id; $charges[] = $charge;
+            }
             usort($charges, fn($a, $b) => ($b['createdAt'] ?? 0) <=> ($a['createdAt'] ?? 0));
             $online = count(array_filter($analytics['sessions'] ?? [], fn($s) => ($s['lastSeen'] ?? 0) >= time() - 120));
             $revenue = array_sum(array_map(fn($p) => ($p['status'] ?? '') === 'PAID' ? (int)($p['amount'] ?? 0) : 0, $charges));
             json_response(['store' => $store, 'visits' => array_slice($visits, 0, 1000), 'charges' => $charges, 'blocked' => read_data('blocked')['ips'] ?? [], 'stats' => ['visits' => (int)($analytics['totalViews'] ?? 0), 'pix' => count($charges), 'revenue' => $revenue, 'online' => $online], 'gatewayConfigured' => (getenv('BLACKCAT_API_KEY') ?: '') !== '']);
+        }
+        if ($route === '/admin/payments/generated' && $method === 'DELETE') {
+            $removed = 0;
+            update_data('transactions', function ($data) use (&$removed) {
+                foreach ($data as &$entry) {
+                    if (($entry['status'] ?? 'PENDING') === 'PENDING' && empty($entry['archivedAt'])) { $entry['archivedAt'] = time(); $removed++; }
+                }
+                unset($entry); return $data;
+            });
+            json_response(['success' => true, 'removed' => $removed]);
         }
         if ($route === '/admin/product' && in_array($method, ['POST', 'DELETE'], true)) {
             $body = input_json();
