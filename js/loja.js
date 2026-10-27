@@ -737,6 +737,13 @@
     const rating = $('#productRating');
     if (typeof product.avaliacao === 'number' && product.avaliacao > 0 && product.avaliacao <= 5) { rating.textContent = `${product.avaliacao.toFixed(1)} ★★★★★`; rating.hidden = false; }
     renderProductGallery(product);
+    $('#productAvailability').textContent = canPurchase(product) ? 'Disponível para compra · Produto novo' : 'Indisponível no momento';
+    $('#productZoom').onclick = () => {
+      $('#productZoomImage').src = $('#productMainImage').src;
+      $('#productZoomImage').alt = $('#productMainImage').alt;
+      $('#productPhotoDialog').showModal();
+    };
+    $('#productPhotoDialog').onclick = event => { if (event.target === $('#productPhotoDialog')) $('#productPhotoDialog').close(); };
     decorateProductImage($('#productMainImageContainer'), product);
     $('#productPrices').replaceChildren(productPriceBlock(product));
     const facts = $('#productFacts'); facts.replaceChildren();
@@ -768,6 +775,30 @@
     try { localStorage.setItem('magazine-recent-products', JSON.stringify([id, ...safeRead('magazine-recent-products', []).filter(value => value !== id)].slice(0, 12))); } catch { /* A página não depende do histórico. */ }
     document.title = `${product.nome} | ${config.brand.name}`; detail.hidden = false;
     $('#productInformation').hidden = false;
+    detail.after($('#productInformation'));
+    updateProductMetadata(product);
+  }
+
+  function updateProductMetadata(product) {
+    const url = new URL('/produto.html', 'https://magazineskincare.online'); url.searchParams.set('id', product.id);
+    const description = (product.descricao || product.nome).replace(/\s+/g, ' ').trim();
+    const meta = (name, value, property = false) => {
+      const attribute = property ? 'property' : 'name';
+      let element = document.head.querySelector(`meta[${attribute}="${name}"]`);
+      if (!element) { element = document.createElement('meta'); element.setAttribute(attribute, name); document.head.append(element); }
+      element.content = value;
+    };
+    let canonical = document.head.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.append(canonical); }
+    canonical.href = url.href;
+    const photos = [...new Set([product.imagem, ...(product.imagens || [])].filter(Boolean))].map(path => new URL(path, location.href).href);
+    meta('description', description.slice(0, 170)); meta('og:title', product.nome, true);
+    meta('og:description', description.slice(0, 200), true); meta('og:type', 'product', true); meta('og:url', url.href, true);
+    if (photos.length) meta('og:image', photos[0], true);
+    if (!catalogVerified || !validPrice(currentPrice(product))) return;
+    const data = { '@context': 'https://schema.org', '@type': 'Product', name: product.nome, description, image: photos, sku: product.id, brand: { '@type': 'Brand', name: 'Creamy' }, offers: { '@type': 'Offer', url: url.href, priceCurrency: 'BRL', price: currentPrice(product).toFixed(2), itemCondition: 'https://schema.org/NewCondition', availability: canPurchase(product) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock', seller: { '@type': 'Organization', name: config.brand.name } } };
+    const script = document.createElement('script'); script.type = 'application/ld+json'; script.id = 'productStructuredData';
+    script.textContent = JSON.stringify(data); document.head.append(script);
   }
 
   function renderCart() {

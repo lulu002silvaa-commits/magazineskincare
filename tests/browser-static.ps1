@@ -15,6 +15,12 @@ WaitFor "document.querySelector('#productDetail') && !document.querySelector('#p
 Check 'Galeria de fotos em HTML' "document.querySelectorAll('.product-gallery-thumbnail').length===4"
 Check 'Produto com benefícios, compra e opções relacionadas' "!!document.querySelector('.product-buy-box') && document.querySelectorAll('#productBenefits li').length>0 && document.querySelectorAll('#relatedProducts .product-card').length===4"
 Check 'Pontos da galeria acompanham as fotos' "document.querySelectorAll('.product-gallery-dot').length===4"
+Check 'Dados estruturados correspondem ao produto visível' "(()=>{const data=JSON.parse(document.querySelector('#productStructuredData').textContent);return data.name===document.querySelector('#productName').textContent && data.offers.priceCurrency==='BRL' && data.image.length===4 && data.offers.availability==='https://schema.org/InStock';})()"
+Check 'Descrição aparece antes das recomendações' "document.querySelector('#productInformation details').open && document.querySelector('#productDetail').nextElementSibling.id==='productInformation'"
+Evaluate "document.querySelector('#productZoom').click();true" | Out-Null
+WaitFor "document.querySelector('#productZoomImage').naturalWidth>0"
+Check 'Foto ampliada usa imagem selecionada' "document.querySelector('#productPhotoDialog').open && document.querySelector('#productZoomImage').src===document.querySelector('#productMainImage').src"
+Evaluate "document.querySelector('#productPhotoDialog').close();true" | Out-Null
 Evaluate "window.unitPriceText=document.querySelector('#productPrices strong').textContent;document.querySelector('#quantityPlus').click();true" | Out-Null
 Check 'Preço do produto aumenta com a quantidade' "Number(document.querySelector('#productQuantity').value)===2 && document.querySelector('#productPrices strong').textContent.replace(/[^0-9]/g,'')===String(Number(window.unitPriceText.replace(/[^0-9]/g,''))*2)"
 Evaluate "document.querySelector('#productQuantity').value='3';document.querySelector('#productQuantity').dispatchEvent(new Event('input'));true" | Out-Null
