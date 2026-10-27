@@ -335,22 +335,82 @@
     if (section) section.hidden = products.length === 0;
   }
 
+  async function lookupAddress(cep, signal) {
+    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal });
+    if (!response.ok) throw new Error('Consulta indisponível');
+    const result = await response.json();
+    if (result.erro) throw new Error('CEP não encontrado. Confira o CEP informado.');
+    if (!result.localidade || !/^[A-Z]{2}$/.test(result.uf || '')) throw new Error('Resposta de CEP inválida');
+    return { zipCode: cep, street: result.logradouro || '', neighborhood: result.bairro || '', city: result.localidade, state: result.uf };
+  }
+
+  function saveDelivery(address) {
+    try { sessionStorage.setItem('magazine-delivery-address', JSON.stringify(address)); } catch { /* Endereço continua disponível no formulário. */ }
+  }
+
+  function readDelivery() {
+    try { return JSON.parse(sessionStorage.getItem('magazine-delivery-address') || 'null'); } catch { return null; }
+  }
+
   function initCommerceForms() {
     $$('form[data-shipping-form]').forEach(form => {
       const input = $('input', form), status = document.getElementById(form.dataset.shippingForm);
       const saved = safeRead('magazine-delivery-postcode', '');
       if (typeof saved === 'string') input.value = saved;
+      const fields = ui('div', 'delivery-address-fields'); fields.hidden = true;
+      let address = null, controller, timer;
+      const controls = {};
+      [['street', 'Rua / Avenida'], ['neighborhood', 'Bairro'], ['city', 'Cidade'], ['state', 'Estado (UF)'], ['number', 'Número da casa'], ['complement', 'Complemento (opcional)']].forEach(([key, title]) => {
+        const label = ui('label', '', title), field = ui('input');
+        field.id = `${input.id}-${key}`; label.htmlFor = field.id;
+        field.maxLength = key === 'state' ? 2 : 200;
+        field.autocomplete = ({ street: 'address-line1', neighborhood: 'address-level3', city: 'address-level2', state: 'address-level1', number: 'off', complement: 'address-line2' })[key];
+        if (key === 'number') field.placeholder = 'Informe o número ou S/N';
+        controls[key] = field; fields.append(label, field);
+        field.addEventListener('input', () => { if (address) { address[key] = field.value.trim(); saveDelivery(address); } });
+      });
+      status.after(fields);
+      const showAddress = value => {
+        address = value; fields.hidden = false;
+        Object.entries(controls).forEach(([key, field]) => {
+          field.value = value[key] || '';
+          const resolved = ['street', 'neighborhood', 'city', 'state'].includes(key) && !!value[key];
+          field.hidden = resolved; field.previousElementSibling.hidden = resolved;
+        });
+        const summary = [value.street, value.neighborhood, `${value.city} / ${value.state}`].filter(Boolean).join(', ');
+        status.textContent = `${summary}. Frete grátis. O prazo será confirmado antes do envio. ${value.street && value.neighborhood ? 'Confirme o número da casa.' : 'Complete os dados do endereço e o número.'}`;
+        saveDelivery(value);
+      };
+      const cached = readDelivery();
+      if (cached && cached.zipCode === input.value.replace(/\D/g, '')) showAddress(cached);
+      const consult = async (focus = false) => {
+        const digits = input.value.replace(/\D/g, '');
+        if (digits.length !== 8) { status.textContent = 'Informe um CEP com 8 números.'; return; }
+        controller?.abort(); controller = new AbortController(); const request = controller;
+        const timeout = setTimeout(() => request.abort(), 8000);
+        status.textContent = 'Consultando endereço…';
+        try {
+          const result = await lookupAddress(digits, request.signal);
+          if (request !== controller || input.value.replace(/\D/g, '') !== digits) return;
+          try { localStorage.setItem('magazine-delivery-postcode', JSON.stringify(input.value)); } catch { /* Opcional. */ }
+          showAddress(result);
+          if (focus) controls.number.focus();
+        } catch (error) {
+          if (request !== controller) return;
+          status.textContent = error.message.startsWith('CEP não encontrado') ? error.message : 'Não foi possível consultar o CEP. Tente novamente ou preencha o endereço no checkout.';
+        } finally { clearTimeout(timeout); }
+      };
       input.addEventListener('input', () => {
+        clearTimeout(timer); controller?.abort(); controller = null; address = null; fields.hidden = true;
+        try { sessionStorage.removeItem('magazine-delivery-address'); } catch { /* Opcional. */ }
         const value = input.value.replace(/\D/g, '').slice(0, 8);
         input.value = value.length > 5 ? `${value.slice(0, 5)}-${value.slice(5)}` : value;
         status.textContent = '';
+        if (value.length === 8) timer = setTimeout(() => consult(), 400);
       });
       form.addEventListener('submit', event => {
         event.preventDefault();
-        const digits = input.value.replace(/\D/g, '');
-        if (digits.length !== 8) { status.textContent = 'Informe um CEP com 8 números.'; return; }
-        try { localStorage.setItem('magazine-delivery-postcode', JSON.stringify(input.value)); } catch { /* A consulta também funciona sem armazenamento. */ }
-        status.textContent = `Frete grátis para o CEP ${input.value}. O prazo será confirmado antes do envio.`;
+        clearTimeout(timer); consult(true);
       });
     });
     const coupon = $('#cartCoupon');
@@ -803,54 +863,46 @@
   }
 
   function initCepLookup() {
-    const input = $("#shippingZipCode");
-    const status = $("#cepLookupStatus");
+    const input = $('#shippingZipCode'), status = $('#cepLookupStatus');
     if (!input || !status) return;
-    const formatCep = (value) => {
-      const digits = value.replace(/\D/g, "").slice(0, 8);
-      return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits;
+    const ids = { street: '#shippingAddress', neighborhood: '#shippingNeighborhood', city: '#shippingCity', state: '#shippingState', number: '#shippingNumber', complement: '#shippingComplement' };
+    const apply = address => {
+      input.value = address.zipCode.replace(/(\d{5})(\d{3})/, '$1-$2');
+      Object.entries(ids).forEach(([key, selector]) => { $(selector).value = address[key] || ''; });
+      status.textContent = 'Endereço encontrado. Confira os dados e informe o número.';
     };
-    input.addEventListener("input", () => {
-      const cursorAtEnd = input.selectionStart === input.value.length;
-      input.value = formatCep(input.value);
-      if (cursorAtEnd) input.setSelectionRange(input.value.length, input.value.length);
-      status.textContent = "Digite o CEP para preencher rua, bairro, cidade e estado.";
-      status.classList.remove("field-help-error", "field-help-success");
-    });
-    input.addEventListener("blur", async () => {
-      const cep = input.value.replace(/\D/g, "");
-      if (cep.length !== 8) {
-        status.textContent = "Informe um CEP com 8 números.";
-        status.classList.add("field-help-error");
-        return;
-      }
-      status.textContent = "Consultando CEP…";
-      status.classList.remove("field-help-error", "field-help-success");
-      const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 8000);
+    const cached = readDelivery();
+    if (cached && /^\d{8}$/.test(cached.zipCode || '')) apply(cached);
+    let controller, timer;
+    const consult = async () => {
+      const cep = input.value.replace(/\D/g, '');
+      if (cep.length !== 8) return;
+      controller?.abort(); controller = new AbortController(); const request = controller;
+      const timeout = setTimeout(() => request.abort(), 8000);
+      status.textContent = 'Consultando CEP…';
       try {
-        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal: controller.signal });
-        if (!response.ok) throw new Error("Consulta indisponível");
-        const result = await response.json();
-        if (!Array.isArray(result.products)) throw new Error('Catálogo inválido');
-        if (result.erro) {
-          status.textContent = "CEP não encontrado. Confira o número ou preencha o endereço manualmente.";
-          status.classList.add("field-help-error");
-          return;
-        }
-        $("#shippingAddress").value = result.logradouro || "";
-        $("#shippingNeighborhood").value = result.bairro || "";
-        $("#shippingCity").value = result.localidade || "";
-        $("#shippingState").value = result.uf || "";
-        status.textContent = "Endereço encontrado. Confira os dados e informe o número.";
-        status.classList.add("field-help-success");
-      } catch {
-        status.textContent = "Não foi possível consultar agora. Você pode preencher o endereço manualmente.";
-        status.classList.add("field-help-error");
-      } finally {
-        window.clearTimeout(timeout);
-      }
+        const address = await lookupAddress(cep, request.signal);
+        if (request !== controller || input.value.replace(/\D/g, '') !== cep) return;
+        apply(address); saveDelivery(address);
+      } catch (error) {
+        if (request !== controller) return;
+        status.textContent = error.message.startsWith('CEP não encontrado') ? error.message : 'Não foi possível consultar agora. Preencha o endereço manualmente.';
+      } finally { clearTimeout(timeout); }
+    };
+    input.addEventListener('input', () => {
+      controller?.abort(); controller = null; clearTimeout(timer);
+      const digits = input.value.replace(/\D/g, '').slice(0, 8);
+      input.value = digits.length > 5 ? digits.slice(0, 5) + '-' + digits.slice(5) : digits;
+      Object.values(ids).forEach(selector => { $(selector).value = ''; });
+      try { sessionStorage.removeItem('magazine-delivery-address'); } catch { /* Opcional. */ }
+      status.textContent = 'Digite o CEP para preencher o endereço.';
+      if (digits.length === 8) timer = setTimeout(consult, 400);
     });
+    input.addEventListener('blur', () => { clearTimeout(timer); if (input.value.replace(/\D/g, '').length === 8) consult(); });
+    Object.entries(ids).forEach(([key, selector]) => $(selector).addEventListener('input', () => {
+      const address = readDelivery();
+      if (address && address.zipCode === input.value.replace(/\D/g, '')) { address[key] = $(selector).value.trim(); saveDelivery(address); }
+    }));
   }
 
   async function submitPayment(event) {

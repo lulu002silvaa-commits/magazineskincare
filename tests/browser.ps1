@@ -109,6 +109,13 @@ try {
   Cdp 'Page.navigate' @{url=($base+'/checkout.html')} | Out-Null
   WaitFor "document.querySelector('#reserveOrder') && !document.querySelector('#reserveOrder').disabled"
   Check 'Checkout com QR local' "typeof window.qrcode==='function' && [...document.scripts].every(script=>!script.src.startsWith('https://'))"
+  Evaluate "window.cepOriginalFetch=window.fetch;window.fetch=(url,options)=>String(url).includes('viacep.com.br')?Promise.resolve({ok:true,json:()=>Promise.resolve({logradouro:'Rua Consulta',bairro:'Centro',localidade:'São Paulo',uf:'SP'})}):window.cepOriginalFetch(url,options);document.querySelector('#shippingZipCode').value='01001-000';document.querySelector('#shippingZipCode').dispatchEvent(new Event('input'));true" | Out-Null
+  WaitFor "document.querySelector('#shippingAddress').value==='Rua Consulta'"
+  Check 'Consulta de CEP preenche checkout' "document.querySelector('#shippingNeighborhood').value==='Centro' && document.querySelector('#shippingCity').value==='São Paulo' && document.querySelector('#shippingState').value==='SP'"
+  Evaluate "document.querySelector('#shippingNumber').value='456';document.querySelector('#shippingNumber').dispatchEvent(new Event('input'));window.fetch=window.cepOriginalFetch;true" | Out-Null
+  Cdp 'Page.navigate' @{url=($base+'/checkout.html')} | Out-Null
+  WaitFor "document.querySelector('#shippingNumber') && document.querySelector('#shippingNumber').value==='456'"
+  Check 'Checkout reaproveita endereço e número' "document.querySelector('#shippingAddress').value==='Rua Consulta' && document.querySelector('#shippingZipCode').value==='01001-000'"
   Check 'Checkout cabe no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
   Evaluate "const fields={customerName:'Teste Navegador',customerPhone:'11999999999',customerEmail:'navegador@example.com',customerCpf:'52998224725',shippingZipCode:'70000000',shippingAddress:'Rua Teste',shippingNumber:'123',shippingNeighborhood:'Centro',shippingCity:'Brasilia',shippingState:'DF'};for(const [id,value] of Object.entries(fields))document.getElementById(id).value=value;document.querySelector('#checkoutForm').requestSubmit();true" | Out-Null
   WaitFor "document.querySelector('#pixPayment') && !document.querySelector('#pixPayment').hidden"

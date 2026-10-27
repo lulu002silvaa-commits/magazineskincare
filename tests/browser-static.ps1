@@ -34,8 +34,17 @@ WaitFor "document.querySelector('#cartItems .cart-item')"
 Check 'Sacola salva navega entre páginas HTML' "document.querySelector('#cartCount').textContent==='1' && document.querySelector('#checkoutLink').getAttribute('href')==='checkout.html'"
 Check 'Sacola tem entrega, cupom e resumo' "!!document.querySelector('#cartCoupon') && !!document.querySelector('#cartPostcode') && !!document.querySelector('#cartDiscountTotal')"
 Check 'Sacola mostra recomendações complementares' "document.querySelectorAll('#cartRecommendations .product-card').length===4 && document.querySelectorAll('#cartReminders .product-card').length===4"
-Evaluate "document.querySelector('#cartPostcode').value='30140-071';document.querySelector('[data-shipping-form]').requestSubmit();document.querySelector('#couponCode').value='TESTE-INVALIDO';document.querySelector('#cartCoupon').requestSubmit();true" | Out-Null
+Evaluate "window.originalAddressFetch=window.fetch;window.fetch=(url,options)=>String(url).includes('viacep.com.br')?Promise.resolve({ok:true,json:()=>Promise.resolve(String(url).includes('00000000')?{erro:true}:{logradouro:'Rua de Teste',bairro:'Centro',localidade:'Belo Horizonte',uf:'MG'})}):window.originalAddressFetch(url,options);document.querySelector('#cartPostcode').value='30140-071';document.querySelector('[data-shipping-form]').requestSubmit();document.querySelector('#couponCode').value='TESTE-INVALIDO';document.querySelector('#cartCoupon').requestSubmit();true" | Out-Null
+WaitFor "document.querySelector('#cartShippingStatus').textContent.includes('Rua de Teste')"
 Check 'CEP calcula entrega sem inventar prazo' "document.querySelector('#cartShippingStatus').textContent.includes('Frete grátis') && document.querySelector('#cartShippingStatus').textContent.includes('confirmado')"
+Check 'CEP preenche endereço e pede número' "document.querySelector('#cartPostcode-street').value==='Rua de Teste' && document.querySelector('#cartPostcode-street').hidden && !document.querySelector('#cartPostcode-number').hidden && document.querySelector('#cartShippingStatus').textContent.includes('Belo Horizonte')"
+Evaluate "document.querySelector('#cartPostcode-number').value='123';document.querySelector('#cartPostcode-number').dispatchEvent(new Event('input'));true" | Out-Null
+Check 'Número é preservado para o checkout' "JSON.parse(sessionStorage.getItem('magazine-delivery-address')).number==='123'"
+Evaluate "document.querySelector('#cartPostcode').value='00000-000';document.querySelector('#cartPostcode').dispatchEvent(new Event('input'));document.querySelector('[data-shipping-form]').requestSubmit();true" | Out-Null
+WaitFor "document.querySelector('#cartShippingStatus').textContent.includes('CEP não encontrado')"
+Check 'Trocar CEP remove endereço anterior' "document.querySelector('.delivery-address-fields').hidden && sessionStorage.getItem('magazine-delivery-address')===null"
+Evaluate "document.querySelector('#cartPostcode').value='30140-071';document.querySelector('#cartPostcode').dispatchEvent(new Event('input'));document.querySelector('[data-shipping-form]').requestSubmit();true" | Out-Null
+WaitFor "document.querySelector('#cartShippingStatus').textContent.includes('Rua de Teste')"
 Check 'Cupom inválido não cria desconto' "document.querySelector('#couponStatus').textContent.includes('Nenhum desconto') && document.querySelector('#cartDiscountTotal').textContent.includes('0,00')"
 Evaluate "document.querySelector('#cartRecommendations .cart-icon-button').click();true" | Out-Null
 Check 'Recomendação atualiza sacola e resumo' "document.querySelectorAll('#cartItems .cart-item').length===2 && document.querySelector('#cartCount').textContent==='2'"
