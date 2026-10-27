@@ -58,9 +58,10 @@ if ($route === '/payments/blackcat' && $method === 'POST') {
         $saleItems[] = ['title' => $product['nome'], 'unitPrice' => $unit, 'quantity' => $quantity, 'tangible' => true];
     }
     if (isset($body['expectedAmount']) && (!is_int($body['expectedAmount']) || $body['expectedAmount'] !== $amount)) json_response(['error' => 'O preço dos produtos foi atualizado. Atualize a sacola e confira o novo total antes de pagar.'], 409);
+    $gifts = promotion_gifts($store['produtos'], $requested, $amount);
     $requestKey = $body['idempotencyKey'] ?? bin2hex(random_bytes(20));
     if (!is_string($requestKey) || !preg_match('/^[a-zA-Z0-9_-]{12,100}$/', $requestKey)) throw new InvalidArgumentException('Identificador da solicitação inválido.');
-    $fingerprint = hash('sha256', json_encode([$customer, $shipping, $requested, $amount, $mode], JSON_THROW_ON_ERROR));
+    $fingerprint = hash('sha256', json_encode([$customer, $shipping, $requested, $amount, $mode, $gifts], JSON_THROW_ON_ERROR));
     update_data('payment-requests', function ($data) use ($requestKey, $fingerprint) {
         if (isset($data[$requestKey])) {
             if (!hash_equals($data[$requestKey]['fingerprint'], $fingerprint)) json_response(['error' => 'Esta solicitação já foi usada com outros dados. Revise o pedido.'], 409);
@@ -77,8 +78,8 @@ if ($route === '/payments/blackcat' && $method === 'POST') {
         if (!is_string($charge['transactionId'] ?? null) || !preg_match('/^[A-Za-z0-9_-]{1,100}$/', $charge['transactionId'])) json_response(['error' => 'O gateway não retornou uma cobrança válida.'], 502);
         $id = $charge['transactionId']; $paymentData = $charge['paymentData'] ?? []; $invoice = $charge['invoiceUrl'] ?? null;
     }
-    update_data('transactions', function ($data) use ($id, $amount, $ip, $mode, $saleItems, $cpf, $customer, $shipping) {
-        $data[$id] = ['amount' => $amount, 'createdAt' => time(), 'status' => 'PENDING', 'ip' => $ip, 'agent' => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 400), 'paymentMethod' => $mode === 'pix' ? 'manual_pix' : 'blackcat', 'items' => $saleItems, 'customer' => ['name' => $customer['name'], 'email' => $customer['email'], 'phone' => $customer['phone']], 'shipping' => $shipping, 'documentMasked' => '***.***.***-' . substr($cpf, -2)]; return $data;
+    update_data('transactions', function ($data) use ($id, $amount, $ip, $mode, $saleItems, $cpf, $customer, $shipping, $gifts) {
+        $data[$id] = ['amount' => $amount, 'createdAt' => time(), 'status' => 'PENDING', 'ip' => $ip, 'agent' => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 400), 'paymentMethod' => $mode === 'pix' ? 'manual_pix' : 'blackcat', 'items' => array_merge($saleItems, $gifts), 'customer' => ['name' => $customer['name'], 'email' => $customer['email'], 'phone' => $customer['phone']], 'shipping' => $shipping, 'documentMasked' => '***.***.***-' . substr($cpf, -2)]; return $data;
     });
     $response = ['success' => true, 'data' => ['transactionId' => $id, 'status' => $status, 'amount' => $amount, 'paymentMethod' => $mode === 'pix' ? 'manual_pix' : 'blackcat', 'paymentData' => $paymentData, 'invoiceUrl' => $invoice, 'pix' => ['key' => $pix['chave'] ?? '', 'receiverName' => $pix['nome'] ?? '', 'receiverCity' => $pix['cidade'] ?? '']]];
     update_data('payment-requests', function ($data) use ($requestKey, $response) { $data[$requestKey]['response'] = $response; return $data; });

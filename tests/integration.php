@@ -102,6 +102,12 @@ $negative = $order; $negative['items'][] = ['id' => $product['id'], 'quantity' =
 check('Pedido guarda contato e entrega para a loja', $data['charges'][0]['customer']['email'] === 'teste@example.com' && $data['charges'][0]['shipping']['street'] === 'Rua de Teste');
 check('Referência Pix preserva limite do identificador', strlen($charge['data']['transactionId']) <= 25);
 [$status, $payment] = request('/payments/' . $charge['data']['transactionId']); check('Pix manual permanece pendente', $status === 200 && $payment['data']['status'] === 'PENDING');
+$giftOrder = $order; $giftOrder['items'][0]['quantity'] = 7; $giftOrder['expectedAmount'] = 35861; $giftOrder['idempotencyKey'] = 'integration-gift-payment';
+[$status, $giftCharge] = request('/payments/blackcat', 'POST', $giftOrder);
+check('Brinde não aumenta valor do pagamento', $status === 201 && $giftCharge['data']['amount'] === 35861);
+[, $giftData] = request('/admin/data');
+$giftRecord = array_values(array_filter($giftData['charges'], fn($entry) => $entry['id'] === $giftCharge['data']['transactionId']))[0] ?? [];
+check('Pedido inclui uma unidade de brinde sem cobrança', count(array_filter($giftRecord['items'] ?? [], fn($item) => $item['unitPrice'] === 0 && $item['quantity'] === 1 && str_contains($item['title'], 'Brinde'))) === 1);
 [$status] = request('/analytics', 'POST', ['source' => 'view', 'sessionId' => 'integration-visit', 'path' => '/produto.html', 'referrer' => 'https://example.com']); check('Registrar visita real', $status === 200);
 [, $data] = request('/admin/data'); check('Visita e pessoa online no painel', $data['stats']['visits'] === 1 && $data['stats']['online'] === 1);
 [$status] = request('/admin/visit', 'DELETE', ['id' => $data['visits'][0]['id']]); check('Excluir registro de visita', $status === 200);

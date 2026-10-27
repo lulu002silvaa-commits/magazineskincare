@@ -191,6 +191,9 @@
 
   function initHeroSlider(container, slides) {
     if (!slides.length) return;
+    const picture = document.createElement('picture'), source = document.createElement('source');
+    source.media = '(max-width: 650px)'; source.srcset = slides[0].mobileSrc || slides[0].src;
+    picture.append(source);
     const image = document.createElement("img");
     image.className = "hero-slide-image";
     image.alt = slides[0].alt || "Campanha da loja";
@@ -202,20 +205,25 @@
       $$(".placeholder-leaf, .placeholder-label, .placeholder-filename", container)
         .forEach((placeholder) => { placeholder.hidden = true; });
     }, { once: true });
-    container.append(image);
+    picture.append(image); container.append(picture);
+    const controls = $('.hero-slider-controls', container); container.after(controls);
+    const pause = ui('button', 'hero-slider-pause', 'Ⅱ'); pause.type = 'button'; pause.setAttribute('aria-label', 'Pausar banners'); pause.setAttribute('aria-pressed', 'false'); controls.append(pause);
     const campaignLink = document.createElement("a");
     campaignLink.className = "hero-slide-link";
     campaignLink.href = slides[0].href || "#produtos";
     campaignLink.setAttribute("aria-label", `Ver campanha: ${slides[0].alt || "produtos em destaque"}`);
     container.append(campaignLink);
-    const dots = $(".hero-slider-dots", container);
+    const dots = $(".hero-slider-dots", controls);
     let activeIndex = 0;
     let timer;
     let hovered = false;
     let focused = false;
+    let paused = false;
     const show = (index) => {
       activeIndex = (index + slides.length) % slides.length;
+      source.srcset = slides[activeIndex].mobileSrc || slides[activeIndex].src;
       image.src = slides[activeIndex].src;
+      container.dataset.activeSlide = String(activeIndex);
       image.alt = slides[activeIndex].alt || "Campanha da loja";
       campaignLink.href = slides[activeIndex].href || "#produtos";
       campaignLink.setAttribute("aria-label", `Ver campanha: ${slides[activeIndex].alt || "produtos em destaque"}`);
@@ -233,15 +241,28 @@
       dot.addEventListener("click", () => show(index));
       dots.append(dot);
     });
-    $("[data-hero-prev]", container).addEventListener("click", () => show(activeIndex - 1));
-    $("[data-hero-next]", container).addEventListener("click", () => show(activeIndex + 1));
+    $("[data-hero-prev]", controls).addEventListener("click", () => show(activeIndex - 1));
+    $("[data-hero-next]", controls).addEventListener("click", () => show(activeIndex + 1));
     const start = () => {
       stop();
-      if (!hovered && !focused && !document.hidden && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        timer = window.setInterval(() => show(activeIndex + 1), 5000);
+      if (!hovered && !focused && !paused && !document.hidden && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        timer = window.setInterval(() => show(activeIndex + 1), 6000);
       }
     };
     const stop = () => window.clearInterval(timer);
+    pause.onclick = () => { paused = !paused; pause.textContent = paused ? '▶' : 'Ⅱ'; pause.setAttribute('aria-pressed', String(paused)); pause.setAttribute('aria-label', paused ? 'Reproduzir banners' : 'Pausar banners'); start(); };
+    let touch;
+    container.addEventListener('touchstart', event => { touch = event.touches[0]; stop(); }, { passive: true });
+    container.addEventListener('touchend', event => {
+      const end = event.changedTouches[0];
+      if (touch && Math.abs(end.clientX - touch.clientX) > 50 && Math.abs(end.clientX - touch.clientX) > Math.abs(end.clientY - touch.clientY)) { if (event.cancelable) event.preventDefault(); show(activeIndex + (end.clientX < touch.clientX ? 1 : -1)); }
+      touch = null; start();
+    }, { passive: false });
+    container.addEventListener('touchcancel', () => { touch = null; start(); }, { passive: true });
+    controls.addEventListener('focusin', () => { focused = true; stop(); });
+    controls.addEventListener('focusout', event => { if (!controls.contains(event.relatedTarget)) { focused = false; start(); } });
+    image.addEventListener('load', () => { const next = slides[(activeIndex + 1) % slides.length]; const preload = new Image(); preload.fetchPriority = 'low'; preload.src = window.matchMedia('(max-width: 650px)').matches ? (next.mobileSrc || next.src) : next.src; });
+    show(0);
     document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else start(); });
     container.addEventListener("mouseenter", () => { hovered = true; stop(); });
     container.addEventListener("mouseleave", () => { hovered = false; start(); });
@@ -820,6 +841,20 @@
     script.textContent = JSON.stringify(data); document.head.append(script);
   }
 
+  function promotionGift(cart, amountCents) {
+    const gift = productById('drops-serum-hidratante');
+    const paidQuantity = cart.filter(item => item.id === gift?.id).reduce((sum, item) => sum + item.quantity, 0);
+    if (amountCents <= 34900 || !gift || !canPurchase(gift) || (Number.isInteger(gift.estoque) && gift.estoque <= paidQuantity)) return null;
+    return gift;
+  }
+
+  function giftCard(gift) {
+    const card = ui('div', 'promotion-gift');
+    const image = ui('img'); image.src = gift.imagem; image.alt = gift.nome; image.loading = 'lazy';
+    const text = ui('div'); text.append(ui('strong', '', `${gift.nome} — Brinde`), ui('p', '', '1 unidade grátis · Compras acima de R$ 349'));
+    card.append(image, text); return card;
+  }
+
   function renderCart() {
     const container = $('#cartItems'); if (!container) return;
     const cart = readCart(), hasItems = cart.length > 0;
@@ -854,6 +889,9 @@
       }
     });
     $('#cartSubtotal').textContent = money(subtotal / 100);
+    $('#cartGift')?.remove();
+    const gift = promotionGift(cart, subtotal);
+    if (gift) { const card = giftCard(gift); card.id = 'cartGift'; container.after(card); }
     $('#cartItemsTotal').textContent = money(beforeDiscount / 100);
     $('#cartDiscountTotal').textContent = beforeDiscount > subtotal ? `− ${money((beforeDiscount - subtotal) / 100)}` : money(0);
     const validCart = hasItems && cart.every(item => { const p = productById(item.id); return p && canPurchase(p) && item.quantity <= purchaseLimit(p); });
@@ -918,6 +956,8 @@
       container.append(line);
     });
     $("#checkoutSubtotal").textContent = money(subtotal);
+    const gift = promotionGift(cart, Math.round(subtotal * 100));
+    if (gift) container.append(giftCard(gift));
     $('#checkoutRegularSubtotal').textContent = money(regularSubtotal);
     $('#checkoutDiscount').textContent = `− ${money(regularSubtotal - subtotal)}`;
     $('#checkoutItemCount').textContent = `(${validItems.reduce((sum, item) => sum + item.quantity, 0)} itens)`;

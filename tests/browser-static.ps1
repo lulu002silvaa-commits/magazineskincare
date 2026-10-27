@@ -4,6 +4,20 @@ WaitFor "document.querySelectorAll('#productGrid .product-card').length===135"
 Check 'HTML carrega todos os produtos sem PHP' "document.querySelectorAll('#productGrid .product-card').length===135"
 Check 'Não há aviso falso de atualização' "document.querySelector('.store-notice[role=alert]')===null"
 Check 'Vitrine não solicita API ausente' 'window.__apiRequests.length===0'
+Check 'Carrossel tem os cinco banners originais' "document.querySelectorAll('.hero-slider-dot').length===5"
+Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
+WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('home-1-mobile.png') && document.querySelector('.hero-slide-image').naturalWidth>0"
+Check 'Banner mobile tem proporção vertical' "document.querySelector('.hero-media').getBoundingClientRect().height>document.querySelector('.hero-media').getBoundingClientRect().width*1.2"
+Screenshot 'banner-home-mobile.png'
+Evaluate "document.querySelector('[data-hero-next]').click();true" | Out-Null
+WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('home-2-mobile.png')"
+Check 'Setas trocam versão mobile e indicador' "document.querySelectorAll('.hero-slider-dot')[1].getAttribute('aria-current')==='true'"
+Evaluate "document.querySelector('.hero-slider-pause').click();true" | Out-Null
+Check 'Carrossel pode ser pausado' "document.querySelector('.hero-slider-pause').getAttribute('aria-pressed')==='true'"
+Cdp 'Emulation.setDeviceMetricsOverride' @{width=1440;height=1000;deviceScaleFactor=1;mobile=$false} | Out-Null
+WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('home-2-desktop.png')"
+Check 'Desktop usa banner horizontal original' "document.querySelector('.hero-media').getBoundingClientRect().width>document.querySelector('.hero-media').getBoundingClientRect().height*2.7"
+Screenshot 'banner-home-desktop.png'
 Evaluate "document.querySelector('#produtos').scrollIntoView({block:'start',behavior:'instant'});true" | Out-Null
 WaitFor "[...document.querySelectorAll('#featuredGrid img')].every(image=>image.complete && image.naturalWidth>0)"
 Check 'Vitrine tem cards no novo modelo' "document.querySelectorAll('#featuredGrid .product-card .product-pricing').length===4 && document.querySelectorAll('#featuredGrid .cart-icon-button').length===4"
@@ -110,6 +124,14 @@ WaitFor "document.querySelector('#devolucoes')"
 Check 'Atendimento usa contatos fornecidos pela loja' "document.querySelector('#atendimento a').href==='https://wa.me/5511919756184'"
 Check 'Entrega e devolução têm prazos distintos' "document.querySelector('#entrega').textContent.includes('3 dias') && document.querySelector('#devolucoes').textContent.includes('7 dias corridos')"
 Check 'Informações da loja cabem no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
+Evaluate "localStorage.setItem('calma-pele-carrinho',JSON.stringify([{id:'creamy-calming-cream-1',quantity:7}]));true" | Out-Null
+Cdp 'Page.navigate' @{url=($base+'/carrinho.html')} | Out-Null
+WaitFor "document.querySelector('#cartGift')"
+Check 'Brinde aparece sem aumentar total da sacola' "document.querySelector('#cartGift').textContent.includes('Brinde') && document.querySelector('#cartSubtotal').textContent.replace(/[^0-9]/g,'')==='38493'"
+Evaluate "localStorage.setItem('calma-pele-carrinho',JSON.stringify([{id:'creamy-calming-cream-1',quantity:6}]));true" | Out-Null
+Cdp 'Page.navigate' @{url=($base+'/carrinho.html')} | Out-Null
+WaitFor "document.querySelector('#cartItems .cart-item')"
+Check 'Brinde sai quando total fica abaixo da promoção' "!document.querySelector('#cartGift')"
 Check 'Modo estático sem exceções JavaScript' 'true'
 if($script:errors.Count){throw ($script:errors -join ', ')}
 Cdp 'Page.removeScriptToEvaluateOnNewDocument' @{identifier=$monitor.identifier} | Out-Null

@@ -316,3 +316,25 @@ body[data-page="checkout"] .inner-page{max-width:1140px}body[data-page="checkout
 }
 .simple-footer .wrap { flex-wrap: wrap; align-items: center; }
 .site-footer a { overflow-wrap: anywhere; }
+
+/* Carrossel com arquivos próprios para cada tela. */
+body[data-page=home] .hero-media { height: auto; min-height: 0; aspect-ratio: 1668 / 600; border-radius: 0; overflow: hidden; }
+body[data-page=home] .hero-media picture { position: absolute; inset: 0; display: block; }
+body[data-page=home] .hero-media .hero-slide-image { object-fit: contain; }
+body[data-page=home] .hero-slider-controls { position: static; display: grid; grid-template-columns: minmax(0,1fr) 44px 44px 44px; align-items: center; gap: 8px; min-height: 64px; margin: 8px auto 0; width: min(1240px,calc(100% - 32px)); }
+body[data-page=home] .hero-slider-dots { grid-column: 1; grid-row: 1; justify-self: start; gap: 0; padding: 0; }
+body[data-page=home] .hero-slider-arrow { width: 44px; height: 44px; border-radius: 50%; border: 1px solid #eef1f5; background: #fff; color: #054d99; }
+body[data-page=home] [data-hero-prev] { grid-column: 2; grid-row: 1; }
+body[data-page=home] [data-hero-next] { grid-column: 3; grid-row: 1; }
+body[data-page=home] .hero-slider-pause { grid-column: 4; grid-row: 1; height: 44px; border-radius: 50%; border: 1px solid #eef1f5; background: #fff; color: #054d99; cursor: pointer; }
+body[data-page=home] .hero-slider-dot { width: 22px; height: 44px; min-width: 22px; padding: 0; border: 0; border-radius: 0; background: transparent; display: grid; place-items: center; }
+body[data-page=home] .hero-slider-dot::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #e5e9ef; }
+body[data-page=home] .hero-slider-dot.active::after { background: #054d99; }
+.promotion-gift { display: flex; align-items: center; gap: 12px; padding: 16px; margin-top: 14px; border: 1px solid #dce9e1; background: #f3faf5; border-radius: 8px; color: #225b38; font-size: 12px; }
+.promotion-gift img { width: 60px; height: 72px; object-fit: contain; }
+.promotion-gift p { margin: 4px 0 0; font-size: 11px; }
+@media(max-width:650px) {
+  body[data-page=home] .hero { width: calc(100% - 16px); max-width: none; margin: 0 8px; }
+  body[data-page=home] .hero-media { aspect-ratio: 640 / 800; border-radius: 12px; }
+  body[data-page=home] .hero-slider-controls { width: 100%; gap: 5px; margin-top: 10px; }
+}

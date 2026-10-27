@@ -58,6 +58,13 @@ function initial_products(): array {
     return json_decode($source, true, 512, JSON_THROW_ON_ERROR);
 }
 
+function promotion_gifts(array $products, array $requested, int $amount): array {
+    $gift = array_column($products, null, 'id')['drops-serum-hidratante'] ?? null;
+    if ($amount <= 34900 || !$gift || empty($gift['disponivel'])) return [];
+    if (isset($gift['estoque']) && $gift['estoque'] <= ($requested[$gift['id']] ?? 0)) return [];
+    return [['title' => $gift['nome'] . ' — Brinde', 'unitPrice' => 0, 'quantity' => 1, 'tangible' => true]];
+}
+
 function initial_store(): array {
     return [
         'revision' => 0,
