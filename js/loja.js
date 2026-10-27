@@ -403,7 +403,7 @@
           field.hidden = resolved; field.previousElementSibling.hidden = resolved;
         });
         const summary = [value.street, value.neighborhood, [value.city, value.state].filter(Boolean).join(' / ')].filter(Boolean).join(', ');
-        status.textContent = `${summary ? `${summary}. ` : ''}Frete grátis. O prazo será confirmado antes do envio. ${value.street && value.neighborhood ? 'Confirme o número da casa.' : 'Complete os dados do endereço e o número.'}`;
+        status.textContent = `${summary ? `${summary}. ` : ''}Frete grátis. Entrega em até 3 dias após a confirmação do pagamento. ${value.street && value.neighborhood ? 'Confirme o número da casa.' : 'Complete os dados do endereço e o número.'}`;
         saveDelivery(value);
       };
       const cached = readDelivery();

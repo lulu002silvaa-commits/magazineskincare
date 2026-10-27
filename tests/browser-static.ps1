@@ -52,7 +52,7 @@ Check 'Sacola tem entrega, cupom e resumo' "!!document.querySelector('#cartCoupo
 Check 'Sacola mostra recomendações complementares' "document.querySelectorAll('#cartRecommendations .product-card').length===4 && document.querySelectorAll('#cartReminders .product-card').length===4"
 Evaluate "window.originalAddressFetch=window.fetch;window.fetch=(url,options)=>/viacep.com.br|brasilapi.com.br|opencep.com/.test(String(url))?Promise.resolve({ok:true,json:()=>Promise.resolve(String(url).includes('00000000')?{erro:true}:{logradouro:'Rua de Teste',bairro:'Centro',localidade:'Belo Horizonte',uf:'MG',street:'Rua de Teste',neighborhood:'Centro',city:'Belo Horizonte',state:'MG'})}):window.originalAddressFetch(url,options);document.querySelector('#cartPostcode').value='30140-071';document.querySelector('[data-shipping-form]').requestSubmit();document.querySelector('#couponCode').value='TESTE-INVALIDO';document.querySelector('#cartCoupon').requestSubmit();true" | Out-Null
 WaitFor "document.querySelector('#cartShippingStatus').textContent.includes('Rua de Teste')"
-Check 'CEP calcula entrega sem inventar prazo' "document.querySelector('#cartShippingStatus').textContent.includes('Frete grátis') && document.querySelector('#cartShippingStatus').textContent.includes('confirmado')"
+Check 'CEP mostra prazo de entrega informado pela loja' "document.querySelector('#cartShippingStatus').textContent.includes('Frete grátis') && document.querySelector('#cartShippingStatus').textContent.includes('3 dias')"
 Check 'CEP preenche endereço e pede número' "document.querySelector('#cartPostcode-street').value==='Rua de Teste' && document.querySelector('#cartPostcode-street').hidden && !document.querySelector('#cartPostcode-number').hidden && document.querySelector('#cartShippingStatus').textContent.includes('Belo Horizonte')"
 Evaluate "document.querySelector('#cartPostcode-number').value='123';document.querySelector('#cartPostcode-number').dispatchEvent(new Event('input'));true" | Out-Null
 Check 'Número é preservado para o checkout' "JSON.parse(sessionStorage.getItem('magazine-delivery-address')).number==='123'"
@@ -105,6 +105,11 @@ Evaluate "document.querySelector('#mobileSearchToggle').click();true" | Out-Null
 Check 'Busca mobile abre e recebe foco' "document.querySelector('#searchForm').classList.contains('search-open') && document.activeElement.id==='searchInput'"
 Evaluate "document.querySelector('#mobileSearchToggle').click();true" | Out-Null
 Screenshot 'otimizacao-home-mobile.png'
+Cdp 'Page.navigate' @{url=($base+'/empresa.html')} | Out-Null
+WaitFor "document.querySelector('#devolucoes')"
+Check 'Atendimento usa contatos fornecidos pela loja' "document.querySelector('#atendimento a').href==='https://wa.me/5511919756184'"
+Check 'Entrega e devolução têm prazos distintos' "document.querySelector('#entrega').textContent.includes('3 dias') && document.querySelector('#devolucoes').textContent.includes('7 dias corridos')"
+Check 'Informações da loja cabem no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
 Check 'Modo estático sem exceções JavaScript' 'true'
 if($script:errors.Count){throw ($script:errors -join ', ')}
 Cdp 'Page.removeScriptToEvaluateOnNewDocument' @{identifier=$monitor.identifier} | Out-Null

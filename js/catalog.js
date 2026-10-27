@@ -3,8 +3,8 @@ window.STORE_CONFIG = {
     name: "Magazine do Skincare",
     tagline: "Produtos para sua rotina de cuidados com a pele",
     announcement: "Ciência e cuidado para transformar sua rotina de skincare",
-    contactEmail: "",
-    contactText: "Magazine do Skincare · CNPJ 34.105.837/0001-17",
+    contactEmail: "morgana@extratosdaterra.com.br",
+    contactText: "WhatsApp: (11) 91975-6184",
     logo: "public/images/brand/magazine-do-skincare.png"
   },
   images: {

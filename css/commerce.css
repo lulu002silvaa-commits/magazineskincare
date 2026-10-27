@@ -314,3 +314,5 @@ body[data-page="checkout"] .inner-page{max-width:1140px}body[data-page="checkout
   .product-buy-box .product-buy-actions>.button { min-height: 52px; font-size: 13px; }
   .product-buy-box .free-shipping-line { min-height: 52px; margin-top: 18px; border-radius: 12px; font-size: 13px; }
 }
+.simple-footer .wrap { flex-wrap: wrap; align-items: center; }
+.site-footer a { overflow-wrap: anywhere; }
