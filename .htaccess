@@ -1,5 +1,4 @@
 Options -Indexes
-ErrorDocument 404 /404.html
 RewriteEngine On
 RewriteRule (^|/)\.(?!well-known/) - [F,L]
 RewriteRule ^(?:php|tests)/ - [F,L]

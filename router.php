@@ -15,8 +15,8 @@ if (in_array($path, ['/', '/index.html', '/produto.html', '/carrinho.html', '/ch
 if ($path === '/admin.html') { header('Location: /admin.php', true, 302); return true; }
 if (!is_file(__DIR__ . $path)) {
     http_response_code(404);
-    header('Content-Type: text/html; charset=utf-8');
-    readfile(__DIR__ . '/404.html');
+    header('Content-Type: text/plain; charset=utf-8');
+    echo 'Página não encontrada.';
     return true;
 }
 return false;
