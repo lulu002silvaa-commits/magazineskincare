@@ -1,0 +1,107 @@
+<?php
+declare(strict_types=1);
+// Executar somente contra servidor de teste com STORE_DATA_DIR isolado.
+$base = getenv('TEST_BASE_URL') ?: 'http://127.0.0.1:8091';
+$client = curl_init();
+curl_setopt_array($client, [CURLOPT_RETURNTRANSFER => true, CURLOPT_COOKIEFILE => '', CURLOPT_TIMEOUT => 15]);
+$csrf = '';
+$count = 0;
+function request(string $route, string $method = 'GET', ?array $body = null, ?array $form = null, ?string $token = null): array {
+    global $client, $base, $csrf;
+    $headers = [];
+    if ($method !== 'GET') $headers[] = 'X-CSRF-Token: ' . ($token ?? $csrf);
+    curl_setopt_array($client, [CURLOPT_URL => $base . '/api.php?route=' . rawurlencode($route), CURLOPT_CUSTOMREQUEST => $method, CURLOPT_POSTFIELDS => null, CURLOPT_HTTPHEADER => []]);
+    if ($form !== null) curl_setopt($client, CURLOPT_POSTFIELDS, $form);
+    elseif ($body !== null) { $headers[] = 'Content-Type: application/json'; curl_setopt($client, CURLOPT_POSTFIELDS, json_encode($body)); }
+    curl_setopt($client, CURLOPT_CUSTOMREQUEST, $method);
+    curl_setopt($client, CURLOPT_HTTPHEADER, $headers);
+    $raw = curl_exec($client);
+    if ($raw === false) throw new RuntimeException(curl_error($client));
+    return [curl_getinfo($client, CURLINFO_RESPONSE_CODE), json_decode($raw, true)];
+}
+function check(string $name, bool $passed): void {
+    global $count;
+    if (!$passed) throw new RuntimeException('FALHOU: ' . $name);
+    $count++; echo "OK $name\n";
+}
+[$status, $catalog] = request('/catalog');
+check('Catálogo inicial com 135 produtos', $status === 200 && count($catalog['products']) === 135);
+[$status] = request('/admin/data'); check('Dados administrativos protegidos', $status === 401);
+[, $session] = request('/admin/session'); $csrf = $session['csrf'];
+check('Primeiro acesso permite criar a senha local', $session['setupRequired'] && $session['setupAllowed']);
+[$status] = request('/admin/setup', 'POST', ['password' => 'curta']); check('Senha inicial curta rejeitada', $status === 422);
+[$status] = request('/admin/setup', 'POST', ['password' => str_repeat('A', 73)]); check('Senha além do limite de hash rejeitada', $status === 422);
+[$status] = request('/admin/setup', 'POST', ['password' => 'php-admin-test-only-2026']); check('Criar senha no primeiro acesso', $status === 200);
+$auth = json_decode(file_get_contents((getenv('TEST_DATA_DIR') ?: __DIR__ . '/../.runtime/test-data') . '/admin-auth.json'), true);
+check('Senha salva apenas como hash', $auth['hash'] !== 'php-admin-test-only-2026' && password_verify('php-admin-test-only-2026', $auth['hash']));
+[$status] = request('/admin/setup', 'POST', ['password' => 'outra-senha-para-teste']); check('Senha inicial não pode ser sobrescrita', $status === 403);
+[$status] = request('/admin/login', 'POST', ['username' => 'admin', 'password' => 'incorreta']); check('Senha incorreta rejeitada', $status === 401);
+[$status, $login] = request('/admin/login', 'POST', ['username' => 'admin', 'password' => 'php-admin-test-only-2026']);
+check('Login com sessão PHP', $status === 200 && !empty($login['csrf'])); $csrf = $login['csrf'];
+[$status] = request('/admin/settings', 'POST', [], null, 'invalido'); check('Token CSRF inválido rejeitado', $status === 403);
+[, $data] = request('/admin/data');
+check('Indicadores sem dados fictícios', $data['stats']['pix'] === 0 && $data['stats']['revenue'] === 0);
+$product = $catalog['products'][0]; $product['preco'] = 51.23; $product['descricao'] = 'Descrição atualizada em teste de integração.';
+[$status, $saved] = request('/admin/product', 'POST', ['product' => $product, 'revision' => 0]); check('Editar produto no servidor', $status === 200 && $saved['revision'] === 1);
+[, $updated] = request('/catalog');
+check('Loja consulta o produto editado', $updated['products'][0]['preco'] === 51.23 && $updated['products'][0]['descricao'] === $product['descricao']);
+check('Galerias preservadas ao editar', $updated['products'][0]['imagens'] === $product['imagens']);
+[$status] = request('/admin/product', 'POST', ['product' => $product, 'revision' => 0]); check('Conflito entre edições detectado', $status === 409);
+$bad = $product; $bad['preco'] = -1;
+[$status] = request('/admin/product', 'POST', ['product' => $bad, 'revision' => 1]); check('Preço negativo rejeitado', $status === 422);
+$bad['preco'] = 0.001;
+[$status] = request('/admin/product', 'POST', ['product' => $bad, 'revision' => 1]); check('Preço que arredonda para zero rejeitado', $status === 422);
+[$status] = request('/admin/product', 'POST', ['product' => 'inválido', 'revision' => 1]); check('Produto malformado retorna erro de validação', $status === 422);
+$bad = $product; $bad['especificacoes']['Composição'] = [];
+[$status] = request('/admin/product', 'POST', ['product' => $bad, 'revision' => 1]); check('Especificações inválidas rejeitadas', $status === 422);
+[$status] = request('/admin/product', 'POST', ['product' => $product, 'revision' => 1, 'create' => true]); check('Novo produto não sobrescreve identificador existente', $status === 422);
+$new = $product; $new['id'] = 'integration-new'; $new['nome'] = 'Produto de teste'; $new['estoque'] = 3;
+[$status, $saved] = request('/admin/product', 'POST', ['product' => $new, 'revision' => 1]); check('Cadastrar produto', $status === 200);
+$new['estoque'] = 0;
+[$status, $saved] = request('/admin/product', 'POST', ['product' => $new, 'revision' => $saved['revision']]);
+[, $zero] = request('/catalog'); $zeroProduct = array_values(array_filter($zero['products'], fn($p) => $p['id'] === 'integration-new'))[0];
+check('Estoque zero desativa compra', $status === 200 && $zeroProduct['disponivel'] === false);
+[$status, $saved] = request('/admin/product', 'DELETE', ['id' => $new['id'], 'revision' => $saved['revision']]); check('Excluir produto', $status === 200);
+$revision = $saved['revision'];
+[$status] = request('/admin/upload', 'POST', null, ['image' => new CURLFile(__FILE__, 'text/plain', 'arquivo.php')]); check('Upload de código rejeitado', $status === 422);
+[$status, $upload] = request('/admin/upload', 'POST', null, ['image' => new CURLFile(__DIR__ . '/../public/images/brand/magazine-do-skincare.png', 'image/png', 'foto.png')]); check('Upload de imagem real', $status === 201 && str_starts_with($upload['path'], 'public/images/uploads/'));
+curl_setopt_array($client, [CURLOPT_URL => $base . '/' . $upload['path'], CURLOPT_POSTFIELDS => null, CURLOPT_CUSTOMREQUEST => 'GET']); $imageBytes = curl_exec($client);
+check('Imagem enviada tem URL pública funcional', curl_getinfo($client, CURLINFO_RESPONSE_CODE) === 200 && getimagesizefromstring($imageBytes) !== false);
+// O upload do teste não é publicado no catálogo. Remover somente esse arquivo.
+$uploadPath = realpath((getenv('TEST_DATA_DIR') ?: __DIR__ . '/../.runtime/test-data') . '/uploads/' . basename($upload['path']));
+$uploadRoot = realpath((getenv('TEST_DATA_DIR') ?: __DIR__ . '/../.runtime/test-data') . '/uploads');
+if ($uploadPath && $uploadRoot && str_starts_with($uploadPath, $uploadRoot . DIRECTORY_SEPARATOR)) unlink($uploadPath);
+[$status] = request('/admin/settings', 'POST', ['revision' => $revision, 'name' => 'Loja', 'method' => 'pix', 'pix' => ['chave' => str_repeat('A', 78), 'nome' => 'LOJA', 'cidade' => 'BRASILIA']]); check('Chave Pix que gera QR inválido rejeitada', $status === 422);
+[$status, $saved] = request('/admin/settings', 'POST', ['revision' => $revision, 'name' => 'Loja de teste', 'method' => 'pix', 'pix' => ['chave' => 'teste@example.com', 'nome' => 'LOJA TESTE', 'cidade' => 'BRASILIA']]); check('Configurações Pix persistidas', $status === 200);
+[, $config] = request('/payment-config'); check('Checkout recebe configuração salva', $config['available'] && $config['method'] === 'pix');
+$order = ['items' => [['id' => $product['id'], 'quantity' => 2, 'price' => 0.01]], 'customer' => ['name' => 'Teste de integração', 'email' => 'teste@example.com', 'phone' => '11999999999', 'document' => ['number' => '52998224725']], 'shipping' => ['street' => 'Rua de Teste', 'number' => '1', 'neighborhood' => 'Centro', 'city' => 'Brasilia', 'state' => 'DF', 'zipCode' => '70000000']];
+$order['idempotencyKey'] = 'integration-payment-request'; $order['expectedAmount'] = 10246;
+$invalid = $order; $invalid['customer']['document']['number'] = '11111111111';
+[$status] = request('/payments/blackcat', 'POST', $invalid); check('CPF inválido rejeitado', $status === 422);
+[$status, $charge] = request('/payments/blackcat', 'POST', $order);
+check('Pix manual calculado pelo servidor', $status === 201 && $charge['data']['amount'] === 10246 && $charge['data']['paymentMethod'] === 'manual_pix');
+[$status, $repeated] = request('/payments/blackcat', 'POST', $order);
+check('Repetir pedido reutiliza a mesma cobrança', $status === 200 && $repeated['data']['transactionId'] === $charge['data']['transactionId']);
+$priceChanged = $order; $priceChanged['expectedAmount'] = 1;
+[$status] = request('/payments/blackcat', 'POST', $priceChanged); check('Mudança de preço exige revisão da sacola', $status === 409);
+$negative = $order; $negative['items'][] = ['id' => $product['id'], 'quantity' => -1];
+[$status] = request('/payments/blackcat', 'POST', $negative); check('Quantidade negativa não compensa outro item', $status === 422);
+[, $data] = request('/admin/data'); check('Pix gerado não conta como receita paga', $data['stats']['pix'] === 1 && $data['stats']['revenue'] === 0);
+check('Pedido guarda contato e entrega para a loja', $data['charges'][0]['customer']['email'] === 'teste@example.com' && $data['charges'][0]['shipping']['street'] === 'Rua de Teste');
+check('Referência Pix preserva limite do identificador', strlen($charge['data']['transactionId']) <= 25);
+[$status, $payment] = request('/payments/' . $charge['data']['transactionId']); check('Pix manual permanece pendente', $status === 200 && $payment['data']['status'] === 'PENDING');
+[$status] = request('/analytics', 'POST', ['source' => 'view', 'sessionId' => 'integration-visit', 'path' => '/produto.html', 'referrer' => 'https://example.com']); check('Registrar visita real', $status === 200);
+[, $data] = request('/admin/data'); check('Visita e pessoa online no painel', $data['stats']['visits'] === 1 && $data['stats']['online'] === 1);
+[$status] = request('/admin/visit', 'DELETE', ['id' => $data['visits'][0]['id']]); check('Excluir registro de visita', $status === 200);
+[$status] = request('/admin/block', 'POST', ['ip' => '127.0.0.1', 'blocked' => true]); check('Bloquear IP', $status === 200);
+curl_setopt_array($client, [CURLOPT_URL => $base . '/index.html', CURLOPT_CUSTOMREQUEST => 'GET', CURLOPT_POSTFIELDS => null]); curl_setopt($client, CURLOPT_CUSTOMREQUEST, 'GET'); curl_exec($client);
+check('IP bloqueado não abre a loja', curl_getinfo($client, CURLINFO_RESPONSE_CODE) === 403);
+[$status] = request('/analytics', 'POST', ['source' => 'view', 'sessionId' => 'blocked-visit']); check('Bloqueio aplicado à coleta', $status === 403);
+[$status] = request('/admin/unblock-all', 'POST', []); check('Desbloquear IPs', $status === 200);
+foreach (['/.env', '/.data/store.json', '/php/bootstrap.php', '/backup-limpeza.zip', '/php-local.ini'] as $path) {
+    curl_setopt_array($client, [CURLOPT_URL => $base . $path, CURLOPT_CUSTOMREQUEST => 'GET', CURLOPT_POSTFIELDS => null]); curl_setopt($client, CURLOPT_CUSTOMREQUEST, 'GET'); curl_exec($client);
+    check('Arquivo privado indisponível: ' . $path, curl_getinfo($client, CURLINFO_RESPONSE_CODE) === 404);
+}
+[$status] = request('/admin/logout', 'POST', []); check('Sair do painel', $status === 200);
+[$status] = request('/admin/data'); check('Sessão encerrada não acessa dados', $status === 401);
+echo "$count verificações passaram. Nenhuma cobrança externa foi enviada.\n";

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#145493">
+  <title>Finalizar pedido | Magazine do Skincare</title>
+  <link rel="icon" href="public/images/brand/magazine-do-skincare.png" type="image/png">
+  <link rel="stylesheet" href="css/skin.css?v=9">
+  <script src="js/api-base.js?v=2"></script>
+  <script src="js/products.js?v=5" defer></script>
+  <script src="js/catalog.js?v=7" defer></script>
+  <script src="js/pix.js" defer></script>
+  <script src="js/vendor/qrcode.min.js" defer></script>
+  <script src="js/payment-service.js?v=9" defer></script>
+  <script src="js/loja.js?v=9" defer></script>
+</head>
+<body data-page="checkout">
+  <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
+  <div class="announcement" id="announcement"></div>
+  <header class="site-header"><div class="header-main wrap">
+    <a class="brand" href="index.html"><img class="store-logo" src="public/images/brand/magazine-do-skincare.png" alt="Magazine do Skincare" width="240" height="80"></a>
+    <a class="text-link" href="carrinho.html">← Voltar para a sacola</a>
+    <a class="cart-link" href="carrinho.html">Sacola <span id="cartCount" class="cart-count">0</span></a>
+  </div></header>
+  <main id="main-content" class="wrap inner-page">
+    <p class="eyebrow">PEDIDO</p><h1 class="page-title">Finalizar pedido</h1>
+    <div class="checkout-layout" id="checkoutLayout">
+      <form class="checkout-form" id="checkoutForm">
+        <p class="checkout-step">ETAPA 1 DE 1 <span>Contato e entrega</span></p>
+        <h2>Seus dados para entrega</h2>
+        <p class="checkout-intro">Informe seus dados para gerar o Pix seguro. Digite o CEP para preencher o endereço automaticamente.</p>
+        <fieldset class="checkout-fieldset">
+          <legend>Contato</legend>
+          <div class="form-grid">
+          <div class="form-field full"><label for="customerName">Nome completo</label><input id="customerName" name="name" autocomplete="name" required minlength="2" maxlength="120" placeholder="Seu nome"></div>
+          <div class="form-field"><label for="customerPhone">WhatsApp</label><input id="customerPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required minlength="10" maxlength="20" placeholder="(00) 00000-0000"></div>
+          <div class="form-field"><label for="customerEmail">E-mail</label><input id="customerEmail" name="email" type="email" autocomplete="email" maxlength="254" placeholder="voce@email.com" required></div>
+          <div class="form-field"><label for="customerCpf">CPF</label><input id="customerCpf" name="cpf" inputmode="numeric" autocomplete="off" required minlength="11" maxlength="14" placeholder="000.000.000-00"></div>
+          </div>
+        </fieldset>
+        <fieldset class="checkout-fieldset address-fieldset">
+          <legend>Endereço de entrega</legend>
+          <div class="form-grid">
+          <div class="form-field"><label for="shippingZipCode">CEP</label><input id="shippingZipCode" name="zipCode" type="text" inputmode="numeric" autocomplete="postal-code" required pattern="[0-9]{5}-?[0-9]{3}" maxlength="9" placeholder="00000-000" aria-describedby="cepLookupStatus"><small id="cepLookupStatus" class="field-help" role="status" aria-live="polite">Digite o CEP para preencher rua, bairro, cidade e estado.</small></div>
+          <div class="form-field full"><label for="shippingAddress">Rua / Avenida</label><input id="shippingAddress" name="address" autocomplete="address-line1" required minlength="2" maxlength="200" placeholder="Preenchido pelo CEP; você pode corrigir"></div>
+          <div class="form-field"><label for="shippingNumber">Número</label><input id="shippingNumber" name="number" autocomplete="off" required maxlength="30" placeholder="Número"></div>
+          <div class="form-field"><label for="shippingComplement">Complemento <span>(opcional)</span></label><input id="shippingComplement" name="complement" autocomplete="address-line2" maxlength="120" placeholder="Apto., bloco etc."></div>
+          <div class="form-field full"><label for="shippingNeighborhood">Bairro</label><input id="shippingNeighborhood" name="neighborhood" autocomplete="address-level3" required maxlength="120"></div>
+          <div class="form-field"><label for="shippingCity">Cidade</label><input id="shippingCity" name="city" autocomplete="address-level2" required maxlength="120"></div>
+          <div class="form-field"><label for="shippingState">Estado (UF)</label><input id="shippingState" name="state" maxlength="2" pattern="[A-Za-z]{2}" autocomplete="address-level1" required></div>
+          </div>
+        </fieldset>
+        <p class="checkout-privacy-note">Seus dados são usados para processar o pagamento e organizar a entrega.</p>
+        <button class="button button-dark button-full checkout-submit" id="reserveOrder" type="submit" disabled>Gerar Pix seguro</button>
+        <p id="checkoutError" class="form-status error-text" role="alert"></p>
+      </form>
+      <aside class="checkout-summary"><h2>Resumo</h2><div id="checkoutItems"></div><div class="summary-row"><span>Produtos</span><strong id="checkoutSubtotal">R$ 0,00</strong></div><div class="summary-row"><span>Frete</span><strong>Grátis</strong></div><div class="payment-notice"><strong id="paymentProviderTitle">Pagamento por Pix</strong><p id="paymentAvailability">Verificando disponibilidade do pagamento...</p></div></aside>
+    </div>
+    <section class="confirmation-card pix-payment-card" id="pixPayment" hidden aria-live="polite"><p class="eyebrow">PAGAMENTO PIX</p><h2 id="pixTitle">Finalize seu pagamento</h2><p id="pixStatus">Aguardando pagamento</p><p id="confirmationReference"></p><img id="pixQrImage" class="pix-qr-image" alt="QR Code Pix para pagamento" hidden><label for="pixCopyPaste">Pix copia e cola</label><textarea id="pixCopyPaste" readonly rows="4"></textarea><button class="button button-dark" id="copyPix" type="button">Copiar código Pix</button><p id="pixExpiry" class="field-help"></p><a class="button button-outline" id="pixInvoice" href="#" target="_blank" rel="noopener" hidden>Abrir pagamento BlackCat</a><p>Frete grátis. O Pix cobra somente o valor dos produtos.</p><a class="button button-outline" href="index.html">Voltar para a loja</a></section>
+    <section class="empty-state" id="checkoutEmpty" hidden><span class="empty-flower" aria-hidden="true">✳</span><h2>Não há produtos para finalizar</h2><p>Adicione um produto disponível à sacola antes de continuar.</p><a class="button button-dark" href="index.html#produtos">Explorar produtos</a></section>
+  </main>
+  <footer class="simple-footer"><div class="wrap"><a href="index.html">Magazine do Skincare</a><a href="empresa.html">Empresa e endereço · CNPJ 34.105.837/0001-17</a></div></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <noscript><p class="store-notice">Ative o JavaScript para consultar os produtos e utilizar a sacola.</p></noscript>
+</body>
+</html>

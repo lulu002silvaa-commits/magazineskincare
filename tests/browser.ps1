@@ -1,0 +1,129 @@
+﻿$ErrorActionPreference = 'Stop'
+$root = Split-Path $PSScriptRoot -Parent
+$base = if ($env:TEST_BASE_URL) { $env:TEST_BASE_URL } else { 'http://127.0.0.1:8091' }
+$output = Join-Path $root '.runtime/browser-check'
+New-Item -ItemType Directory -Path $output -Force | Out-Null
+$browser = 'C:/Program Files/Google/Chrome/Application/chrome.exe'
+$profile = Join-Path $output ('profile-' + [guid]::NewGuid().ToString('N'))
+$process = Start-Process -FilePath $browser -ArgumentList @('--headless','--no-sandbox','--disable-gpu','--no-first-run','--remote-debugging-port=9223','--remote-allow-origins=*',('--user-data-dir="'+$profile+'"'),'about:blank') -WindowStyle Hidden -PassThru
+$socket = New-Object Net.WebSockets.ClientWebSocket
+$script:sequence = 0
+$script:errors = @()
+function Cdp($method,$parameters=@{}) {
+  $script:sequence++
+  $message = @{id=$script:sequence;method=$method;params=$parameters} | ConvertTo-Json -Depth 30 -Compress
+  $bytes = [Text.Encoding]::UTF8.GetBytes($message)
+  $segment = New-Object 'ArraySegment[byte]' -ArgumentList (,$bytes)
+  $socket.SendAsync($segment,[Net.WebSockets.WebSocketMessageType]::Text,$true,[Threading.CancellationToken]::None).GetAwaiter().GetResult() | Out-Null
+  while($true) {
+    $stream = New-Object IO.MemoryStream
+    do {
+      $buffer = New-Object byte[] 65536
+      $chunk = New-Object 'ArraySegment[byte]' -ArgumentList (,$buffer)
+      $result = $socket.ReceiveAsync($chunk,[Threading.CancellationToken]::None).GetAwaiter().GetResult()
+      $stream.Write($buffer,0,$result.Count)
+    } while(!$result.EndOfMessage)
+    $reply = [Text.Encoding]::UTF8.GetString($stream.ToArray()) | ConvertFrom-Json
+    $stream.Dispose()
+    if($reply.method -eq 'Runtime.exceptionThrown') {$script:errors += $reply.params.exceptionDetails.text}
+    if($reply.id -eq $script:sequence) {if($reply.error){throw ($reply.error | ConvertTo-Json)}; return $reply.result}
+  }
+}
+function Evaluate($expression) {
+  $result = Cdp 'Runtime.evaluate' @{expression=$expression;awaitPromise=$true;returnByValue=$true}
+  if($result.exceptionDetails){throw ($result.exceptionDetails | ConvertTo-Json -Depth 10)}
+  return $result.result.value
+}
+function WaitFor($expression) {
+  $result = Evaluate ("(async()=>{for(let i=0;i<100;i++){if("+$expression+")return true;await new Promise(r=>setTimeout(r,100));}throw new Error('Tempo esgotado: '+"+($expression | ConvertTo-Json -Compress)+");})()")
+  if(!$result){throw 'Condição não atendida'}
+}
+function Check($name,$expression) {if(!(Evaluate $expression)){throw ('FALHOU: '+$name)}; Write-Output ('OK '+$name)}
+function Screenshot($name) {$capture=Cdp 'Page.captureScreenshot' @{format='png';captureBeyondViewport=$false};[IO.File]::WriteAllBytes((Join-Path $output $name),[Convert]::FromBase64String($capture.data))}
+try {
+  $target=$null
+  for($i=0;$i -lt 60;$i++){try{$allTargets=Invoke-RestMethod -Uri 'http://127.0.0.1:9223/json/list'; $target=$allTargets | Where-Object type -eq 'page' | Select-Object -First 1;if($target){break}}catch{};Start-Sleep -Milliseconds 100}
+  if(!$target){throw 'Chrome não iniciou'}
+  $socket.ConnectAsync([uri]$target.webSocketDebuggerUrl,[Threading.CancellationToken]::None).GetAwaiter().GetResult() | Out-Null
+  Cdp 'Page.enable' | Out-Null
+  Cdp 'Runtime.enable' | Out-Null
+  Cdp 'Storage.clearDataForOrigin' @{origin=$base;storageTypes='all'} | Out-Null
+  Cdp 'Emulation.setDeviceMetricsOverride' @{width=1600;height=1000;deviceScaleFactor=1;mobile=$false} | Out-Null
+  Cdp 'Page.navigate' @{url=($base+'/admin.php')} | Out-Null
+  WaitFor "document.querySelector('#loginForm')"
+  Evaluate "document.querySelector('[name=username]').value='admin';document.querySelector('[name=password]').value='php-admin-test-only-2026';document.querySelector('#loginForm').requestSubmit();true" | Out-Null
+  WaitFor "document.querySelector('#stats .stat')"
+  Check 'Quatro indicadores no dashboard' "document.querySelectorAll('.stat').length===4"
+  Check 'Menu lateral e tabelas' "!!document.querySelector('.sidebar') && document.querySelectorAll('table').length===2"
+  Screenshot 'dashboard.png'
+  Evaluate "document.querySelector('[data-page=products]').click();true" | Out-Null
+  Check 'Listagem paginada de produtos' "document.querySelectorAll('[data-edit]').length===12"
+  Evaluate "document.querySelector('#productSearch').value='mandelico';document.querySelector('#productSearch').dispatchEvent(new Event('input'));true" | Out-Null
+  Check 'Busca de produtos sem acentos' "document.querySelectorAll('[data-edit]').length>0 && document.querySelectorAll('[data-edit]').length<12"
+  Evaluate "document.querySelector('#productSearch').value='';document.querySelector('#productSearch').dispatchEvent(new Event('input'));document.querySelector('[data-edit]').click();true" | Out-Null
+  Check 'Editor com todas as fotos' "document.querySelector('dialog').open && document.querySelectorAll('.image-row').length>=4"
+  WaitFor "document.fonts.check('13px AdminRoc') && [...document.querySelectorAll('.product-thumb')].every(img=>img.complete && img.naturalWidth>0)"
+  Check 'Imagens e fontes carregam' "document.fonts.check('13px AdminRoc') && [...document.querySelectorAll('.product-thumb')].every(img=>img.complete && img.naturalWidth>0)"
+  Screenshot 'editor.png'
+  Evaluate "document.querySelector('[name=preco]').value='52.34';document.querySelectorAll('[data-move]')[2].click();document.querySelector('#productForm').requestSubmit();true" | Out-Null
+  WaitFor "!document.querySelector('dialog').open && document.querySelector('#notice').textContent.includes('Produto salvo')"
+  Check 'Preço e reordenação persistem' "(async()=>{const r=await fetch('/api/catalog');const d=await r.json();return d.products[0].preco===52.34 && d.products[0].imagem===d.products[0].imagens[0];})()"
+  Screenshot 'produtos.png'
+  Evaluate "document.querySelector('[data-page=dashboard]').click();true" | Out-Null
+  Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
+  Check 'Dashboard cabe no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
+  Screenshot 'mobile.png'
+  Cdp 'Page.navigate' @{url=($base+'/produto.html?id=creamy-calming-cream-1')} | Out-Null
+  WaitFor "document.querySelector('#productName')?.textContent.length>0"
+  Check 'Loja usa preço salvo no admin' "document.querySelector('#productPrices').textContent.includes('52,34')"
+  Check 'Galeria pública preservada' "document.querySelectorAll('.product-gallery-thumbnail').length>=4"
+  Evaluate "document.querySelector('#addProduct').click();true" | Out-Null
+  Cdp 'Page.navigate' @{url=($base+'/carrinho.html')} | Out-Null
+  WaitFor "document.querySelector('#cartItems .cart-item')"
+  Check 'Título da sacola preservado' "document.title.startsWith('Sua sacola')"
+  Check 'Sacola cabe no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
+  Evaluate "const c=JSON.parse(localStorage.getItem('calma-pele-carrinho'));c.push({id:'produto-removido',quantity:1});localStorage.setItem('calma-pele-carrinho',JSON.stringify(c));location.reload();true" | Out-Null
+  WaitFor "document.querySelectorAll('.cart-item').length===2"
+  Check 'Produto removido pode sair da sacola' "[...document.querySelectorAll('.cart-item')].find(row=>row.textContent.includes('não está mais')).querySelector('button')!==null"
+  Evaluate "[...document.querySelectorAll('.cart-item')].find(row=>row.textContent.includes('não está mais')).querySelector('button').click();true" | Out-Null
+  Check 'Sacola liberada após remover item inválido' "document.querySelectorAll('.cart-item').length===1 && document.querySelector('#checkoutLink').getAttribute('aria-disabled')==='false'"
+  Evaluate "(async()=>{const s=await(await fetch('/api.php?route=/admin/session')).json();const c=await(await fetch('/api/catalog')).json();const p=c.products[0];p.estoque=1;await fetch('/api.php?route=/admin/product',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':s.csrf},body:JSON.stringify({product:p,revision:c.revision})});return true;})()" | Out-Null
+  Cdp 'Page.navigate' @{url=($base+'/produto.html?id=creamy-calming-cream-1')} | Out-Null
+  WaitFor "document.querySelector('#productQuantity')?.max==='1'"
+  Evaluate "document.querySelector('#addProduct').click();true" | Out-Null
+  Check 'Estoque limita quantidade na sacola' "JSON.parse(localStorage.getItem('calma-pele-carrinho'))[0].quantity===1"
+  Cdp 'Page.navigate' @{url=($base+'/checkout.html')} | Out-Null
+  WaitFor "document.querySelector('#reserveOrder') && !document.querySelector('#reserveOrder').disabled"
+  Check 'Checkout com QR local' "typeof window.qrcode==='function' && [...document.scripts].every(script=>!script.src.startsWith('https://'))"
+  Check 'Checkout cabe no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
+  Evaluate "const fields={customerName:'Teste Navegador',customerPhone:'11999999999',customerEmail:'navegador@example.com',customerCpf:'52998224725',shippingZipCode:'70000000',shippingAddress:'Rua Teste',shippingNumber:'123',shippingNeighborhood:'Centro',shippingCity:'Brasilia',shippingState:'DF'};for(const [id,value] of Object.entries(fields))document.getElementById(id).value=value;document.querySelector('#checkoutForm').requestSubmit();true" | Out-Null
+  WaitFor "document.querySelector('#pixPayment') && !document.querySelector('#pixPayment').hidden"
+  WaitFor "document.querySelector('#pixQrImage').naturalWidth>0"
+  Check 'Pix com QR e copia e cola' "document.querySelector('#pixCopyPaste').value.startsWith('000201') && document.querySelector('#pixQrImage').naturalWidth>0"
+  Screenshot 'checkout-mobile.png'
+  Cdp 'Page.navigate' @{url=($base+'/admin.php')} | Out-Null
+  WaitFor "document.querySelector('[data-order]')"
+  Evaluate "document.querySelector('[data-order]').click();true" | Out-Null
+  Check 'Admin consulta cliente e entrega do pedido' "document.querySelector('.order-body').textContent.includes('Teste Navegador') && document.querySelector('.order-body').textContent.includes('Rua Teste')"
+  Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
+  WaitFor "document.querySelectorAll('#productGrid .product-card').length===135"
+  foreach($width in 320,390,768,1440) {
+    Cdp 'Emulation.setDeviceMetricsOverride' @{width=$width;height=1000;deviceScaleFactor=1;mobile=($width -lt 700)} | Out-Null
+    Check ('Página inicial cabe em '+$width+'px') 'document.documentElement.scrollWidth<=window.innerWidth'
+  }
+  Screenshot 'loja-desktop.png'
+  $offline=Cdp 'Page.addScriptToEvaluateOnNewDocument' @{source="const originalFetch=window.fetch.bind(window);window.fetch=(url,options)=>typeof url==='string' && url.includes('/api/catalog')?Promise.resolve(new Response('{}',{status:503,headers:{'Content-Type':'application/json'}})):originalFetch(url,options);"}
+  Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
+  WaitFor "document.querySelector('.store-notice')"
+  Check 'Falha no catálogo não permite comprar com preço antigo' "document.querySelector('.store-notice button')!==null && document.querySelectorAll('#productGrid button:not(:disabled)').length===0"
+  Cdp 'Page.removeScriptToEvaluateOnNewDocument' @{identifier=$offline.identifier} | Out-Null
+  Check 'Sem exceções JavaScript' 'true'
+  if($script:errors.Count){throw ($script:errors -join ', ')}
+  Write-Output 'Verificação de navegador concluída.'
+} finally {
+  $socket.Dispose()
+  if(!$process.HasExited){Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue}
+  $outputPrefix=[IO.Path]::GetFullPath($output).TrimEnd('\')+'\'
+  $profileFull=[IO.Path]::GetFullPath($profile)
+  if($profileFull.StartsWith($outputPrefix,[StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $profileFull)) {Remove-Item -LiteralPath $profileFull -Recurse -Force -ErrorAction SilentlyContinue}
+}

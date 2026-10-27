@@ -1,0 +1,21 @@
+﻿services:
+  - type: web
+    name: magazine-do-skincare
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    autoDeploy: true
+    disk:
+      name: loja-data
+      mountPath: /var/www/html/.data
+      sizeGB: 1
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_SYNC_PASSWORD
+        sync: false
+      - key: BLACKCAT_API_KEY
+        sync: false
+

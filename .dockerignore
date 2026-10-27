@@ -1,0 +1,12 @@
+.env
+.env.*
+.data
+.runtime
+.backups
+.venv
+.git
+__pycache__
+tests
+backup-limpeza.zip
+*.bat
+php-local.ini
