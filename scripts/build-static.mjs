@@ -23,8 +23,10 @@ function publicUrl(value, label, originOnly = false) {
   }
   return originOnly ? url.origin : url.href;
 }
-const apiOrigin = publicUrl(process.env.STORE_API_ORIGIN, 'STORE_API_ORIGIN', true);
-const adminUrl = publicUrl(process.env.STORE_ADMIN_URL, 'STORE_ADMIN_URL') || (apiOrigin ? `${apiOrigin}/admin.php` : '');
+const hosting = JSON.parse(await readFile(join(root, 'store-hosting.json'), 'utf8'));
+const offline = process.env.STORE_STATIC_OFFLINE === '1';
+const apiOrigin = publicUrl(offline ? '' : (process.env.STORE_API_ORIGIN || hosting.apiOrigin), 'STORE_API_ORIGIN', true);
+const adminUrl = publicUrl(offline ? '' : (process.env.STORE_ADMIN_URL || (apiOrigin ? `${apiOrigin}/admin.php` : '')), 'STORE_ADMIN_URL');
 const pages = ['index.html', 'produto.html', 'carrinho.html', 'checkout.html', 'empresa.html', 'admin.html'];
 for (const page of pages) await cp(join(root, page), join(output, page));
 for (const folder of ['css', 'js', 'public']) await cp(join(root, folder), join(output, folder), { recursive: true, dereference: false });

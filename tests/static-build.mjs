@@ -11,7 +11,7 @@ function check(label, value) { assert.ok(value, label); checks++; console.log(`O
 function build(env = {}) {
   return spawnSync(process.execPath, ['scripts/build-static.mjs'], { cwd: root, encoding: 'utf8', env: { ...process.env, STORE_API_ORIGIN: '', STORE_ADMIN_URL: '', STORE_STATIC_DIRECTORY: 'dist', ...env } });
 }
-const built = build();
+const built = build({ STORE_STATIC_OFFLINE: '1' });
 if (built.status !== 0) throw new Error(built.error?.message || built.stderr || 'Falha ao executar build.');
 check('Build estático concluído', built.status === 0);
 const dist = join(root, 'dist');
@@ -53,4 +53,10 @@ check('Catálogo usa a origem PHP configurada', requested === 'https://backend.e
 check('Painel aponta para hospedagem PHP', connectedContext.window.StoreConnection.adminUrl === 'https://backend.example.com/admin.php');
 const invalid = build({ STORE_STATIC_DIRECTORY: 'dist-test-invalid', STORE_API_ORIGIN: 'https://usuario:senha@example.com' });
 check('Configuração não publica credenciais em URLs', invalid.status !== 0);
+const production = build({ STORE_STATIC_DIRECTORY: 'dist-test-production' });
+check('Produção conecta ao Render mesmo sem variáveis compartilhadas', production.status === 0);
+const productionContext = { window: {} };
+vm.runInNewContext(await readFile(join(root, 'dist-test-production/js/deployment.js'), 'utf8'), productionContext);
+check('Endereço padrão de produção aponta para PHP publicado', productionContext.window.STORE_DEPLOYMENT.apiOrigin === 'https://magazineskincare.onrender.com');
+check('Painel de produção usa mesma hospedagem do backend', productionContext.window.STORE_DEPLOYMENT.adminUrl === 'https://magazineskincare.onrender.com/admin.php');
 console.log(`${checks} verificações do build HTML passaram.`);

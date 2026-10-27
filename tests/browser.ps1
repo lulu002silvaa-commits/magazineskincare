@@ -1,7 +1,7 @@
-﻿param([switch]$Static, [string]$StaticBase = "http://127.0.0.1:8093")
+﻿param([switch]$Static, [switch]$Connected, [string]$StaticBase = "http://127.0.0.1:8093")
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
-$base = if ($Static) { $StaticBase } elseif ($env:TEST_BASE_URL) { $env:TEST_BASE_URL } else { 'http://127.0.0.1:8091' }
+$base = if ($Static -or $Connected) { $StaticBase } elseif ($env:TEST_BASE_URL) { $env:TEST_BASE_URL } else { 'http://127.0.0.1:8091' }
 $output = Join-Path $root '.runtime/browser-check'
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $browser = 'C:/Program Files/Google/Chrome/Application/chrome.exe'
@@ -55,6 +55,7 @@ try {
   Cdp 'Storage.clearDataForOrigin' @{origin=$base;storageTypes='all'} | Out-Null
   Cdp 'Emulation.setDeviceMetricsOverride' @{width=1600;height=1000;deviceScaleFactor=1;mobile=$false} | Out-Null
   if($Static){$base=$StaticBase;. (Join-Path $PSScriptRoot 'browser-static.ps1');return}
+  if($Connected){. (Join-Path $PSScriptRoot 'browser-connected.ps1');return}
   Cdp 'Page.navigate' @{url=($base+'/admin.php')} | Out-Null
   WaitFor "document.querySelector('#loginForm')"
   Evaluate "document.querySelector('[name=username]').value='admin';document.querySelector('[name=password]').value='php-admin-test-only-2026';document.querySelector('#loginForm').requestSubmit();true" | Out-Null
