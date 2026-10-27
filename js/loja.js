@@ -839,7 +839,9 @@
     window.PaymentService.getStatus().then((status) => {
       availability.textContent = status.message;
       button.disabled = !status.available || !catalogVerified;
-      button.textContent = status.method === "gateway" ? "Gerar Pix BlackCat" : "Gerar Pix";
+      button.textContent = `Gerar Pix · ${$('#checkoutSubtotal').textContent}`;
+      $('#reserveOrderTop').disabled = button.disabled;
+      $('#reserveOrderTop').textContent = button.textContent;
     });
     const cart = readCart();
     const validItems = cart.map((item) => ({ ...item, product: productById(item.id) }))
@@ -848,16 +850,23 @@
     $("#checkoutLayout").hidden = !hasItems;
     $("#checkoutEmpty").hidden = hasItems;
     if (!hasItems) return;
-    let subtotal = 0;
+    let subtotal = 0, regularSubtotal = 0;
     container.replaceChildren();
     validItems.forEach(({ product, quantity }) => {
-      const line = document.createElement("p");
+      const line = document.createElement("div");
       line.className = "checkout-item-line";
-      line.textContent = `${product.nome} × ${quantity} — ${money(currentPrice(product) * quantity)}`;
-      subtotal += currentPrice(product) * quantity;
+      const image = makeProductImage(product, 'checkout-item-image');
+      const info = ui('div', 'checkout-item-description'); info.append(ui('p', '', product.nome), ui('small', '', `Quantidade: ${String(quantity).padStart(2, '0')}`));
+      line.append(image, info, ui('strong', '', money(Math.round(currentPrice(product) * 100) * quantity / 100)));
+      subtotal += Math.round(currentPrice(product) * 100) * quantity / 100;
+      regularSubtotal += Math.round(Math.max(product.precoRegular || 0, currentPrice(product)) * 100) * quantity / 100;
       container.append(line);
     });
     $("#checkoutSubtotal").textContent = money(subtotal);
+    $('#checkoutRegularSubtotal').textContent = money(regularSubtotal);
+    $('#checkoutDiscount').textContent = `− ${money(regularSubtotal - subtotal)}`;
+    $('#checkoutItemCount').textContent = `(${validItems.reduce((sum, item) => sum + item.quantity, 0)} itens)`;
+    $('#checkoutApplyCoupon').onclick = () => { $('#checkoutCouponStatus').textContent = 'Cupom indisponível ou inválido. Nenhum desconto adicional foi aplicado.'; };
     if (!connection.apiEnabled) {
       const form = $("#checkoutForm");
       form.hidden = true;
@@ -869,7 +878,10 @@
       description.textContent = 'A finalização de compras ainda não está disponível. Você pode continuar explorando os produtos e guardar seus favoritos na sacola.';
       const back = document.createElement('a');
       back.className = 'button button-outline'; back.href = 'carrinho.html'; back.textContent = 'Voltar à sacola';
-      message.append(title, description, back); form.before(message);
+      const methods = $('.payment-methods').cloneNode(true);
+      $$('button', methods).forEach(option => { option.disabled = true; });
+      $('button.selected small', methods).textContent = 'Em breve';
+      message.append(title, description, methods, back); form.before(message);
       return;
     }
     $("#checkoutForm").addEventListener("submit", submitPayment);
@@ -882,6 +894,39 @@
       catch { $("#pixCopyPaste").select(); document.execCommand("copy"); }
     });
     initCepLookup();
+    initCheckoutStages();
+  }
+
+  function initCheckoutStages() {
+    const form = $('#checkoutForm'); let stage = 1;
+    const show = next => {
+      stage = next;
+      $$('[data-checkout-stage]', form).forEach(section => { section.hidden = Number(section.dataset.checkoutStage) !== stage; });
+      $('#checkoutStepLabel').textContent = `Etapa ${stage} de 3`;
+      $('#checkoutStageTitle').textContent = ['Identificação', 'Entrega', 'Pagamento'][stage - 1];
+      $('.checkout-progress').setAttribute('aria-valuenow', String(stage));
+      $('.checkout-progress span').style.width = `${stage / 3 * 100}%`;
+      $('#checkoutContinue').hidden = stage === 3; $('#reserveOrderTop').hidden = stage !== 3;
+      $('#checkoutContactReview').textContent = $('#customerEmail').value;
+      $('#checkoutAddressReview').textContent = addressReview();
+    };
+    $('#checkoutContinue').onclick = () => {
+      const fields = $$(`[data-checkout-stage="${stage}"] input`, form);
+      if (fields.some(field => !field.reportValidity())) return;
+      show(Math.min(3, stage + 1)); $('#checkoutStageTitle').scrollIntoView({ block: 'start', behavior: 'smooth' });
+    };
+    $('#checkoutBack').onclick = () => { if (stage === 1) location.assign('carrinho.html'); else show(stage - 1); };
+    $('[data-edit-delivery]').onclick = () => show(2);
+    form.addEventListener('invalid', event => {
+      const section = event.target.closest('[data-checkout-stage]');
+      if (section) show(Number(section.dataset.checkoutStage));
+    }, true);
+    form.addEventListener('keydown', event => { if (event.key === 'Enter' && stage < 3 && event.target.tagName === 'INPUT') { event.preventDefault(); $('#checkoutContinue').click(); } });
+    show(1);
+  }
+
+  function addressReview() {
+    return [$('#shippingAddress').value, $('#shippingNumber').value, $('#shippingComplement').value, $('#shippingNeighborhood').value, `${$('#shippingCity').value} / ${$('#shippingState').value}`, `CEP ${$('#shippingZipCode').value}`].filter(Boolean).join(', ');
   }
 
   function initCepLookup() {
@@ -943,6 +988,7 @@
     const customer = { name: data.name, email: data.email, phone: data.phone, document: { number: data.cpf, type: "cpf" } };
     const shipping = { street: data.address, number: data.number, complement: data.complement, neighborhood: data.neighborhood, city: data.city, state: data.state, zipCode: data.zipCode };
     button.disabled = true;
+    $('#reserveOrderTop').disabled = true;
     button.textContent = "Gerando Pix seguro...";
     error.textContent = "";
     try {
@@ -963,7 +1009,11 @@
       }
       if (payment.paymentData?.expiresAt) $("#pixExpiry").textContent = `Válido até ${new Date(payment.paymentData.expiresAt).toLocaleString("pt-BR")}`;
       $("#pixPayment").hidden = false;
+      $('#pixDeliveryReview').textContent = addressReview();
+      $('#pixOrderItems').replaceChildren(...Array.from($('#checkoutItems').children, child => child.cloneNode(true)));
+      $('#pixOrderTotal').textContent = money(expectedAmount / 100);
       $("#checkoutLayout").hidden = true;
+      $('#pixPayment').scrollIntoView({ block: 'start' });
       if (payment.paymentMethod === "manual_pix") {
         $("#pixTitle").textContent = "Pix gerado";
         $("#pixStatus").textContent = "Depois de pagar, a loja confirmará o crédito manualmente.";
@@ -975,7 +1025,8 @@
       error.textContent = submitError.message;
     } finally {
       button.disabled = false;
-      button.textContent = $("#paymentProviderTitle").textContent.includes("BlackCat") ? "Gerar Pix BlackCat" : "Gerar Pix";
+      $('#reserveOrderTop').disabled = false;
+      button.textContent = `Gerar Pix · ${$('#checkoutSubtotal').textContent}`;
     }
   }
 

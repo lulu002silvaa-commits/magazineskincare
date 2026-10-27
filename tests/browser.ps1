@@ -117,7 +117,16 @@ try {
   WaitFor "document.querySelector('#shippingNumber') && document.querySelector('#shippingNumber').value==='456'"
   Check 'Checkout reaproveita endereço e número' "document.querySelector('#shippingAddress').value==='Rua Consulta' && document.querySelector('#shippingZipCode').value==='01001-000'"
   Check 'Checkout cabe no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
-  Evaluate "const fields={customerName:'Teste Navegador',customerPhone:'11999999999',customerEmail:'navegador@example.com',customerCpf:'52998224725',shippingZipCode:'70000000',shippingAddress:'Rua Teste',shippingNumber:'123',shippingNeighborhood:'Centro',shippingCity:'Brasilia',shippingState:'DF'};for(const [id,value] of Object.entries(fields))document.getElementById(id).value=value;document.querySelector('#checkoutForm').requestSubmit();true" | Out-Null
+  Evaluate "const fields={customerName:'Teste Navegador',customerPhone:'11999999999',customerEmail:'navegador@example.com',customerCpf:'52998224725',shippingZipCode:'70000000',shippingAddress:'Rua Teste',shippingNumber:'123',shippingNeighborhood:'Centro',shippingCity:'Brasilia',shippingState:'DF'};for(const [id,value] of Object.entries(fields))document.getElementById(id).value=value;document.querySelector('#checkoutContinue').click();true" | Out-Null
+  Check 'Etapa de entrega exibe endereço e frete' "!document.querySelector('.address-fieldset').hidden && document.querySelector('#checkoutStepLabel').textContent==='Etapa 2 de 3'"
+  Screenshot 'checkout-entrega-mobile.png'
+  Evaluate "document.querySelector('#checkoutContinue').click();true" | Out-Null
+  Check 'Somente Pix disponível nas formas de pagamento' "document.querySelectorAll('#checkoutPaymentStage .payment-methods button:disabled').length===3 && !document.querySelector('#checkoutPaymentStage .payment-methods .selected').disabled && !document.querySelector('#checkoutPaymentStage').hidden"
+  Check 'Pagamento revisa endereço e total' "document.querySelector('#checkoutAddressReview').textContent.includes('Rua Teste') && document.querySelector('#reserveOrderTop').textContent.includes(document.querySelector('#checkoutSubtotal').textContent)"
+  Screenshot 'checkout-pagamento-mobile.png'
+  Cdp 'Emulation.setDeviceMetricsOverride' @{width=1440;height=1000;deviceScaleFactor=1;mobile=$false} | Out-Null
+  Screenshot 'checkout-pagamento-desktop.png'
+  Evaluate "document.querySelector('#reserveOrderTop').click();true" | Out-Null
   WaitFor "document.querySelector('#pixPayment') && !document.querySelector('#pixPayment').hidden"
   WaitFor "document.querySelector('#pixQrImage').naturalWidth>0"
   Check 'Pix com QR e copia e cola' "document.querySelector('#pixCopyPaste').value.startsWith('000201') && document.querySelector('#pixQrImage').naturalWidth>0"
