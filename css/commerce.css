@@ -242,3 +242,28 @@ body[data-page="checkout"] .inner-page{max-width:1140px}body[data-page="checkout
 .product-page>.product-information { margin-top: 36px; }
 .product-page .product-description { line-height: 1.8; white-space: pre-line; }
 .product-zoom:focus-visible,.photo-close:focus-visible { outline: 3px solid #57a6d8; outline-offset: 3px; }
+/* Fotos grandes sem cortar o produto, com zoom e navegação. */
+.product-photo-dialog { width: min(1200px,96vw); max-width: 96vw; height: 92dvh; max-height: 92dvh; padding: 16px; overflow: hidden; }
+.product-photo-dialog[open] { display: grid; grid-template-rows: auto minmax(0,1fr) auto; gap: 12px; }
+.photo-toolbar,.photo-navigation { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.product-photo-dialog .photo-toolbar form { margin: 0; }
+.photo-toolbar button,.photo-navigation button { min-height: 44px; padding: 10px 14px; border: 1px solid #d2deea; border-radius: 24px; color: #054d99; background: #fff; font: 500 13px var(--sans); cursor: pointer; }
+.photo-navigation { font-size: 12px; color: #054d99; }
+.photo-viewport { min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; background: #f3f3f3; }
+.product-photo-dialog .photo-viewport img { width: 100%; height: 100%; max-width: none; object-fit: contain; }
+.product-photo-dialog.is-zoomed .photo-viewport img { width: 200%; height: auto; min-height: 100%; object-fit: contain; }
+@media(max-width:900px) {
+  .product-page .product-detail { grid-template-columns: minmax(0,1fr); gap: 28px; }
+  .product-detail-gallery { grid-template-columns: minmax(0,1fr); gap: 12px; }
+  .product-gallery-main { order: 1; width: 100%; }
+  .product-gallery-thumbnails { display: flex; order: 2; overflow-x: auto; max-height: none; gap: 10px; padding-bottom: 4px; }
+  .product-gallery-thumbnail { flex: 0 0 72px; width: 72px; height: 76px; }
+}
+@media(max-width:650px) {
+  .product-page.wrap { width: calc(100% - 24px); }
+  .product-gallery-main { border-radius: 10px; }
+  .product-gallery-thumbnail { flex-basis: 66px; width: 66px; height: 70px; }
+  .product-zoom { bottom: 62px; left: 12px; min-height: 44px; }
+  .product-photo-dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; padding: max(12px,env(safe-area-inset-top)) 10px max(12px,env(safe-area-inset-bottom)); }
+  .photo-toolbar button,.photo-navigation button { font-size: 12px; padding-inline: 12px; }
+}

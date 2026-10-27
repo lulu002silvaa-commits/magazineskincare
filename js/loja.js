@@ -738,12 +738,31 @@
     if (typeof product.avaliacao === 'number' && product.avaliacao > 0 && product.avaliacao <= 5) { rating.textContent = `${product.avaliacao.toFixed(1)} ★★★★★`; rating.hidden = false; }
     renderProductGallery(product);
     $('#productAvailability').textContent = canPurchase(product) ? 'Disponível para compra · Produto novo' : 'Indisponível no momento';
-    $('#productZoom').onclick = () => {
+    const zoomDialog = $('#productPhotoDialog');
+    const syncZoomPhoto = () => {
       $('#productZoomImage').src = $('#productMainImage').src;
       $('#productZoomImage').alt = $('#productMainImage').alt;
-      $('#productPhotoDialog').showModal();
+      $('#photoPosition').textContent = $('#productImageCount').textContent;
+      $('#photoViewport').scrollTo(0, 0);
     };
-    $('#productPhotoDialog').onclick = event => { if (event.target === $('#productPhotoDialog')) $('#productPhotoDialog').close(); };
+    const resetZoom = () => {
+      zoomDialog.classList.remove('is-zoomed'); $('#photoZoomToggle').setAttribute('aria-pressed', 'false'); $('#photoZoomToggle').textContent = 'Aproximar 2×';
+    };
+    $('#productZoom').onclick = () => {
+      resetZoom(); syncZoomPhoto(); zoomDialog.showModal();
+    };
+    $('#photoZoomToggle').onclick = () => {
+      const zoomed = zoomDialog.classList.toggle('is-zoomed');
+      $('#photoZoomToggle').setAttribute('aria-pressed', String(zoomed));
+      $('#photoZoomToggle').textContent = zoomed ? 'Ver foto inteira' : 'Aproximar 2×';
+    };
+    $('#photoPrevious').onclick = () => { $('#productImagePrev').click(); resetZoom(); syncZoomPhoto(); };
+    $('#photoNext').onclick = () => { $('#productImageNext').click(); resetZoom(); syncZoomPhoto(); };
+    zoomDialog.onclick = event => { if (event.target === zoomDialog) zoomDialog.close(); };
+    zoomDialog.addEventListener('keydown', event => {
+      if (event.key === 'ArrowRight' && !zoomDialog.classList.contains('is-zoomed')) { event.preventDefault(); $('#photoNext').click(); }
+      if (event.key === 'ArrowLeft' && !zoomDialog.classList.contains('is-zoomed')) { event.preventDefault(); $('#photoPrevious').click(); }
+    });
     decorateProductImage($('#productMainImageContainer'), product);
     $('#productPrices').replaceChildren(productPriceBlock(product));
     const facts = $('#productFacts'); facts.replaceChildren();

@@ -30,6 +30,14 @@ Check 'Diminuir quantidade restaura o preço unitário' "document.querySelector(
 Screenshot 'produto-referencia.png'
 Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
 Check 'Página do produto cabe no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
+Evaluate "document.querySelector('#productZoom').click();true" | Out-Null
+Check 'Ampliação mobile ocupa a tela' "document.querySelector('#productPhotoDialog').getBoundingClientRect().width>=window.innerWidth-2 && document.querySelector('#photoViewport').getBoundingClientRect().width>=window.innerWidth-24"
+Evaluate "document.querySelector('#photoZoomToggle').click();true" | Out-Null
+Check 'Zoom duplica a largura da foto sem distorcer' "document.querySelector('#photoZoomToggle').getAttribute('aria-pressed')==='true' && document.querySelector('#productZoomImage').getBoundingClientRect().width>=document.querySelector('#photoViewport').clientWidth*1.95"
+Evaluate "document.querySelector('#photoNext').click();true" | Out-Null
+Check 'Próxima foto mantém galeria e ampliação sincronizadas' "document.querySelector('#photoPosition').textContent.startsWith('2 /') && document.querySelector('#productZoomImage').src===document.querySelector('#productMainImage').src && document.querySelector('#photoZoomToggle').getAttribute('aria-pressed')==='false'"
+Screenshot 'produto-zoom-mobile.png'
+Evaluate "document.querySelector('#productPhotoDialog').close();true" | Out-Null
 Screenshot 'produto-referencia-mobile.png'
 Cdp 'Emulation.setDeviceMetricsOverride' @{width=1600;height=1000;deviceScaleFactor=1;mobile=$false} | Out-Null
 Evaluate "document.querySelector('#addProduct').click();true" | Out-Null
