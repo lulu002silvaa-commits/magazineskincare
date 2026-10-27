@@ -25,7 +25,7 @@ Screenshot 'vitrine-html-checkout.png'
 Cdp 'Page.navigate' @{url=($base+'/admin.html')} | Out-Null
 WaitFor "document.querySelector('#adminHelp') && !document.querySelector('#adminHelp').hidden"
 Check 'Painel PHP preservado sem redirecionar para 404' "location.pathname==='/admin.html' && document.querySelector('#loginForm')===null"
-Check 'Arquivos PHP não são publicados como texto' "(async()=>{const r=await fetch('/admin.php');return r.status===404;})()"
+Check 'Arquivos PHP não são publicados como texto' "(async()=>{const r=await fetch('/admin.php');return [403,404].includes(r.status);})()"
 Check 'Modo estático sem exceções JavaScript' 'true'
 if($script:errors.Count){throw ($script:errors -join ', ')}
 Cdp 'Page.removeScriptToEvaluateOnNewDocument' @{identifier=$monitor.identifier} | Out-Null
