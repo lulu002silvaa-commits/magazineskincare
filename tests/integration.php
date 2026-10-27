@@ -116,8 +116,12 @@ $fixtures['integration-paid-fixture'] = array_merge($giftRecord, ['status' => 'P
 file_put_contents($transactionPath, json_encode($fixtures, JSON_THROW_ON_ERROR));
 [$status] = request('/admin/payments/generated', 'DELETE', [], null, 'csrf-invalido');
 check('Limpeza de gerados exige CSRF válido', $status === 403);
+[$status] = request('/admin/payment', 'DELETE', ['id' => 'integration-paid-fixture']);
+check('Exclusão individual preserva pagamentos aprovados', $status === 409);
+[$status] = request('/admin/payment', 'DELETE', ['id' => $charge['data']['transactionId']]);
+check('Pix pendente pode ser excluído individualmente', $status === 200);
 [$status, $cleared] = request('/admin/payments/generated', 'DELETE', []);
-check('Limpeza remove os dois Pix pendentes da lista', $status === 200 && $cleared['removed'] === 2);
+check('Limpeza remove o Pix pendente restante da lista', $status === 200 && $cleared['removed'] === 1);
 [, $afterClear] = request('/admin/data');
 check('Limpeza preserva aprovado e faturamento confirmado', count($afterClear['charges']) === 1 && $afterClear['charges'][0]['status'] === 'PAID' && $afterClear['stats']['revenue'] === 12300);
 [$status, $archivedPayment] = request('/payments/' . $charge['data']['transactionId']);

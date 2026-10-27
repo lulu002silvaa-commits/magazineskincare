@@ -14,7 +14,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-sr
   <title>Administração · Magazine do Skincare</title>
   <link rel="icon" href="public/images/brand/magazine-do-skincare.png" type="image/png">
   <link rel="stylesheet" href="css/admin.css?v=28">
-  <script src="js/admin.js?v=28" defer></script>
+  <script src="js/admin.js?v=29" defer></script>
 </head>
 <body>
   <div id="app"><div class="loading">Carregando painel…</div></div>

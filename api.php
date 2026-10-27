@@ -122,6 +122,16 @@ try {
             $revenue = array_sum(array_map(fn($p) => ($p['status'] ?? '') === 'PAID' ? (int)($p['amount'] ?? 0) : 0, $charges));
             json_response(['store' => $store, 'visits' => array_slice($visits, 0, 1000), 'charges' => $charges, 'blocked' => read_data('blocked')['ips'] ?? [], 'stats' => ['visits' => (int)($analytics['totalViews'] ?? 0), 'pix' => count($charges), 'revenue' => $revenue, 'online' => $online], 'gatewayConfigured' => (getenv('BLACKCAT_API_KEY') ?: '') !== '']);
         }
+        if ($route === '/admin/payment' && $method === 'DELETE') {
+            $body = input_json(); $id = $body['id'] ?? '';
+            if (!is_string($id) || !preg_match('/^[A-Za-z0-9_-]{1,100}$/', $id)) throw new InvalidArgumentException('Pedido inválido.');
+            update_data('transactions', function ($data) use ($id) {
+                if (!isset($data[$id])) json_response(['error' => 'Pedido não encontrado.'], 404);
+                if (($data[$id]['status'] ?? 'PENDING') !== 'PENDING') json_response(['error' => 'Somente Pix pendentes podem ser removidos da lista.'], 409);
+                $data[$id]['archivedAt'] = time(); return $data;
+            });
+            json_response(['success' => true]);
+        }
         if ($route === '/admin/payments/generated' && $method === 'DELETE') {
             $removed = 0;
             update_data('transactions', function ($data) use (&$removed) {

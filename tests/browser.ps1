@@ -63,6 +63,18 @@ try {
   Check 'Quatro indicadores no dashboard' "document.querySelectorAll('.stat').length===4"
   Check 'Menu lateral e tabelas' "!!document.querySelector('.sidebar') && document.querySelectorAll('table').length===2"
   Check 'Painel exibe limpeza de gerados e status aprovado' "!!document.querySelector('#clearGenerated') && document.querySelector('#content').textContent.includes('Aprovado')"
+  Check 'Exclusão individual aparece na tabela de Pix' "document.querySelectorAll('[data-delete-payment]').length>0"
+  Evaluate "window.testTones=0;window.AudioContext=class{constructor(){this.state='running';this.currentTime=0;this.destination={};}async resume(){}createOscillator(){return{frequency:{value:0},connect(){},disconnect(){},start(){window.testTones++;},stop(){}};}createGain(){return{gain:{setValueAtTime(){},linearRampToValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},disconnect(){}};}};document.querySelector('#pixSound').click();true" | Out-Null
+  WaitFor "document.querySelector('#pixSound').getAttribute('aria-pressed')==='true'"
+  Check 'Som pode ser ativado com prévia' 'window.testTones===2'
+  Evaluate "window.soundOriginalFetch=window.fetch;window.fetch=async(url,options)=>{const response=await window.soundOriginalFetch(url,options);if(String(url).includes(encodeURIComponent('/admin/data'))){const data=await response.json();data.charges.push({id:'sound-fixture-only',createdAt:Math.floor(Date.now()/1000)+1,status:'PENDING',amount:100,items:[]});return new Response(JSON.stringify(data),{status:200,headers:{'Content-Type':'application/json'}});}return response;};document.querySelector('#refresh').click();true" | Out-Null
+  WaitFor 'window.testTones===4'
+  Evaluate "document.querySelector('#refresh').click();true" | Out-Null
+  WaitFor "document.querySelector('#notice').textContent==='Painel atualizado.'"
+  Check 'Mesmo Pix não dispara alerta repetido' 'window.testTones===4'
+  Evaluate "document.querySelector('#pixSound').click();window.fetch=window.soundOriginalFetch;document.querySelector('#refresh').click();true" | Out-Null
+  WaitFor "document.querySelectorAll('[data-order]').length===1"
+  Check 'Som pode ser desativado' "document.querySelector('#pixSound').getAttribute('aria-pressed')==='false'"
   Screenshot 'dashboard.png'
   Evaluate "document.querySelector('[data-page=products]').click();true" | Out-Null
   Check 'Listagem paginada de produtos' "document.querySelectorAll('[data-edit]').length===12"
