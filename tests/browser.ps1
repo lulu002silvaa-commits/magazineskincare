@@ -36,8 +36,12 @@ function Evaluate($expression) {
   return $result.result.value
 }
 function WaitFor($expression) {
-  $result = Evaluate ("(async()=>{for(let i=0;i<100;i++){if("+$expression+")return true;await new Promise(r=>setTimeout(r,100));}throw new Error('Tempo esgotado: '+"+($expression | ConvertTo-Json -Compress)+");})()")
-  if(!$result){throw 'Condição não atendida'}
+  for($attempt=0;$attempt -lt 100;$attempt++) {
+    try { if(Evaluate ('Boolean('+ $expression +')')){return} }
+    catch { if($_.Exception.Message -notmatch 'execution context|Cannot find context|Promise was collected|Inspected target navigated'){throw} }
+    Start-Sleep -Milliseconds 100
+  }
+  throw ('Tempo esgotado: '+$expression)
 }
 function Check($name,$expression) {if(!(Evaluate $expression)){throw ('FALHOU: '+$name)}; Write-Output ('OK '+$name)}
 function Screenshot($name) {$capture=Cdp 'Page.captureScreenshot' @{format='png';captureBeyondViewport=$false};[IO.File]::WriteAllBytes((Join-Path $output $name),[Convert]::FromBase64String($capture.data))}
@@ -80,6 +84,7 @@ try {
   Check 'Loja usa preço salvo no admin' "document.querySelector('#productPrices').textContent.includes('52,34')"
   Check 'Galeria pública preservada' "document.querySelectorAll('.product-gallery-thumbnail').length>=4"
   Evaluate "document.querySelector('#addProduct').click();true" | Out-Null
+  WaitFor "location.pathname.endsWith('/carrinho.html') && document.querySelector('#cartItems .cart-item')"
   Cdp 'Page.navigate' @{url=($base+'/carrinho.html')} | Out-Null
   WaitFor "document.querySelector('#cartItems .cart-item')"
   Check 'Título da sacola preservado' "document.title.startsWith('Sua sacola')"
@@ -94,6 +99,13 @@ try {
   WaitFor "document.querySelector('#productQuantity')?.max==='1'"
   Evaluate "document.querySelector('#addProduct').click();true" | Out-Null
   Check 'Estoque limita quantidade na sacola' "JSON.parse(localStorage.getItem('calma-pele-carrinho'))[0].quantity===1"
+  Evaluate "const saved=JSON.parse(localStorage.getItem('calma-pele-carrinho'));saved[0].quantity=3;localStorage.setItem('calma-pele-carrinho',JSON.stringify(saved));true" | Out-Null
+  Cdp 'Page.navigate' @{url=($base+'/carrinho.html')} | Out-Null
+  WaitFor "document.querySelector('.cart-quantity')"
+  Evaluate "document.querySelector('.cart-quantity button').click();true" | Out-Null
+  Check 'Quantidade antiga pode diminuir mesmo após redução de estoque' "JSON.parse(localStorage.getItem('calma-pele-carrinho'))[0].quantity===2"
+  Evaluate "document.querySelector('.cart-quantity button').click();true" | Out-Null
+  Check 'Sacola volta a permitir avanço na quantidade disponível' "document.querySelector('#checkoutLink').getAttribute('aria-disabled')==='false'"
   Cdp 'Page.navigate' @{url=($base+'/checkout.html')} | Out-Null
   WaitFor "document.querySelector('#reserveOrder') && !document.querySelector('#reserveOrder').disabled"
   Check 'Checkout com QR local' "typeof window.qrcode==='function' && [...document.scripts].every(script=>!script.src.startsWith('https://'))"

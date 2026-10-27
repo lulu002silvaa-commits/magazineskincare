@@ -1,16 +1,16 @@
-﻿(function () {
+(function () {
   "use strict";
 
   const CART_KEY = "calma-pele-carrinho";
   const MAX_CART_QUANTITY = 20;
   const FEATURED_ORDER = {
-    favorites: ["intense-tx", "kit-anti-manchas-1", "intensetx-vitaminacgold", "intensetx-ceramideskinrepair"],
+    favorites: ["drops-serum-hidratante", "lip-balm-latte", "lip-balm-mocha-10g", "acido-salicilico-1"],
     launches: ["intensetx-acidotranexamico", "intensetx-vitaminacgold", "intensetx-ceramideskinrepair", "intensetx-peptide"]
   };
   const FEATURED_COLLECTIONS = [
-    { id: "favorites", label: "Mais vendidos", matches: (product) => product.selo?.includes("Favoritos da Jade") || FEATURED_ORDER.favorites.includes(product.id) },
+    { id: "favorites", label: "Mais Vendidos", matches: (product) => product.selo?.includes("Favoritos da Jade") || FEATURED_ORDER.favorites.includes(product.id) },
     { id: "duos", label: "Duos", matches: (product) => /^duo\b/i.test(product.nome || "") },
-    { id: "routines", label: "Rotinas completas", matches: (product) => /^(kit|combo)\b/i.test(product.nome || "") || product.categoria === "Combos" },
+    { id: "routines", label: "Rotinas Completas", matches: (product) => /^(kit|combo)\b/i.test(product.nome || "") || product.categoria === "Combos" },
     { id: "antiacne", label: "Antiacne", matches: (product) => product.categoria === "Antiacne" }
   ];
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -276,110 +276,113 @@
     return 4;
   }
 
-  function renderProductCard(product, style = "catalog") {
-    const card = document.createElement("article");
-    card.className = `product-card product-card-${style}`;
-    const image = makeProductImage(product, "product-image");
-    if (typeof product.selo === "string" && product.selo.trim()) {
-      const badge = document.createElement("span");
-      badge.className = "product-image-badge";
-      badge.textContent = product.selo.split(" · ")[0];
-      image.append(badge);
-    }
-    if (product.disponivel === false) {
-      const unavailableBadge = document.createElement("span");
-      unavailableBadge.className = "product-image-badge product-image-badge-stock";
-      unavailableBadge.textContent = "Esgotado";
-      image.append(unavailableBadge);
-    }
-    const imageLink = document.createElement("a");
-    imageLink.href = `produto.html?id=${encodeURIComponent(product.id)}`;
-    imageLink.setAttribute("aria-label", `Ver ${product.nome}`);
-    imageLink.append(image);
-    card.append(imageLink);
+  function ui(tag, className, text) {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    if (text !== undefined) element.textContent = text;
+    return element;
+  }
 
-    const content = document.createElement("div");
-    content.className = "product-card-content";
-    if (style === "catalog") {
-      const category = document.createElement("p");
-      category.className = "product-category";
-      category.textContent = product.categoria || "";
-      content.append(category);
-    }
-    if (validPrice(product.avaliacao)) {
-      const rating = document.createElement("p");
-      const wholeStars = Math.round(product.avaliacao);
-      rating.className = "product-rating";
-      rating.setAttribute("aria-label", `Avaliação ${product.avaliacao} de 5`);
-      rating.textContent = `${product.avaliacao.toFixed(1)}  ${"★".repeat(wholeStars)}${"☆".repeat(5 - wholeStars)}`;
-      content.append(rating);
-    }
-    const name = document.createElement("h3");
-    const detailLink = document.createElement("a");
-    detailLink.href = `produto.html?id=${encodeURIComponent(product.id)}`;
-    detailLink.textContent = product.nome;
-    name.append(detailLink);
-    content.append(name);
+  function bagIcon() {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true');
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M6 7h12l1 14H5L6 7Zm3 1V6a3 3 0 0 1 6 0v2M9 12a3 3 0 0 0 6 0');
+    path.setAttribute('fill', 'none'); path.setAttribute('stroke', 'currentColor'); path.setAttribute('stroke-width', '1.5');
+    path.setAttribute('stroke-linecap', 'round'); path.setAttribute('stroke-linejoin', 'round'); svg.append(path); return svg;
+  }
 
-    if (validPrice(currentPrice(product))) {
-      const price = document.createElement("p");
-      price.className = "product-price";
-      if (validPrice(product.precoRegular)) {
-        const original = document.createElement("del");
-        original.textContent = money(product.precoRegular);
-        price.append(original);
-      }
-      const current = document.createElement("strong");
-      current.textContent = money(currentPrice(product));
-      price.append(current);
-      if (validPrice(product.precoRegular)) {
-        const discount = Math.round((1 - currentPrice(product) / product.precoRegular) * 100);
-        if (discount > 0) {
-          const savings = document.createElement("span");
-          savings.className = "product-pix-discount";
-          savings.textContent = `-${discount}%`;
-          price.append(savings);
-        }
-      }
-      content.append(price);
+  function discountPercent(product) {
+    const original = validPrice(product.precoRegular) ? product.precoRegular : product.preco;
+    return validPrice(original) && original > currentPrice(product) ? Math.round((1 - currentPrice(product) / original) * 100) : 0;
+  }
+
+  function decorateProductImage(container, product) {
+    const discount = discountPercent(product);
+    if (discount > 0) container.append(ui('span', 'product-image-badge', `${discount}% OFF`));
+    else if (product.selo?.trim()) container.append(ui('span', 'product-image-badge', product.selo.split(' · ')[0]));
+    if (product.disponivel === false) container.append(ui('span', 'product-image-badge product-image-badge-stock', 'Indisponível'));
+    const uses = ui('div', 'product-use-icons');
+    (product.uso || []).forEach(use => {
+      const day = /diurno/i.test(use), night = /noturno/i.test(use);
+      if (!day && !night) return;
+      const icon = ui('span', 'product-use-icon', day ? '☼' : '☾');
+      icon.title = day ? 'Uso diurno' : 'Uso noturno'; icon.setAttribute('aria-label', icon.title); uses.append(icon);
+    });
+    container.append(uses);
+  }
+
+  function productPriceBlock(product, className = 'product-pricing') {
+    const block = ui('div', className);
+    if (!validPrice(currentPrice(product))) return block;
+    const oldPrice = validPrice(product.precoRegular) && product.precoRegular > currentPrice(product) ? product.precoRegular : null;
+    if (oldPrice) block.append(ui('del', 'price-before', money(oldPrice)));
+    const line = ui('div', 'price-current');
+    line.append(ui('strong', '', money(currentPrice(product))), ui('span', 'price-method', 'no Pix'));
+    if (validPrice(product.precoPix) && product.precoPix < product.preco) {
+      const discount = Math.round((1 - product.precoPix / product.preco) * 100);
+      if (discount > 0) line.append(ui('span', 'pix-extra-badge', `+${discount}% OFF`));
     }
-    const actions = document.createElement("div");
-    actions.className = "product-card-actions";
-    const detailsButton = document.createElement("a");
-    detailsButton.className = style === "new" ? "button button-outline button-full" : "button button-outline";
-    detailsButton.href = detailLink.href;
-    detailsButton.textContent = style === "featured" ? "Saiba mais" : "Ver detalhes";
-    actions.append(detailsButton);
-    if (style !== "new") {
-      const addButton = document.createElement("button");
-      addButton.type = "button";
-      addButton.className = style === "featured" ? "button button-dark cart-icon-button" : "button button-dark";
-      addButton.setAttribute("aria-label", canPurchase(product) ? `Adicionar ${product.nome} à sacola` : `${product.nome} indisponível`);
-      addButton.disabled = !canPurchase(product);
-      if (style === "featured") {
-        const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        icon.setAttribute("viewBox", "0 0 24 24");
-        icon.setAttribute("aria-hidden", "true");
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute("d", "M6 8h12l1 12H5L6 8Zm3 0a3 3 0 0 1 6 0");
-        path.setAttribute("fill", "none");
-        path.setAttribute("stroke", "currentColor");
-        path.setAttribute("stroke-width", "1.8");
-        path.setAttribute("stroke-linecap", "round");
-        path.setAttribute("stroke-linejoin", "round");
-        icon.append(path);
-        addButton.append(icon);
-      } else {
-        addButton.textContent = canPurchase(product) ? "Adicionar à sacola" : "Indisponível";
-      }
-      if (canPurchase(product)) {
-        addButton.addEventListener("click", () => addToCart(product, 1));
-      }
-      actions.append(addButton);
+    block.append(line, ui('p', 'price-caption', 'Pagamento por Pix'));
+    return block;
+  }
+
+  function renderRecommendations(target, products, style = 'recommendation') {
+    if (!target) return;
+    target.replaceChildren(...products.map(product => renderProductCard(product, style)));
+    const section = target.closest('[data-recommendations]');
+    if (section) section.hidden = products.length === 0;
+  }
+
+  function initCommerceForms() {
+    $$('form[data-shipping-form]').forEach(form => {
+      const input = $('input', form), status = document.getElementById(form.dataset.shippingForm);
+      const saved = safeRead('magazine-delivery-postcode', '');
+      if (typeof saved === 'string') input.value = saved;
+      input.addEventListener('input', () => {
+        const value = input.value.replace(/\D/g, '').slice(0, 8);
+        input.value = value.length > 5 ? `${value.slice(0, 5)}-${value.slice(5)}` : value;
+        status.textContent = '';
+      });
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        const digits = input.value.replace(/\D/g, '');
+        if (digits.length !== 8) { status.textContent = 'Informe um CEP com 8 números.'; return; }
+        try { localStorage.setItem('magazine-delivery-postcode', JSON.stringify(input.value)); } catch { /* A consulta também funciona sem armazenamento. */ }
+        status.textContent = `Frete grátis para o CEP ${input.value}. O prazo será confirmado antes do envio.`;
+      });
+    });
+    const coupon = $('#cartCoupon');
+    if (coupon) coupon.addEventListener('submit', event => {
+      event.preventDefault();
+      $('#couponStatus').textContent = 'Cupom indisponível ou inválido. Nenhum desconto adicional foi aplicado.';
+    });
+  }
+
+  function renderProductCard(product, style = 'catalog') {
+    const card = ui('article', `product-card product-card-${style}`);
+    const image = makeProductImage(product, 'product-image');
+    decorateProductImage(image, product);
+    const imageLink = ui('a'); imageLink.href = `produto.html?id=${encodeURIComponent(product.id)}`;
+    imageLink.setAttribute('aria-label', `Ver ${product.nome}`); imageLink.append(image); card.append(imageLink);
+    const content = ui('div', 'product-card-content');
+    if (typeof product.avaliacao === 'number' && product.avaliacao > 0 && product.avaliacao <= 5) {
+      const rating = ui('p', 'product-rating', `${product.avaliacao.toFixed(1)} ★★★★★`);
+      rating.setAttribute('aria-label', `Avaliação ${product.avaliacao} de 5`); content.append(rating);
     }
-    content.append(actions);
-    card.append(content);
-    return card;
+    const name = ui('h3'), detail = ui('a', '', product.nome); detail.href = imageLink.href; name.append(detail); content.append(name);
+    content.append(productPriceBlock(product));
+    const actions = ui('div', 'product-card-actions');
+    const details = ui('a', 'button button-outline', style === 'featured' || style === 'catalog' ? 'Saiba mais' : 'Ver detalhes');
+    details.href = imageLink.href; actions.append(details);
+    const add = ui('button', 'button button-dark cart-icon-button'); add.type = 'button';
+    add.setAttribute('aria-label', canPurchase(product) ? `Adicionar ${product.nome} à sacola` : `${product.nome} indisponível`);
+    add.disabled = !canPurchase(product); add.append(bagIcon());
+    add.addEventListener('click', () => {
+      if (!addToCart(product, 1)) return;
+      if (document.body.dataset.page === 'cart') renderCart();
+    });
+    actions.append(add); content.append(actions); card.append(content); return card;
   }
 
   function renderCatalog() {
@@ -564,6 +567,7 @@
     }
     let selectedIndex = 0;
     const thumbnailButtons = [];
+    const dots = $('#productGalleryDots'), dotButtons = [];
     const showImage = (index) => {
       selectedIndex = (index + images.length) % images.length;
       mainImage.src = images[selectedIndex];
@@ -574,8 +578,13 @@
         button.classList.toggle("active", isSelected);
         button.setAttribute("aria-pressed", String(isSelected));
       });
+      dotButtons.forEach((button, index) => { button.classList.toggle('active', index === selectedIndex); button.setAttribute('aria-pressed', String(index === selectedIndex)); });
     };
     images.forEach((path, index) => {
+      if (dots) {
+        const dot = ui('button', 'product-gallery-dot'); dot.type = 'button';
+        dot.setAttribute('aria-label', `Ver foto ${index + 1}`); dot.onclick = () => showImage(index); dots.append(dot); dotButtons.push(dot);
+      }
       const button = document.createElement("button");
       button.type = "button";
       button.className = "product-gallery-thumbnail";
@@ -607,6 +616,7 @@
       next.hidden = true;
       counter.hidden = true;
       thumbnails.hidden = true;
+      if (dots) dots.hidden = true;
     }
     mainImage.addEventListener("error", () => {
       const nextIndex = images.findIndex((_, imageIndex) =>
@@ -623,134 +633,94 @@
   }
 
   function renderProductPage() {
-    const detail = $("#productDetail");
-    if (!detail) return;
-    const id = new URLSearchParams(window.location.search).get("id");
-    const product = config.products.find((item) => item.id === id);
-    if (!product) {
-      $("#productNotFound").hidden = false;
-      return;
-    }
-    $("#breadcrumbName").textContent = product.nome;
-    $("#productCategory").textContent = product.categoria || "";
-    $("#productName").textContent = product.nome;
-    const description = displayDescription(product.descricao);
-    $("#productDescription").textContent = description;
-    $("#productDescription").hidden = !description;
+    const detail = $('#productDetail'); if (!detail) return;
+    const id = new URLSearchParams(location.search).get('id'), product = productById(id);
+    if (!product) { $('#productNotFound').hidden = false; document.title = `Produto não encontrado | ${config.brand.name}`; return; }
+    $('#breadcrumbName').textContent = product.nome;
+    $('#breadcrumbCategory').textContent = product.categoria || 'Produtos';
+    $('#productCategory').textContent = product.categoria || '';
+    $('#productName').textContent = product.nome;
+    $('#productDescription').textContent = product.descricao || '';
+    const active = product.especificacoes?.['Principais ativos'];
+    $('#productSummary').textContent = active ? `Ativos: ${active.replace(/\s*\n+\s*/g, ' + ')}` : (product.descricao || '').replace(/^O que é\?\s*/i, '').split(/\n\s*\n/)[0].slice(0, 240);
+    const benefits = (product.especificacoes?.['Principais benefícios'] || '').split(/[\n;]+/).map(value => value.replace(/^[•\-\s]+/, '').trim()).filter(Boolean).slice(0, 6);
+    $('#productBenefits').replaceChildren(...benefits.map(text => ui('li', '', text)));
+    $('#benefitsBlock').hidden = benefits.length === 0;
+    const rating = $('#productRating');
+    if (typeof product.avaliacao === 'number' && product.avaliacao > 0 && product.avaliacao <= 5) { rating.textContent = `${product.avaliacao.toFixed(1)} ★★★★★`; rating.hidden = false; }
     renderProductGallery(product);
-    const priceBox = $("#productPrices");
-    if (validPrice(currentPrice(product))) {
-      if (validPrice(product.precoRegular)) {
-        const original = document.createElement("del");
-        original.textContent = money(product.precoRegular);
-        priceBox.append(original);
-      }
-      const price = document.createElement("strong");
-      price.textContent = money(currentPrice(product));
-      priceBox.append(price);
-    }
-    const facts = $("#productFacts");
-    if (product.especificacoes && typeof product.especificacoes === "object") {
-      Object.entries(product.especificacoes).forEach(([label, value]) => {
-        if (typeof value !== "string" || !value.trim()) return;
-        const term = document.createElement("dt");
-        const description = document.createElement("dd");
-        term.textContent = label;
-        description.textContent = value;
-        facts.append(term, description);
-      });
-    }
-    const quantity = $("#productQuantity");
+    decorateProductImage($('#productMainImageContainer'), product);
+    $('#productPrices').replaceChildren(productPriceBlock(product));
+    const facts = $('#productFacts'); facts.replaceChildren();
+    Object.entries(product.especificacoes || {}).forEach(([label, value]) => { if (typeof value === 'string' && value.trim()) facts.append(ui('dt', '', label), ui('dd', '', value)); });
+    const quantity = $('#productQuantity'), add = $('#addProduct');
     quantity.max = String(Math.max(1, purchaseLimit(product)));
-    const addButton = $("#addProduct");
-    addButton.disabled = !canPurchase(product);
-    addButton.textContent = canPurchase(product) ? "Adicionar à sacola" : "Indisponível";
-    addButton.addEventListener("click", () => {
+    const syncQuantity = () => { $('#quantityMinus').disabled = Number(quantity.value) <= 1; $('#quantityPlus').disabled = Number(quantity.value) >= purchaseLimit(product) || !canPurchase(product); };
+    $('#quantityMinus').onclick = () => { if (Number(quantity.value) > 1) quantity.stepDown(); syncQuantity(); };
+    $('#quantityPlus').onclick = () => { if (Number(quantity.value) < purchaseLimit(product)) quantity.stepUp(); syncQuantity(); };
+    quantity.addEventListener('input', syncQuantity); syncQuantity();
+    add.disabled = !canPurchase(product); add.replaceChildren(ui('span', '', canPurchase(product) ? 'Comprar' : 'Indisponível'), bagIcon());
+    add.addEventListener('click', () => {
       const requested = Number(quantity.value);
-      if (!Number.isInteger(requested) || requested < 1 || requested > purchaseLimit(product)) {
-        $("#productStatus").textContent = `Informe uma quantidade entre 1 e ${purchaseLimit(product)}.`;
-        return;
-      }
-      const added = addToCart(product, requested);
-      $("#productStatus").textContent = added
-        ? "Confira sua sacola para continuar."
-        : `Não foi possível adicionar o produto. O limite por item é ${MAX_CART_QUANTITY} unidades.`;
+      if (!Number.isInteger(requested) || requested < 1 || requested > purchaseLimit(product)) { $('#productStatus').textContent = `Informe uma quantidade entre 1 e ${purchaseLimit(product)}.`; return; }
+      if (addToCart(product, requested)) location.assign('carrinho.html');
+      else $('#productStatus').textContent = 'Confira a quantidade já adicionada à sua sacola.';
     });
-    document.title = `${product.nome} — ${config.brand.name}`;
-    detail.hidden = false;
+    const candidates = config.products.filter(p => p.id !== id && canPurchase(p));
+    candidates.sort((a, b) => Number(b.categoria === product.categoria) - Number(a.categoria === product.categoria));
+    renderRecommendations($('#relatedProducts'), candidates.slice(0, 4));
+    try { localStorage.setItem('magazine-recent-products', JSON.stringify([id, ...safeRead('magazine-recent-products', []).filter(value => value !== id)].slice(0, 12))); } catch { /* A página não depende do histórico. */ }
+    document.title = `${product.nome} | ${config.brand.name}`; detail.hidden = false;
+    $('#productInformation').hidden = false;
   }
 
   function renderCart() {
-    const container = $("#cartItems");
-    if (!container) return;
-    const cart = readCart();
-    const hasItems = cart.length > 0;
-    $("#cartEmpty").hidden = hasItems;
-    $(".cart-layout").hidden = !hasItems;
-    if (!hasItems) return;
-    container.replaceChildren();
-    let subtotal = 0;
-    cart.forEach((item) => {
-      const product = productById(item.id);
-      const row = document.createElement("article");
-      row.className = "cart-item";
+    const container = $('#cartItems'); if (!container) return;
+    const cart = readCart(), hasItems = cart.length > 0;
+    $('#cartEmpty').hidden = hasItems; $('.cart-layout').hidden = !hasItems; container.replaceChildren();
+    let subtotal = 0, beforeDiscount = 0;
+    cart.forEach(item => {
+      const product = productById(item.id), row = ui('article', 'cart-item');
       if (!product) {
-        const unavailable = document.createElement("p");
-        unavailable.textContent = "Este produto não está mais no catálogo.";
-        row.append(unavailable);
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "remove-item";
-        remove.textContent = "Remover da sacola";
-        remove.addEventListener("click", () => removeFromCart(item.id));
-        row.append(remove);
-      } else {
-        row.append(makeProductImage(product, "cart-image"));
-        const info = document.createElement("div");
-        info.className = "cart-item-info";
-        const name = document.createElement("h2");
-        name.textContent = product.nome;
-        const price = document.createElement("p");
-        price.textContent = validPrice(currentPrice(product)) ? money(currentPrice(product)) : "Preço ainda não cadastrado";
-        info.append(name, price);
-        const controls = document.createElement("div");
-        controls.className = "cart-quantity";
-        const minus = document.createElement("button");
-        minus.type = "button";
-        minus.setAttribute("aria-label", `Diminuir quantidade de ${product.nome}`);
-        minus.textContent = "−";
-        const count = document.createElement("span");
-        count.textContent = String(item.quantity);
-        const plus = document.createElement("button");
-        plus.type = "button";
-        plus.setAttribute("aria-label", `Aumentar quantidade de ${product.nome}`);
-        plus.textContent = "+";
-        minus.disabled = item.quantity <= 1;
-        plus.disabled = !canPurchase(product) || item.quantity >= purchaseLimit(product);
-        minus.addEventListener("click", () => changeQuantity(item.id, item.quantity - 1));
-        plus.addEventListener("click", () => changeQuantity(item.id, item.quantity + 1));
-        controls.append(minus, count, plus);
-        info.append(controls);
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "remove-item";
-        remove.textContent = "Remover";
-        remove.addEventListener("click", () => removeFromCart(item.id));
-        info.append(remove);
-        row.append(info);
-        if (validPrice(currentPrice(product))) subtotal += currentPrice(product) * item.quantity;
+        row.classList.add('cart-item-unavailable'); row.append(ui('p', '', 'Este produto não está mais no catálogo.'));
+        const remove = ui('button', 'remove-item', 'Remover da sacola'); remove.type = 'button'; remove.onclick = () => removeFromCart(item.id); row.append(remove); container.append(row); return;
       }
-      container.append(row);
+      const info = ui('div', 'cart-item-info'), imageLink = ui('a'); imageLink.href = `produto.html?id=${encodeURIComponent(product.id)}`;
+      imageLink.setAttribute('aria-label', product.nome); imageLink.append(makeProductImage(product, 'cart-image'));
+      const name = ui('h2'), link = ui('a', '', product.nome); link.href = imageLink.href; name.append(link); info.append(imageLink, name);
+      if (!canPurchase(product) || item.quantity > purchaseLimit(product)) info.append(ui('p', 'cart-stock-note', 'Revise a disponibilidade deste produto.'));
+      const unit = ui('div', 'cart-item-unit'); unit.dataset.label = 'Preço';
+      if (validPrice(product.precoRegular) && product.precoRegular > currentPrice(product)) unit.append(ui('del', '', money(product.precoRegular)));
+      unit.append(ui('strong', '', money(currentPrice(product))), ui('small', '', 'no Pix'));
+      const controls = ui('div', 'cart-quantity'); controls.setAttribute('aria-label', `Quantidade de ${product.nome}`);
+      const minus = ui('button', '', '−'), plus = ui('button', '', '+'); minus.type = plus.type = 'button';
+      minus.setAttribute('aria-label', `Diminuir quantidade de ${product.nome}`); plus.setAttribute('aria-label', `Aumentar quantidade de ${product.nome}`);
+      minus.disabled = item.quantity <= 1; plus.disabled = !canPurchase(product) || item.quantity >= purchaseLimit(product);
+      minus.onclick = () => changeQuantity(item.id, item.quantity - 1); plus.onclick = () => changeQuantity(item.id, item.quantity + 1);
+      controls.append(minus, ui('span', '', String(item.quantity).padStart(2, '0')), plus);
+      const total = ui('div', 'cart-item-total'); total.dataset.label = 'Total'; total.append(ui('strong', '', money(currentPrice(product) * item.quantity)), ui('small', '', 'no Pix'));
+      const remove = ui('button', 'remove-item', '×'); remove.type = 'button'; remove.setAttribute('aria-label', `Remover ${product.nome}`); remove.onclick = () => removeFromCart(item.id);
+      row.append(info, unit, controls, total, remove); container.append(row);
+      if (validPrice(currentPrice(product))) {
+        subtotal += Math.round(currentPrice(product) * 100) * item.quantity;
+        const regular = validPrice(product.precoRegular) && product.precoRegular > currentPrice(product) ? product.precoRegular : currentPrice(product);
+        beforeDiscount += Math.round(regular * 100) * item.quantity;
+      }
     });
-    $("#cartSubtotal").textContent = money(subtotal);
-    const validCart = cart.every(item => {
-      const product = productById(item.id);
-      return product && canPurchase(product) && item.quantity <= purchaseLimit(product);
-    });
-    const checkoutLink = $("#checkoutLink");
-    checkoutLink.setAttribute("aria-disabled", String(!validCart));
-    if (!validCart) { checkoutLink.removeAttribute("href"); checkoutLink.textContent = "Revise os itens indisponíveis"; }
-    else { checkoutLink.href = "checkout.html"; checkoutLink.textContent = "Continuar para finalizar"; }
+    $('#cartSubtotal').textContent = money(subtotal / 100);
+    $('#cartItemsTotal').textContent = money(beforeDiscount / 100);
+    $('#cartDiscountTotal').textContent = beforeDiscount > subtotal ? `− ${money((beforeDiscount - subtotal) / 100)}` : money(0);
+    const validCart = hasItems && cart.every(item => { const p = productById(item.id); return p && canPurchase(p) && item.quantity <= purchaseLimit(p); });
+    const next = $('#checkoutLink'); next.setAttribute('aria-disabled', String(!validCart));
+    next.textContent = validCart ? 'Avançar' : 'Revise sua sacola';
+    if (validCart) next.href = 'checkout.html'; else next.removeAttribute('href');
+    const ids = new Set(cart.map(item => item.id)), candidates = config.products.filter(p => !ids.has(p.id) && canPurchase(p));
+    renderRecommendations($('#cartRecommendations'), candidates.slice(0, 4), 'cross-sell');
+    const savedRecent = safeRead('magazine-recent-products', []);
+    const recent = Array.isArray(savedRecent) ? savedRecent : [];
+    const extra = [...recent.map(productById).filter(p => p && !ids.has(p.id) && canPurchase(p)), ...candidates.slice(4)];
+    const unique = [...new Map(extra.map(p => [p.id, p])).values()];
+    renderRecommendations($('#cartReminders'), unique.slice(0, 4), 'cross-sell');
   }
 
   function changeQuantity(id, quantity) {
@@ -758,7 +728,7 @@
     const cart = readCart();
     const item = cart.find((entry) => entry.id === id);
     if (!product || !item) return;
-    if (!Number.isInteger(quantity) || quantity < 1 || quantity > purchaseLimit(product)) {
+    if (!Number.isInteger(quantity) || quantity < 1 || (quantity > purchaseLimit(product) && quantity >= item.quantity)) {
       showToast(`A quantidade deve ficar entre 1 e ${purchaseLimit(product)}.`);
       return;
     }
@@ -1080,6 +1050,7 @@
     renderProductPage();
     renderCart();
     renderCheckout();
+    initCommerceForms();
     initVisitorAnalytics();
   }
   initializeStore();

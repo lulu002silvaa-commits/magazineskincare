@@ -4,16 +4,41 @@ WaitFor "document.querySelectorAll('#productGrid .product-card').length===135"
 Check 'HTML carrega todos os produtos sem PHP' "document.querySelectorAll('#productGrid .product-card').length===135"
 Check 'Não há aviso falso de atualização' "document.querySelector('.store-notice[role=alert]')===null"
 Check 'Vitrine não solicita API ausente' 'window.__apiRequests.length===0'
+Evaluate "document.querySelector('#produtos').scrollIntoView({block:'start',behavior:'instant'});true" | Out-Null
+WaitFor "[...document.querySelectorAll('#featuredGrid img')].every(image=>image.complete && image.naturalWidth>0)"
+Check 'Vitrine tem cards no novo modelo' "document.querySelectorAll('#featuredGrid .product-card .product-pricing').length===4 && document.querySelectorAll('#featuredGrid .cart-icon-button').length===4"
+Screenshot 'vitrine-referencia.png'
 Evaluate "document.querySelector('#searchInput').value='mandelico';document.querySelector('#searchForm').requestSubmit();true" | Out-Null
 Check 'Busca funciona em hospedagem estática' "document.querySelectorAll('#productGrid .product-card').length>0 && document.querySelectorAll('#productGrid .product-card').length<135"
 Cdp 'Page.navigate' @{url=($base+'/produto.html?id=creamy-calming-cream-1')} | Out-Null
 WaitFor "document.querySelector('#productDetail') && !document.querySelector('#productDetail').hidden"
 Check 'Galeria de fotos em HTML' "document.querySelectorAll('.product-gallery-thumbnail').length===4"
+Check 'Produto com benefícios, compra e opções relacionadas' "!!document.querySelector('.product-buy-box') && document.querySelectorAll('#productBenefits li').length>0 && document.querySelectorAll('#relatedProducts .product-card').length===4"
+Check 'Pontos da galeria acompanham as fotos' "document.querySelectorAll('.product-gallery-dot').length===4"
+Screenshot 'produto-referencia.png'
+Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
+Check 'Página do produto cabe no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
+Screenshot 'produto-referencia-mobile.png'
+Cdp 'Emulation.setDeviceMetricsOverride' @{width=1600;height=1000;deviceScaleFactor=1;mobile=$false} | Out-Null
 Evaluate "document.querySelector('#addProduct').click();true" | Out-Null
+WaitFor "location.pathname.endsWith('/carrinho.html') && document.querySelector('#cartItems .cart-item')"
 Check 'Adicionar à sacola sem PHP' "JSON.parse(localStorage.getItem('calma-pele-carrinho'))[0].quantity===1"
 Cdp 'Page.navigate' @{url=($base+'/carrinho.html')} | Out-Null
 WaitFor "document.querySelector('#cartItems .cart-item')"
 Check 'Sacola salva navega entre páginas HTML' "document.querySelector('#cartCount').textContent==='1' && document.querySelector('#checkoutLink').getAttribute('href')==='checkout.html'"
+Check 'Sacola tem entrega, cupom e resumo' "!!document.querySelector('#cartCoupon') && !!document.querySelector('#cartPostcode') && !!document.querySelector('#cartDiscountTotal')"
+Check 'Sacola mostra recomendações complementares' "document.querySelectorAll('#cartRecommendations .product-card').length===4 && document.querySelectorAll('#cartReminders .product-card').length===4"
+Evaluate "document.querySelector('#cartPostcode').value='30140-071';document.querySelector('[data-shipping-form]').requestSubmit();document.querySelector('#couponCode').value='TESTE-INVALIDO';document.querySelector('#cartCoupon').requestSubmit();true" | Out-Null
+Check 'CEP calcula entrega sem inventar prazo' "document.querySelector('#cartShippingStatus').textContent.includes('Frete grátis') && document.querySelector('#cartShippingStatus').textContent.includes('confirmado')"
+Check 'Cupom inválido não cria desconto' "document.querySelector('#couponStatus').textContent.includes('Nenhum desconto') && document.querySelector('#cartDiscountTotal').textContent.includes('0,00')"
+Evaluate "document.querySelector('#cartRecommendations .cart-icon-button').click();true" | Out-Null
+Check 'Recomendação atualiza sacola e resumo' "document.querySelectorAll('#cartItems .cart-item').length===2 && document.querySelector('#cartCount').textContent==='2'"
+Evaluate "document.querySelectorAll('#cartItems .remove-item')[1].click();true" | Out-Null
+Evaluate "document.querySelector('#toast').classList.remove('visible');true" | Out-Null
+Screenshot 'sacola-referencia.png'
+Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
+Check 'Sacola no novo modelo cabe no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
+Screenshot 'sacola-referencia-mobile.png'
 Cdp 'Page.navigate' @{url=($base+'/checkout.html')} | Out-Null
 WaitFor "document.querySelector('.checkout-unavailable')"
 Check 'Sem backend não coleta dados nem simula cobrança' "document.querySelector('#checkoutForm').hidden && document.querySelector('#reserveOrder').disabled && document.querySelector('#pixPayment').hidden"

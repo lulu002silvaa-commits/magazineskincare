@@ -85,3 +85,15 @@ Os pedidos novos guardam contato, endereço e itens para consulta no painel; o C
 Resultado da revisão de 27/10/2026: 53 verificações da API e 25 no Chrome passaram. Os 135 produtos e as 410 fotos continuam presentes; nenhuma dependência local referenciada ficou ausente. A conferência usa dados isolados, sem cobrança externa real. As capturas temporárias e os perfis do navegador foram limpos ao final.
 
 Validação da publicação HTML: passaram 15 verificações do build, 14 no navegador estático, 56 da API PHP e 25 no navegador com PHP. Nenhuma cobrança externa real foi enviada.
+
+## Modelo de navegação e compra
+
+A vitrine, a página de produto e a sacola seguem as referências visuais fornecidas pelo proprietário: cards com foto e ações separadas, galeria lateral, benefícios, bloco de compra com quantidade, cálculo de frete por CEP e produtos relacionados.
+
+O botão **Comprar** abre a sacola. Ela apresenta os itens em colunas, controles de quantidade, entrega, campo de cupom, descontos reais do produto, total no Pix e as seções **Aproveite e leve junto** e **Não se esqueça deles**. Adicionar uma recomendação atualiza os itens e o resumo sem recarregar a página.
+
+Preços, avaliações, selos e benefícios são exibidos conforme os dados existentes; não são criadas avaliações ou certificações. A entrega permanece gratuita conforme a configuração atual e não se presume um prazo de transportadora. Não há cupom adicional ativo: o campo informa que nenhum desconto extra foi aplicado. Retirada está indisponível.
+
+O botão **Avançar** mantém a etapa de contato e pagamento existente. Em publicação apenas HTML sem backend PHP conectado, a finalização continua indisponível, com a seleção preservada e sem coleta de dados pessoais.
+
+A alteração passou em 15 verificações de build, 24 no navegador estático, 56 da API PHP e 27 no navegador com PHP. Nenhuma cobrança externa real foi enviada.
