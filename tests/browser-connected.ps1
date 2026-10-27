@@ -1,5 +1,5 @@
 Cdp 'Page.navigate' @{url=($base+'/produto.html?id=creamy-calming-cream-1')} | Out-Null
-WaitFor "document.querySelector('#addProduct') && !document.querySelector('#addProduct').disabled"
+WaitFor "document.querySelector('#productDetail') && !document.querySelector('#productDetail').hidden && !document.querySelector('#addProduct').disabled"
 Check 'Loja conecta ao backend PHP' "window.StoreConnection.apiEnabled && window.StoreConnection.apiOrigin==='https://magazineskincare.onrender.com'"
 Evaluate "document.querySelector('#addProduct').click();true" | Out-Null
 WaitFor "location.pathname.endsWith('/carrinho.html') && document.querySelector('#checkoutLink')?.getAttribute('aria-disabled')==='false'"
