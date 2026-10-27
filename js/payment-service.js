@@ -1,6 +1,14 @@
 ﻿(function () {
   let paymentIntent = null;
 
+  function createPixQr(copyPaste) {
+    if (typeof window.qrcode !== 'function') throw new Error('O código Pix foi recebido, mas o gerador de QR não carregou. Atualize a página.');
+    const qr = window.qrcode(0, 'M');
+    qr.addData(copyPaste, 'Byte');
+    qr.make();
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qr.createSvgTag(8, 4, 'QR Code Pix'))}`;
+  }
+
   async function readApiResponse(response) {
     const body = await response.text();
     try {
@@ -81,14 +89,11 @@
           valor: Number(result.data.amount) / 100,
           txid: result.data.transactionId
         });
-        const qr = window.qrcode(0, "M");
-        qr.addData(copyPaste, "Byte");
-        qr.make();
         result.data.paymentMethod = "manual_pix";
         result.data.paymentData = {
           copyPaste,
           qrCode: copyPaste,
-          qrCodeBase64: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qr.createSvgTag(8, 4, "QR Code Pix"))}`
+          qrCodeBase64: createPixQr(copyPaste)
         };
       } else {
         const paymentData = result.data.paymentData || {};
@@ -97,17 +102,8 @@
           throw new Error("A cobrança foi criada, mas a BlackCat não devolveu o Pix copia e cola. Consulte a cobrança no painel da BlackCat antes de tentar novamente.");
         }
         paymentData.copyPaste = copyPaste;
-        if (typeof paymentData.qrCodeBase64 !== "string" || !paymentData.qrCodeBase64.trim()) {
-          if (typeof window.qrcode !== "function") {
-            throw new Error("A BlackCat enviou o código Pix, mas o gerador de QR não carregou. Atualize a página e tente novamente.");
-          }
-          const qr = window.qrcode(0, "M");
-          qr.addData(copyPaste, "Byte");
-          qr.make();
-          paymentData.qrCodeBase64 = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qr.createSvgTag(8, 4, "QR Code Pix"))}`;
-        } else if (!/^data:image\//i.test(paymentData.qrCodeBase64)) {
-          paymentData.qrCodeBase64 = `data:image/png;base64,${paymentData.qrCodeBase64}`;
-        }
+        // O copia e cola é a fonte da cobrança; imagens do gateway podem vir inválidas.
+        paymentData.qrCodeBase64 = createPixQr(copyPaste);
         result.data.paymentData = paymentData;
       }
       return result;
