@@ -336,12 +336,33 @@
   }
 
   async function lookupAddress(cep, signal) {
-    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal });
-    if (!response.ok) throw new Error('Consulta indisponível');
-    const result = await response.json();
-    if (result.erro) throw new Error('CEP não encontrado. Confira o CEP informado.');
-    if (!result.localidade || !/^[A-Z]{2}$/.test(result.uf || '')) throw new Error('Resposta de CEP inválida');
-    return { zipCode: cep, street: result.logradouro || '', neighborhood: result.bairro || '', city: result.localidade, state: result.uf };
+    if (!/^\d{8}$/.test(cep)) throw new Error('Informe um CEP com 8 números.');
+    const providers = [
+      [`https://viacep.com.br/ws/${cep}/json/`, false],
+      [`https://brasilapi.com.br/api/cep/v2/${cep}`, true],
+      [`https://opencep.com/v1/${cep}`, false]
+    ];
+    const controllers = providers.map(() => new AbortController());
+    const abort = () => controllers.forEach(controller => controller.abort());
+    signal?.addEventListener('abort', abort, { once: true });
+    if (signal?.aborted) abort();
+    try {
+      return await Promise.any(providers.map(async ([url, english], index) => {
+        const timeout = setTimeout(() => controllers[index].abort(), 5000);
+        try {
+          const response = await fetch(url, { signal: controllers[index].signal });
+          if (!response.ok) throw new Error('Consulta indisponível');
+          const result = await response.json();
+          const city = english ? result.city : result.localidade;
+          const state = english ? result.state : result.uf;
+          const returnedCep = String(result.cep || '').replace(/\D/g, '');
+          if (result.erro || result.error || !city || !/^[A-Z]{2}$/.test(state || '') || (returnedCep && returnedCep !== cep)) throw new Error('CEP não localizado na base');
+          return { zipCode: cep, street: (english ? result.street : result.logradouro) || '', neighborhood: (english ? result.neighborhood : result.bairro) || '', city, state };
+        } finally { clearTimeout(timeout); }
+      }));
+    } finally {
+      abort(); signal?.removeEventListener('abort', abort);
+    }
   }
 
   function saveDelivery(address) {
@@ -377,8 +398,8 @@
           const resolved = ['street', 'neighborhood', 'city', 'state'].includes(key) && !!value[key];
           field.hidden = resolved; field.previousElementSibling.hidden = resolved;
         });
-        const summary = [value.street, value.neighborhood, `${value.city} / ${value.state}`].filter(Boolean).join(', ');
-        status.textContent = `${summary}. Frete grátis. O prazo será confirmado antes do envio. ${value.street && value.neighborhood ? 'Confirme o número da casa.' : 'Complete os dados do endereço e o número.'}`;
+        const summary = [value.street, value.neighborhood, [value.city, value.state].filter(Boolean).join(' / ')].filter(Boolean).join(', ');
+        status.textContent = `${summary ? `${summary}. ` : ''}Frete grátis. O prazo será confirmado antes do envio. ${value.street && value.neighborhood ? 'Confirme o número da casa.' : 'Complete os dados do endereço e o número.'}`;
         saveDelivery(value);
       };
       const cached = readDelivery();
@@ -397,7 +418,8 @@
           if (focus) controls.number.focus();
         } catch (error) {
           if (request !== controller) return;
-          status.textContent = error.message.startsWith('CEP não encontrado') ? error.message : 'Não foi possível consultar o CEP. Tente novamente ou preencha o endereço no checkout.';
+          showAddress({ zipCode: digits, street: '', neighborhood: '', city: '', state: '', number: '', complement: '' });
+          status.textContent = 'Não conseguimos localizar este CEP nas bases consultadas. Confira o CEP ou preencha o endereço abaixo.';
         } finally { clearTimeout(timeout); }
       };
       input.addEventListener('input', () => {
@@ -869,7 +891,7 @@
     const apply = address => {
       input.value = address.zipCode.replace(/(\d{5})(\d{3})/, '$1-$2');
       Object.entries(ids).forEach(([key, selector]) => { $(selector).value = address[key] || ''; });
-      status.textContent = 'Endereço encontrado. Confira os dados e informe o número.';
+      status.textContent = address.street && address.neighborhood && address.city && address.state ? 'Confira o endereço e confirme o número da casa.' : 'Complete os dados do endereço e informe o número.';
     };
     const cached = readDelivery();
     if (cached && /^\d{8}$/.test(cached.zipCode || '')) apply(cached);
@@ -886,7 +908,7 @@
         apply(address); saveDelivery(address);
       } catch (error) {
         if (request !== controller) return;
-        status.textContent = error.message.startsWith('CEP não encontrado') ? error.message : 'Não foi possível consultar agora. Preencha o endereço manualmente.';
+        status.textContent = 'Não conseguimos localizar este CEP nas bases consultadas. Confira o CEP ou preencha o endereço manualmente.';
       } finally { clearTimeout(timeout); }
     };
     input.addEventListener('input', () => {
