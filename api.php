@@ -4,7 +4,8 @@ require __DIR__ . '/php/bootstrap.php';
 
 $route = '/' . trim((string)($_GET['route'] ?? ''), '/');
 $method = $_SERVER['REQUEST_METHOD'];
-if (!str_starts_with($route, '/admin/') && in_array($_SERVER['HTTP_ORIGIN'] ?? '', ['http://127.0.0.1:5500', 'http://127.0.0.1:5501', 'http://localhost:5500', 'http://localhost:5501'], true)) {
+$frontendOrigins = array_merge(['http://127.0.0.1:5500', 'http://127.0.0.1:5501', 'http://localhost:5500', 'http://localhost:5501'], array_values(array_filter(array_map('trim', explode(',', getenv('STORE_FRONTEND_ORIGINS') ?: '')))));
+if (!str_starts_with($route, '/admin/') && in_array($_SERVER['HTTP_ORIGIN'] ?? '', $frontendOrigins, true)) {
     header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
     header('Vary: Origin');
     header('Access-Control-Allow-Headers: Content-Type');

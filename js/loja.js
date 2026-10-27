@@ -22,6 +22,7 @@
   let searchTerm = "";
   let toastTimer;
   let catalogVerified = false;
+  const connection = window.StoreConnection || { apiEnabled: true, mode: 'php' };
 
   function money(value) {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -796,6 +797,20 @@
       container.append(line);
     });
     $("#checkoutSubtotal").textContent = money(subtotal);
+    if (!connection.apiEnabled) {
+      const form = $("#checkoutForm");
+      form.hidden = true;
+      const message = document.createElement('section');
+      message.className = 'checkout-form checkout-unavailable';
+      const title = document.createElement('h2');
+      title.textContent = 'Sua seleção está salva';
+      const description = document.createElement('p');
+      description.textContent = 'A finalização de compras ainda não está disponível. Você pode continuar explorando os produtos e guardar seus favoritos na sacola.';
+      const back = document.createElement('a');
+      back.className = 'button button-outline'; back.href = 'carrinho.html'; back.textContent = 'Voltar à sacola';
+      message.append(title, description, back); form.before(message);
+      return;
+    }
     $("#checkoutForm").addEventListener("submit", submitPayment);
     $("#customerCpf").addEventListener("input", (event) => {
       const digits = event.target.value.replace(/\D/g, "").slice(0, 11);
@@ -937,7 +952,7 @@
     window.setTimeout(refresh, 10000);
   }
   function initVisitorAnalytics() {
-    if (window.location.protocol === "file:") return;
+    if (!connection.apiEnabled || window.location.protocol === "file:") return;
     const key = "mineironet_creamystore_session";
     let sessionId = sessionStorage.getItem(key);
     if (!sessionId) {
@@ -1028,12 +1043,19 @@
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 8000);
     try {
-      const response = await fetch("/api/catalog", { cache: "no-store", signal: controller.signal });
-      if (!response.ok) throw new Error('Catálogo indisponível');
-      if (response.ok) {
+      if (!connection.apiEnabled) {
+        if (!Array.isArray(config.products) || !config.products.length) throw new Error('Catálogo estático indisponível');
+        catalogVerified = true;
+      } else {
+        const response = await fetch("/api/catalog", { cache: "no-store", signal: controller.signal });
+        if (!response.ok) throw new Error('Catálogo indisponível');
         const result = await response.json();
         if (Array.isArray(result.products)) {
-          config.products = result.products;
+          config.products = result.products.map(product => {
+            if (!connection.apiOrigin) return product;
+            const imageUrl = path => typeof path === 'string' && path.startsWith('public/images/uploads/') ? `${connection.apiOrigin}/${path}` : path;
+            return { ...product, imagem: imageUrl(product.imagem), imagens: (product.imagens || []).map(imageUrl) };
+          });
           catalogVerified = true;
           config.categories = [...new Set(result.products.map(product => product.categoria).filter(Boolean))];
         }

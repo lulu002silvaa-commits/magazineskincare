@@ -6,9 +6,15 @@ $client = curl_init();
 curl_setopt_array($client, [CURLOPT_RETURNTRANSFER => true, CURLOPT_COOKIEFILE => '', CURLOPT_TIMEOUT => 15]);
 $csrf = '';
 $count = 0;
-function request(string $route, string $method = 'GET', ?array $body = null, ?array $form = null, ?string $token = null): array {
+function request(string $route, string $method = 'GET', ?array $body = null, ?array $form = null, ?string $token = null, ?string $origin = null): array {
     global $client, $base, $csrf;
     $headers = [];
+    $responseHeaders = [];
+    if ($origin !== null) $headers[] = 'Origin: ' . $origin;
+    curl_setopt($client, CURLOPT_HEADERFUNCTION, function ($curl, $line) use (&$responseHeaders) {
+        if (str_contains($line, ':')) { [$name, $value] = explode(':', $line, 2); $responseHeaders[strtolower(trim($name))] = trim($value); }
+        return strlen($line);
+    });
     if ($method !== 'GET') $headers[] = 'X-CSRF-Token: ' . ($token ?? $csrf);
     curl_setopt_array($client, [CURLOPT_URL => $base . '/api.php?route=' . rawurlencode($route), CURLOPT_CUSTOMREQUEST => $method, CURLOPT_POSTFIELDS => null, CURLOPT_HTTPHEADER => []]);
     if ($form !== null) curl_setopt($client, CURLOPT_POSTFIELDS, $form);
@@ -17,7 +23,7 @@ function request(string $route, string $method = 'GET', ?array $body = null, ?ar
     curl_setopt($client, CURLOPT_HTTPHEADER, $headers);
     $raw = curl_exec($client);
     if ($raw === false) throw new RuntimeException(curl_error($client));
-    return [curl_getinfo($client, CURLINFO_RESPONSE_CODE), json_decode($raw, true)];
+    return [curl_getinfo($client, CURLINFO_RESPONSE_CODE), json_decode($raw, true), $responseHeaders];
 }
 function check(string $name, bool $passed): void {
     global $count;
@@ -26,6 +32,12 @@ function check(string $name, bool $passed): void {
 }
 [$status, $catalog] = request('/catalog');
 check('Catálogo inicial com 135 produtos', $status === 200 && count($catalog['products']) === 135);
+[, , $headers] = request('/catalog', 'GET', null, null, null, 'https://magazineskincare.vercel.app');
+check('Backend permite conectar a vitrine autorizada', ($headers['access-control-allow-origin'] ?? '') === 'https://magazineskincare.vercel.app');
+[, , $headers] = request('/catalog', 'GET', null, null, null, 'https://origem-nao-autorizada.example.com');
+check('Backend não libera CORS para qualquer domínio', !isset($headers['access-control-allow-origin']));
+[, , $headers] = request('/admin/session', 'GET', null, null, null, 'https://magazineskincare.vercel.app');
+check('Login do painel continua restrito à hospedagem PHP', !isset($headers['access-control-allow-origin']));
 [$status] = request('/admin/data'); check('Dados administrativos protegidos', $status === 401);
 [, $session] = request('/admin/session'); $csrf = $session['csrf'];
 check('Primeiro acesso permite criar a senha local', $session['setupRequired'] && $session['setupAllowed']);

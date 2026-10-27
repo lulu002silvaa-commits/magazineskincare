@@ -10,3 +10,7 @@ tests
 backup-limpeza.zip
 *.bat
 php-local.ini
+dist
+dist-*
+scripts
+node_modules

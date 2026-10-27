@@ -3,7 +3,7 @@ declare(strict_types=1);
 $path = rawurldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
-if (preg_match('~(?:^|/)(?:\.[^/]+|php|tests|backup[^/]*|Dockerfile|docker-entrypoint\.sh)(?:/|$)|\.(?:py|zip|bat|ps1|sh|lock|json|ini|ya?ml|md)$~i', $path) || str_contains($path, '..')) {
+if (preg_match('~(?:^|/)(?:\.[^/]+|php|tests|scripts|backup[^/]*|Dockerfile|docker-entrypoint\.sh)(?:/|$)|\.(?:py|zip|bat|ps1|sh|lock|json|ini|ya?ml|md)$~i', $path) || str_contains($path, '..')) {
     http_response_code(404); exit('Não encontrado.');
 }
 if (str_starts_with($path, '/api/')) { $_GET['route'] = substr($path, 4); require __DIR__ . '/api.php'; return true; }

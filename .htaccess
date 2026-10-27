@@ -1,7 +1,7 @@
 Options -Indexes
 RewriteEngine On
 RewriteRule (^|/)\.(?!well-known/) - [F,L]
-RewriteRule ^(?:php|tests)/ - [F,L]
+RewriteRule ^(?:php|tests|scripts)/ - [F,L]
 RewriteRule \.(?:py|zip|bat|ps1|sh|lock|json|ini|ya?ml|md)$ - [F,L,NC]
 RewriteRule ^Dockerfile$ - [F,L]
 RewriteRule ^admin\.html$ admin.php [R=302,L]

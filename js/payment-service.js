@@ -32,6 +32,11 @@
 
   window.PaymentService = Object.freeze({
     async getStatus() {
+      if (window.StoreConnection?.apiEnabled === false) {
+        const title = document.querySelector('#paymentProviderTitle');
+        if (title) title.textContent = 'Finalização indisponível';
+        return { available: false, method: null, message: 'Sua seleção está salva na sacola. A finalização de compras ainda não está disponível.' };
+      }
       try {
         const config = await getConfig();
         const blackcat = config.method === "gateway";
@@ -50,6 +55,7 @@
       }
     },
     async createCharge(data) {
+      if (window.StoreConnection?.apiEnabled === false) throw new Error('A finalização de compras ainda não está disponível.');
       const fingerprint = JSON.stringify(data);
       let intent = paymentIntent;
       try { intent = JSON.parse(sessionStorage.getItem('magazine-payment-intent') || 'null') || paymentIntent; } catch { /* Mantém o identificador em memória se o armazenamento não estiver disponível. */ }

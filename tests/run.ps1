@@ -5,7 +5,7 @@ $runtime = Join-Path $root '.runtime/php/php.exe'
 if (!(Test-Path -LiteralPath $runtime)) { $runtime = (Get-Command php -ErrorAction Stop).Source }
 $testPath = Join-Path $root ('.runtime/test-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $testPath -Force | Out-Null
-$names = @('STORE_DATA_DIR','STORE_LOAD_ENV','ADMIN_SYNC_PASSWORD','ADMIN_USERNAME','BLACKCAT_API_KEY','TEST_BASE_URL','TEST_DATA_DIR')
+$names = @('STORE_DATA_DIR','STORE_LOAD_ENV','ADMIN_SYNC_PASSWORD','ADMIN_USERNAME','BLACKCAT_API_KEY','STORE_FRONTEND_ORIGINS','TEST_BASE_URL','TEST_DATA_DIR')
 $previous = @{}
 foreach ($name in $names) { $previous[$name] = [Environment]::GetEnvironmentVariable($name,'Process') }
 $process = $null
@@ -16,6 +16,7 @@ try {
   $env:ADMIN_SYNC_PASSWORD = ''
   $env:ADMIN_USERNAME = 'admin'
   $env:BLACKCAT_API_KEY = ''
+  $env:STORE_FRONTEND_ORIGINS = 'https://magazineskincare.vercel.app'
   $env:TEST_BASE_URL = 'http://127.0.0.1:8092'
   $env:TEST_DATA_DIR = $testPath
   $process = Start-Process -FilePath $runtime -ArgumentList @('-c','php-local.ini','-S','127.0.0.1:8092','router.php') -WorkingDirectory $root -WindowStyle Hidden -PassThru -RedirectStandardError (Join-Path $testPath 'server.log')
@@ -28,12 +29,18 @@ try {
   if($Browser){& (Join-Path $PSScriptRoot 'browser.ps1')}
 } finally {
   if($process -and !$process.HasExited){Stop-Process -Id $process.Id -Force}
+  if($process){$process.WaitForExit(5000) | Out-Null; $process.Dispose()}
   foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$previous[$name],'Process')}
   if(!$KeepArtifacts) {
     $runtimePrefix = [IO.Path]::GetFullPath((Join-Path $root '.runtime')).TrimEnd('\') + '\'
     $testFull = [IO.Path]::GetFullPath($testPath)
     if(!$testFull.StartsWith($runtimePrefix,[StringComparison]::OrdinalIgnoreCase) -or !(Split-Path $testFull -Leaf).StartsWith('test-')) {throw 'Diretório de teste fora do local previsto.'}
-    if(Test-Path -LiteralPath $testFull){Remove-Item -LiteralPath $testFull -Recurse -Force}
+    if(Test-Path -LiteralPath $testFull){
+      for($attempt=0;$attempt -lt 5;$attempt++){
+        try {Remove-Item -LiteralPath $testFull -Recurse -Force -ErrorAction Stop;break}
+        catch [IO.IOException] {if($attempt -eq 4){Write-Warning 'Os testes passaram, mas o registro temporário ainda está aberto no Windows.'}else{Start-Sleep -Milliseconds 200}}
+      }
+    }
   }
   Pop-Location
 }

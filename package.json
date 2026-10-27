@@ -1,0 +1,11 @@
+{
+  "name": "magazine-do-skincare",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "24.x" },
+  "scripts": {
+    "build": "node scripts/build-static.mjs",
+    "test:static": "node tests/static-build.mjs"
+  }
+}

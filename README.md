@@ -10,6 +10,24 @@ Loja com catálogo de 135 produtos, 410 fotos reais e painel administrativo PHP.
 
 O PHP portátil oficial está em `.runtime/php/`, sem instalação global. O inicializador também aceita PHP 8.2 ou superior instalado no PATH. Mantenha a janela do servidor aberta. O Live Server não executa PHP; use os endereços acima para administrar e testar o checkout.
 
+## Vitrine HTML na Vercel e painel PHP
+
+A publicação na Vercel agora gera somente HTML, CSS, JavaScript, fotos e fontes em `dist/`. O arquivo `vercel.json` define o comando `node scripts/build-static.mjs` e a pasta de saída `dist`; essas opções ficam versionadas no GitHub. O build usa Node 24 LTS e não instala dependências.
+
+Sem servidor conectado, a vitrine utiliza o catálogo publicado em `js/products.js`: busca, galerias e sacola funcionam sem API. O checkout explica que a finalização ainda não está disponível e não coleta dados do cliente nem gera cobrança. Esse modo não tenta consultar `/api/catalog`, portanto não apresenta o aviso de falha por uma API inexistente.
+
+O painel continua sendo `admin.php` e precisa de hospedagem PHP. Para conectar o painel e os pagamentos à vitrine:
+
+1. Publique o backend PHP com a configuração Docker/Render existente, ou em hospedagem PHP compatível.
+2. Na Vercel, defina a variável pública `STORE_API_ORIGIN` com a origem HTTPS real desse servidor, sem barra de caminho. Exemplo ilustrativo: `https://seu-servidor-php.example.com`.
+3. No servidor PHP, configure `STORE_FRONTEND_ORIGINS=https://magazineskincare.vercel.app`. Se usar domínio próprio, acrescente a origem exata separada por vírgula.
+4. Faça um novo deploy da vitrine. O catálogo passa a vir do servidor e as alterações do painel aparecem na loja. Fotos enviadas pelo painel são carregadas da hospedagem PHP.
+5. Opcionalmente, use `STORE_ADMIN_URL` na Vercel caso o endereço do painel não seja a origem do backend mais `/admin.php`.
+
+`STORE_API_ORIGIN` e `STORE_ADMIN_URL` são endereços públicos. A senha administrativa e `BLACKCAT_API_KEY` continuam somente no ambiente do servidor PHP. Não coloque essas credenciais nas variáveis do frontend ou em `js/deployment.js`.
+
+Para gerar a vitrine manualmente: `node scripts/build-static.mjs`. Para verificar o build: `node tests/static-build.mjs`. Para verificar o modo HTML no Chrome, inicie `node tests/static-server.mjs` e execute `powershell -NoProfile -ExecutionPolicy Bypass -File tests/browser.ps1 -Static`.
+
 ## Acesso administrativo
 
 O usuário é definido por `ADMIN_USERNAME` (padrão: `admin`). Se `ADMIN_SYNC_PASSWORD` estiver preenchida no `.env` ou no ambiente do servidor, essa é a senha de acesso. Não há senha padrão pública.
@@ -31,7 +49,7 @@ Edições são salvas no servidor e consultadas pela loja em `/api/catalog`. O c
 
 ## Dados e arquivos
 
-`admin.php` é a entrada do painel; `admin.html` redireciona para ela. `js/admin.js` e `css/admin.css` definem a interface. `api.php` e `php/` implementam os dados, a autenticação, uploads e pagamentos. `router.php` é usado no servidor local; `.htaccess` configura Apache.
+`admin.php` é a entrada do painel. Em hospedagem PHP, `admin.html` redireciona para ela; na vitrine estática, abre o endereço de painel configurado ou informa que a hospedagem PHP ainda não foi conectada. `js/admin.js` e `css/admin.css` definem a interface. `api.php` e `php/` implementam os dados, a autenticação, uploads e pagamentos. `router.php` é usado no servidor local; `.htaccess` configura Apache.
 
 `js/products.js` contém a captura inicial do catálogo. Após a primeira gravação, `.data/store.json` é a fonte das alterações. As fotos enviadas ficam em `.data/uploads/`, acessíveis por URLs controladas, sem expor os outros arquivos de dados. Faça backup da pasta `.data/` inteira: ela também contém autenticação, visitas, bloqueios, sessões e referências de cobranças. Não sobrescreva essa pasta ao atualizar o código.
 
@@ -47,7 +65,7 @@ Para BlackCat, configure `BLACKCAT_API_KEY` somente no servidor e selecione a op
 
 Use hospedagem PHP 8.2+ com sessões, JSON, OpenSSL e cURL; a pasta `.data/` precisa permitir gravação pelo PHP. Em Apache, habilite `mod_rewrite` e `AllowOverride All` para aplicar `.htaccess`. A configuração `render.yaml` agora usa o `Dockerfile` PHP/Apache, com disco persistente em `/var/www/html/.data`. A implantação em nuvem não foi executada nesta tarefa.
 
-O projeto agora usa somente PHP. O servidor Python antigo, seu ambiente virtual copiado e a configuração sem referências foram removidos com backup verificado em `.backups/`.
+O painel e o backend usam PHP; a vitrine também pode ser publicada apenas em HTML/CSS/JavaScript na Vercel. O servidor Python antigo e seu ambiente virtual foram removidos com backup verificado em `.backups/`.
 
 ## Verificação
 
@@ -65,3 +83,5 @@ A sacola respeita o estoque informado e permite remover produtos retirados do ca
 Os pedidos novos guardam contato, endereço e itens para consulta no painel; o CPF aparece mascarado. O gerador de QR Code é local, com licença preservada em js/vendor/. Navegação por teclado, página 404, títulos e cabeçalhos em telas menores também foram revisados.
 
 Resultado da revisão de 27/10/2026: 53 verificações da API e 25 no Chrome passaram. Os 135 produtos e as 410 fotos continuam presentes; nenhuma dependência local referenciada ficou ausente. A conferência usa dados isolados, sem cobrança externa real. As capturas temporárias e os perfis do navegador foram limpos ao final.
+
+Validação da publicação HTML: passaram 15 verificações do build, 14 no navegador estático, 56 da API PHP e 25 no navegador com PHP. Nenhuma cobrança externa real foi enviada.
