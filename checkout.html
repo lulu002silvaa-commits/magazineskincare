@@ -15,7 +15,7 @@
   <script src="js/pix.js" defer></script>
   <script src="js/vendor/qrcode.min.js" defer></script>
   <script src="js/payment-service.js?v=16" defer></script>
-  <script src="js/loja.js?v=17" defer></script>
+  <script src="js/loja.js?v=18" defer></script>
 </head>
 <body data-page="checkout" class="checkout-reference">
   <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
@@ -36,7 +36,7 @@
           <legend>Contato</legend>
           <div class="form-grid">
           <div class="form-field full"><label for="customerName">Nome completo</label><input id="customerName" name="name" autocomplete="name" required minlength="2" maxlength="120" placeholder="Seu nome"></div>
-          <div class="form-field"><label for="customerPhone">WhatsApp</label><input id="customerPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required minlength="10" maxlength="20" placeholder="(00) 00000-0000"></div>
+          <div class="form-field"><label for="customerPhone">WhatsApp com DDD</label><input id="customerPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" required minlength="10" maxlength="22" placeholder="(11) 91234-5678" aria-describedby="customerPhoneHelp"><small id="customerPhoneHelp" class="field-help">Informe o DDD e o número. Pode colar com +55.</small></div>
           <div class="form-field"><label for="customerEmail">E-mail</label><input id="customerEmail" name="email" type="email" autocomplete="email" maxlength="254" placeholder="voce@email.com" required></div>
           <div class="form-field"><label for="customerCpf">CPF</label><input id="customerCpf" name="cpf" inputmode="numeric" autocomplete="off" required minlength="11" maxlength="14" placeholder="000.000.000-00"></div>
           </div>

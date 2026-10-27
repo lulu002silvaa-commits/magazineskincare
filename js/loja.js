@@ -903,7 +903,53 @@
       $('#pixCopyPaste').rows = expanded ? 6 : 2;
     };
     initCepLookup();
+    initCustomerPhone();
     initCheckoutStages();
+  }
+
+  function initCustomerPhone() {
+    const input = $('#customerPhone'), help = $('#customerPhoneHelp');
+    const normalize = value => {
+      let digits = value.replace(/\D/g, '');
+      if ((digits.length === 12 || digits.length === 13) && digits.startsWith('55')) digits = digits.slice(2);
+      return digits;
+    };
+    const validate = (show = false) => {
+      const digits = normalize(input.value);
+      const valid = /^[1-9]{2}(?:9\d{8}|[2-5]\d{7})$/.test(digits);
+      const message = !digits ? 'Informe seu WhatsApp com DDD.' : 'Confira o DDD e o número completo, por exemplo (11) 91234-5678.';
+      input.setCustomValidity(valid ? '' : message);
+      input.setAttribute('aria-invalid', String(show && !valid));
+      help.textContent = show && !valid ? message : 'Informe o DDD e o número. Pode colar com +55.';
+      help.classList.toggle('field-help-error', show && !valid);
+      return valid;
+    };
+    input.addEventListener('keydown', event => {
+      if (!['Backspace', 'Delete'].includes(event.key) || input.selectionStart !== input.selectionEnd) return;
+      const cursor = input.selectionStart;
+      if (event.key === 'Backspace' && cursor > 0 && /\D/.test(input.value[cursor - 1])) {
+        let start = cursor - 1; while (start > 0 && /\D/.test(input.value[start])) start--;
+        input.setSelectionRange(start, cursor);
+      } else if (event.key === 'Delete' && cursor < input.value.length && /\D/.test(input.value[cursor])) {
+        let end = cursor; while (end < input.value.length && /\D/.test(input.value[end])) end++;
+        input.setSelectionRange(cursor, Math.min(end + 1, input.value.length));
+      }
+    });
+    input.addEventListener('input', () => {
+      const raw = input.value, cursor = input.selectionStart, atEnd = cursor === raw.length;
+      const digits = normalize(raw), before = normalize(raw.slice(0, cursor)).length;
+      if (digits.length <= 11) {
+        const subscriber = digits.slice(2), split = subscriber.length > 8 ? 5 : 4;
+        input.value = digits.length < 3 ? digits : `(${digits.slice(0, 2)}) ${subscriber.slice(0, split)}${subscriber.length > split ? `-${subscriber.slice(split)}` : ''}`;
+        let position = input.value.length;
+        if (!atEnd) { let count = 0; position = 0; while (position < input.value.length && count < before) { if (/\d/.test(input.value[position])) count++; position++; } }
+        input.setSelectionRange(position, position);
+      }
+      validate();
+    });
+    input.addEventListener('blur', () => validate(true));
+    input.addEventListener('invalid', () => validate(true));
+    input.addEventListener('change', () => validate(true));
   }
 
   function initCheckoutStages() {

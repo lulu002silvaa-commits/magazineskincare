@@ -117,6 +117,15 @@ try {
   WaitFor "document.querySelector('#shippingNumber') && document.querySelector('#shippingNumber').value==='456'"
   Check 'Checkout reaproveita endereço e número' "document.querySelector('#shippingAddress').value==='Rua Consulta' && document.querySelector('#shippingZipCode').value==='01001-000'"
   Check 'Checkout cabe no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
+  Evaluate "document.querySelector('#customerPhone').value='+55 (11) 91234-5678';document.querySelector('#customerPhone').dispatchEvent(new Event('input'));true" | Out-Null
+  Check 'WhatsApp colado com código do Brasil recebe máscara' "document.querySelector('#customerPhone').value==='(11) 91234-5678' && document.querySelector('#customerPhone').checkValidity()"
+  Evaluate "document.querySelector('#customerPhone').value='55912345678';document.querySelector('#customerPhone').dispatchEvent(new Event('input'));true" | Out-Null
+  Check 'DDD 55 não é confundido com código do país' "document.querySelector('#customerPhone').value==='(55) 91234-5678'"
+  Evaluate "document.querySelector('#customerPhone').value='1132345678';document.querySelector('#customerPhone').dispatchEvent(new Event('input'));true" | Out-Null
+  Check 'Telefone fixo recebe máscara de oito dígitos' "document.querySelector('#customerPhone').value==='(11) 3234-5678' && document.querySelector('#customerPhone').checkValidity()"
+  Evaluate "document.querySelector('#customerPhone').value='119123';document.querySelector('#customerPhone').dispatchEvent(new Event('input'));document.querySelector('#customerPhone').dispatchEvent(new Event('blur'));true" | Out-Null
+  Check 'Número incompleto mostra orientação acessível' "!document.querySelector('#customerPhone').checkValidity() && document.querySelector('#customerPhone').getAttribute('aria-invalid')==='true' && document.querySelector('#customerPhoneHelp').textContent.includes('número completo')"
+  Evaluate "document.querySelector('#customerPhone').value='11999999999';document.querySelector('#customerPhone').dispatchEvent(new Event('input'));true" | Out-Null
   Evaluate "const fields={customerName:'Teste Navegador',customerPhone:'11999999999',customerEmail:'navegador@example.com',customerCpf:'52998224725',shippingZipCode:'70000000',shippingAddress:'Rua Teste',shippingNumber:'123',shippingNeighborhood:'Centro',shippingCity:'Brasilia',shippingState:'DF'};for(const [id,value] of Object.entries(fields))document.getElementById(id).value=value;document.querySelector('#checkoutContinue').click();true" | Out-Null
   Check 'Etapa de entrega exibe endereço e frete' "!document.querySelector('.address-fieldset').hidden && document.querySelector('#checkoutStepLabel').textContent==='Etapa 2 de 3'"
   Screenshot 'checkout-entrega-mobile.png'
