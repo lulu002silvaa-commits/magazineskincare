@@ -199,3 +199,18 @@ body[data-page="checkout"] .inner-page{max-width:1140px}body[data-page="checkout
 .checkout-reference .pix-payment-card .pix-order-review { margin-top: 16px; padding: 16px; }
 .checkout-reference .pix-payment-card #pixCopyPaste { min-height: 48px; }
 @media(max-width:600px) { .checkout-reference .pix-payment-card .pix-payment-banner h2 { font-size: 11px; } }
+/* Acabamento da finalização */
+.checkout-reference .pix-payment-card { max-width: 540px; }
+.checkout-reference .pix-payment-card .pix-payment-banner { padding: 14px 16px; }
+.checkout-reference .pix-payment-card .pix-payment-banner h2 { font-size: 12px; line-height: 1.5; }
+.pix-copy-status { font-size: 11px; color: #42724c; margin: 0 0 12px; }
+.pix-copy-status:empty { display: none; }
+.pix-purchase-summary .pix-summary-total { border-top: 1px solid #edf1f6; padding: 12px 0; color: #0053a5; }
+.pix-items-details { margin-top: 12px; padding-top: 14px; border-top: 1px solid #edf1f6; }
+.pix-items-details summary { padding: 3px 0 10px; }
+.checkout-reference .pix-payment-card :is(button,a,summary,textarea):focus-visible { outline: 3px solid #51a9df; outline-offset: 3px; }
+.checkout-reference .pix-payment-card .pix-confirmation-note { font-size: 11px; line-height: 1.7; }
+.checkout-reference #copyPix:disabled { background: #8292a5; border-color: #8292a5; cursor: not-allowed; }
+@media(max-width:600px) { .checkout-reference .pix-payment-card .pix-payment-banner { flex-wrap: wrap; } .checkout-reference .pix-payment-card .pix-payment-banner #confirmationReference { max-width: 100%; } .checkout-reference .pix-payment-card .pix-order-review { padding: 14px; } }
+.checkout-reference .pix-payment-card { justify-items: stretch; }
+.checkout-reference .pix-payment-card > :is(.pix-payment-banner,.pix-method-review,.pix-order-review,.pix-totals) { width: 100%; }

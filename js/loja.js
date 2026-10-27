@@ -890,8 +890,11 @@
       event.target.value = digits.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
     });
     $("#copyPix").addEventListener("click", async () => {
-      try { await navigator.clipboard.writeText($("#pixCopyPaste").value); $("#copyPix").textContent = "Código copiado"; }
-      catch { $("#pixCopyPaste").select(); document.execCommand("copy"); }
+      let copied = false;
+      try { await navigator.clipboard.writeText($('#pixCopyPaste').value); copied = true; }
+      catch { $('#pixCopyPaste').select(); try { copied = document.execCommand('copy'); } catch { /* Permite copiar manualmente. */ } }
+      $('#copyPix').textContent = copied ? 'Código copiado' : 'Copiar código Pix';
+      $('#pixCopyStatus').textContent = copied ? 'Código Pix copiado. Cole no aplicativo do seu banco.' : 'Selecione e copie o código acima para colar no aplicativo do seu banco.';
     });
     $('#pixViewCode').onclick = () => {
       const expanded = $('#pixViewCode').getAttribute('aria-expanded') !== 'true';
@@ -1004,6 +1007,9 @@
       if (!result.success || !payment?.transactionId) throw new Error("A BlackCat não retornou os dados do pagamento.");
       $("#confirmationReference").textContent = `Pedido ${payment.transactionId}`;
       $("#pixCopyPaste").value = payment.paymentData?.copyPaste || payment.paymentData?.qrCode || "";
+      $('#pixCopyPaste').rows = 2; $('#pixViewCode').setAttribute('aria-expanded', 'false'); $('#pixViewCode').textContent = 'Ver código completo';
+      $('#copyPix').textContent = '❖ Copiar código Pix'; $('#pixCopyStatus').textContent = '';
+      $('#pixQrImage').hidden = true; $('#pixQrImage').removeAttribute('src'); $('#pixInvoice').hidden = true;
       const qr = payment.paymentData?.qrCodeBase64;
       if (typeof qr === "string" && /^data:image\//i.test(qr)) {
         $("#pixQrImage").src = qr;
@@ -1018,6 +1024,7 @@
       $('#pixDeliveryReview').textContent = addressReview();
       $('#pixOrderItems').replaceChildren(...Array.from($('#checkoutItems').children, child => child.cloneNode(true)));
       $('#pixOrderTotal').textContent = money(expectedAmount / 100);
+      $('#pixSummaryTotal').textContent = money(expectedAmount / 100);
       $('#pixMethodTotal').textContent = money(expectedAmount / 100);
       $('#pixRegularSubtotal').textContent = $('#checkoutRegularSubtotal').textContent;
       $('#pixDiscount').textContent = $('#checkoutDiscount').textContent;
@@ -1094,7 +1101,7 @@
         }
         if (!pixDeadlineExpired) $("#pixStatus").textContent = "Aguardando confirmação do Pix...";
       } catch {
-        $("#pixStatus").textContent = "Não foi possível atualizar agora. O pagamento ainda pode ser consultado.";
+        if (!pixDeadlineExpired) $("#pixStatus").textContent = "Não foi possível atualizar agora. O pagamento ainda pode ser consultado.";
       }
       window.setTimeout(refresh, 10000);
     };

@@ -130,6 +130,7 @@ try {
   WaitFor "document.querySelector('#pixPayment') && !document.querySelector('#pixPayment').hidden"
   WaitFor "document.querySelector('#pixQrImage').naturalWidth>0"
   Check 'Pix com QR e copia e cola' "document.querySelector('#pixCopyPaste').value.startsWith('000201') && document.querySelector('#pixQrImage').naturalWidth>0"
+  Check 'Blocos da finalização ocupam largura uniforme' "getComputedStyle(document.querySelector('#pixPayment')).display==='block' && Math.abs(document.querySelector('.pix-method-review').getBoundingClientRect().width-document.querySelector('#pixPayment').getBoundingClientRect().width)<2"
   Check 'Pix por chave não inventa expiração' "document.querySelector('#pixExpiry').textContent.includes('não possui expiração') && document.querySelector('#pixExpiryProgress').hidden"
   Check 'Resumo Pix mostra entrega e valor real' "document.querySelector('#pixDeliveryReview').textContent.includes('Rua Teste') && document.querySelector('#pixOrderTotal').textContent===document.querySelector('#checkoutSubtotal').textContent"
   Evaluate "document.querySelector('#pixViewCode').click();true" | Out-Null
@@ -137,6 +138,7 @@ try {
   Evaluate "Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.testCopiedPix=text;}}});document.querySelector('#copyPix').click();true" | Out-Null
   WaitFor "window.testCopiedPix===document.querySelector('#pixCopyPaste').value"
   Check 'Botão copia código Pix correto' "window.testCopiedPix.startsWith('000201')"
+  Check 'Cópia informa sucesso e resumo mantém total' "document.querySelector('#pixCopyStatus').textContent.includes('copiado') && document.querySelector('#pixSummaryTotal').textContent===document.querySelector('#pixOrderTotal').textContent"
   Screenshot 'checkout-mobile.png'
   Evaluate "const service=window.PaymentService;window.PaymentService={...service,createCharge:async data=>{const result=await service.createCharge(data);result.data.paymentData.expiresAt=new Date(Date.now()+4000).toISOString();return result;}};document.querySelector('#checkoutForm').requestSubmit();true" | Out-Null
   WaitFor "document.querySelector('#pixCountdown').textContent.length>0"
