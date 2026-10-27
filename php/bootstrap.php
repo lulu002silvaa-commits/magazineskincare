@@ -62,7 +62,7 @@ function initial_store(): array {
     return [
         'revision' => 0,
         'loja' => ['nome' => 'Magazine do Skincare', 'logo' => 'public/images/brand/magazine-do-skincare.png', 'slogan' => 'Ciência e cuidado para transformar sua rotina de skincare'],
-        'pagamento' => ['metodo' => 'pix'],
+        'pagamento' => ['metodo' => (getenv('BLACKCAT_API_KEY') ?: '') !== '' ? 'gateway' : 'pix'],
         'pix' => ['chave' => '', 'nome' => '', 'cidade' => ''],
         'produtos' => initial_products(),
     ];
