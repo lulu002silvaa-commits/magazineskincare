@@ -7,22 +7,22 @@
   <title>Finalizar pedido | Magazine do Skincare</title>
   <link rel="icon" href="public/images/brand/magazine-do-skincare.png" type="image/png">
   <link rel="stylesheet" href="css/skin.css?v=9">
-  <link rel="stylesheet" href="css/commerce.css?v=15">
+  <link rel="stylesheet" href="css/commerce.css?v=16">
   <script src="js/deployment.js?v=10"></script>
   <script src="js/api-base.js?v=10"></script>
   <script src="js/products.js?v=5" defer></script>
   <script src="js/catalog.js?v=7" defer></script>
   <script src="js/pix.js" defer></script>
   <script src="js/vendor/qrcode.min.js" defer></script>
-  <script src="js/payment-service.js?v=10" defer></script>
-  <script src="js/loja.js?v=15" defer></script>
+  <script src="js/payment-service.js?v=16" defer></script>
+  <script src="js/loja.js?v=16" defer></script>
 </head>
 <body data-page="checkout" class="checkout-reference">
   <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
-  
+
   <header class="site-header"><div class="header-main wrap">
     <a class="brand" href="index.html"><img class="store-logo" src="public/images/brand/magazine-do-skincare.png" alt="Magazine do Skincare" width="240" height="80"></a>
-    
+
     <span id="cartCount" hidden>0</span>
   </div></header>
   <main id="main-content" class="wrap inner-page">
@@ -31,7 +31,7 @@
       <form class="checkout-form" id="checkoutForm">
         <div class="checkout-progress" role="progressbar" aria-label="Etapas da compra" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1"><span></span></div><div class="checkout-stage-heading"><span id="checkoutStepLabel">Etapa 1 de 3</span><button type="button" id="checkoutBack">← Voltar</button></div>
         <h2 id="checkoutStageTitle">Identificação</h2>
-        
+
         <fieldset class="checkout-fieldset" data-checkout-stage="1">
           <legend>Contato</legend>
           <div class="form-grid">
@@ -63,7 +63,24 @@
       </form>
       <aside class="checkout-summary"><button type="submit" form="checkoutForm" id="reserveOrderTop" class="button button-dark button-full" hidden disabled>Gerar Pix</button><h2>Resumo da compra <span id="checkoutItemCount"></span></h2><div class="summary-row"><span>Subtotal</span><span id="checkoutRegularSubtotal">R$ 0,00</span></div><div class="summary-row"><span>Frete</span><span>Grátis</span></div><div class="summary-row"><span>Descontos</span><span id="checkoutDiscount">R$ 0,00</span></div><div class="summary-row summary-total"><strong>Total</strong><strong id="checkoutSubtotal">R$ 0,00</strong></div><details class="checkout-coupon"><summary>Possui vale ou cupom?</summary><div><label class="sr-only" for="checkoutCouponCode">Cupom</label><input id="checkoutCouponCode" placeholder="Digite o código" maxlength="40"><button type="button" id="checkoutApplyCoupon">Aplicar</button></div><p id="checkoutCouponStatus" role="status"></p></details><details open class="checkout-items-review"><summary>Revise os itens para envio</summary><div id="checkoutItems"></div></details><div class="payment-notice"><strong id="paymentProviderTitle">Pagamento por Pix</strong><p id="paymentAvailability">Verificando disponibilidade do pagamento...</p></div></aside>
     </div>
-    <section class="confirmation-card pix-payment-card" id="pixPayment" hidden aria-live="polite"><p class="eyebrow">PAGAMENTO PIX</p><h2 id="pixTitle">Finalize seu pagamento</h2><p id="pixStatus">Aguardando pagamento</p><p id="confirmationReference"></p><img id="pixQrImage" class="pix-qr-image" alt="QR Code Pix para pagamento" hidden><label for="pixCopyPaste">Pix copia e cola</label><textarea id="pixCopyPaste" readonly rows="4"></textarea><button class="button button-dark" id="copyPix" type="button">Copiar código Pix</button><p id="pixExpiry" class="field-help"></p><a class="button button-outline" id="pixInvoice" href="#" target="_blank" rel="noopener" hidden>Abrir pagamento BlackCat</a><div class="pix-order-review"><h3>Entrega</h3><p id="pixDeliveryReview"></p><p>Entrega padrão · Frete grátis</p><h3>Resumo do pedido</h3><div id="pixOrderItems"></div><div class="summary-row"><strong>Total no Pix</strong><strong id="pixOrderTotal"></strong></div></div><p>O pedido será confirmado após a identificação do pagamento.</p><a class="button button-outline" href="index.html">Voltar para a loja</a></section>
+    <section class="confirmation-card pix-payment-card" id="pixPayment" hidden aria-labelledby="pixTitle">
+      <div class="pix-payment-banner"><h2 id="pixTitle">Realize o pagamento para garantir sua compra</h2><span id="confirmationReference"></span></div>
+      <p id="pixStatus" role="status">Aguardando pagamento</p>
+      <div class="pix-countdown"><span id="pixExpiry" class="field-help"></span><strong id="pixCountdown" role="timer" aria-live="off"></strong></div>
+      <progress id="pixExpiryProgress" max="100" value="100" aria-label="Tempo restante para pagamento" hidden></progress>
+      <p class="pix-scan-label">Escaneie o código com o aplicativo do seu banco:</p>
+      <img id="pixQrImage" class="pix-qr-image" alt="QR Code Pix para pagamento" hidden>
+      <label for="pixCopyPaste">Copie o código e cole no aplicativo do seu banco:</label>
+      <textarea id="pixCopyPaste" readonly rows="2" aria-label="Código Pix copia e cola"></textarea>
+      <button id="pixViewCode" type="button" class="pix-view-code" aria-expanded="false">Ver código completo</button>
+      <button class="button button-dark" id="copyPix" type="button">❖ Copiar código Pix</button>
+      <a class="button button-outline" id="pixInvoice" href="#" target="_blank" rel="noopener" hidden>Abrir pagamento BlackCat</a>
+      <div class="pix-method-review"><span aria-hidden="true">❖</span><div><strong>Meio de pagamento</strong><p>Pix à vista · <span id="pixMethodTotal"></span></p></div></div>
+      <div class="pix-order-review"><h3>Entrega padrão · Frete grátis</h3><p class="pix-delivery-note">O prazo será confirmado antes do envio.</p><p id="pixDeliveryReview"></p></div>
+      <div class="pix-totals"><div class="summary-row"><span>Total do pedido</span><strong id="pixOrderTotal"></strong></div><div class="summary-row pix-savings"><span>Você economizou</span><strong id="pixSavings"></strong></div></div>
+      <details class="pix-order-review" open><summary>Resumo da compra</summary><div class="summary-row"><span>Subtotal</span><span id="pixRegularSubtotal"></span></div><div class="summary-row"><span>Frete</span><span>Grátis</span></div><div class="summary-row"><span>Descontos</span><span id="pixDiscount"></span></div><h3>Revise os itens do pedido</h3><div id="pixOrderItems"></div></details>
+      <p class="pix-confirmation-note">O pedido será confirmado após a identificação do pagamento.</p><a class="text-link" href="index.html">Voltar para a loja</a>
+    </section>
     <section class="empty-state" id="checkoutEmpty" hidden><span class="empty-flower" aria-hidden="true">✳</span><h2>Não há produtos para finalizar</h2><p>Adicione um produto disponível à sacola antes de continuar.</p><a class="button button-dark" href="index.html#produtos">Explorar produtos</a></section>
   </main>
   <footer class="simple-footer"><div class="wrap"><a href="index.html">Magazine do Skincare</a><a href="empresa.html">Empresa e endereço · CNPJ 34.105.837/0001-17</a></div></footer>

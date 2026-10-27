@@ -893,6 +893,12 @@
       try { await navigator.clipboard.writeText($("#pixCopyPaste").value); $("#copyPix").textContent = "Código copiado"; }
       catch { $("#pixCopyPaste").select(); document.execCommand("copy"); }
     });
+    $('#pixViewCode').onclick = () => {
+      const expanded = $('#pixViewCode').getAttribute('aria-expanded') !== 'true';
+      $('#pixViewCode').setAttribute('aria-expanded', String(expanded));
+      $('#pixViewCode').textContent = expanded ? 'Recolher código' : 'Ver código completo';
+      $('#pixCopyPaste').rows = expanded ? 6 : 2;
+    };
     initCepLookup();
     initCheckoutStages();
   }
@@ -996,7 +1002,7 @@
       const result = await window.PaymentService.createCharge({ customer, shipping, items, expectedAmount });
       const payment = result.data;
       if (!result.success || !payment?.transactionId) throw new Error("A BlackCat não retornou os dados do pagamento.");
-      $("#confirmationReference").textContent = `Referência do pagamento: ${payment.transactionId}`;
+      $("#confirmationReference").textContent = `Pedido ${payment.transactionId}`;
       $("#pixCopyPaste").value = payment.paymentData?.copyPaste || payment.paymentData?.qrCode || "";
       const qr = payment.paymentData?.qrCodeBase64;
       if (typeof qr === "string" && /^data:image\//i.test(qr)) {
@@ -1007,18 +1013,22 @@
         $("#pixInvoice").href = payment.invoiceUrl;
         $("#pixInvoice").hidden = false;
       }
-      if (payment.paymentData?.expiresAt) $("#pixExpiry").textContent = `Válido até ${new Date(payment.paymentData.expiresAt).toLocaleString("pt-BR")}`;
+      startPixCountdown(payment.paymentData?.expiresAt);
       $("#pixPayment").hidden = false;
       $('#pixDeliveryReview').textContent = addressReview();
       $('#pixOrderItems').replaceChildren(...Array.from($('#checkoutItems').children, child => child.cloneNode(true)));
       $('#pixOrderTotal').textContent = money(expectedAmount / 100);
+      $('#pixMethodTotal').textContent = money(expectedAmount / 100);
+      $('#pixRegularSubtotal').textContent = $('#checkoutRegularSubtotal').textContent;
+      $('#pixDiscount').textContent = $('#checkoutDiscount').textContent;
+      $('#pixSavings').textContent = $('#checkoutDiscount').textContent.replace(/^−\s*/, '');
       $("#checkoutLayout").hidden = true;
       $('#pixPayment').scrollIntoView({ block: 'start' });
       if (payment.paymentMethod === "manual_pix") {
-        $("#pixTitle").textContent = "Pix gerado";
+        $("#pixTitle").textContent = "Realize o pagamento para garantir sua compra";
         $("#pixStatus").textContent = "Depois de pagar, a loja confirmará o crédito manualmente.";
       } else {
-        $("#pixTitle").textContent = "Finalize seu pagamento";
+        $("#pixTitle").textContent = "Realize o pagamento para garantir sua compra";
         pollPayment(payment.transactionId);
       }
     } catch (submitError) {
@@ -1030,12 +1040,46 @@
     }
   }
 
+  let stopPixCountdown = () => {};
+  let pixDeadlineExpired = false;
+  function startPixCountdown(expiresAt) {
+    stopPixCountdown();
+    pixDeadlineExpired = false;
+    $('#copyPix').disabled = false; $('#pixCopyPaste').hidden = false; $('#pixViewCode').hidden = false;
+    const deadline = typeof expiresAt === 'string' ? Date.parse(expiresAt) : NaN;
+    const timer = $('#pixCountdown'), progress = $('#pixExpiryProgress');
+    timer.textContent = ''; progress.hidden = true;
+    if (!Number.isFinite(deadline)) {
+      $('#pixExpiry').textContent = 'Este Pix não possui expiração automática informada.';
+      return;
+    }
+    $('#pixExpiry').textContent = 'Expira em'; progress.hidden = false;
+    const duration = Math.max(1, deadline - Date.now()); let interval;
+    const update = () => {
+      const remaining = Math.max(0, deadline - Date.now()), seconds = Math.ceil(remaining / 1000);
+      const hours = Math.floor(seconds / 3600), minutes = Math.floor(seconds % 3600 / 60);
+      timer.textContent = `${hours ? `${String(hours).padStart(2, '0')}:` : ''}${String(minutes).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+      progress.value = remaining / duration * 100;
+      if (!remaining) {
+        pixDeadlineExpired = true;
+        clearInterval(interval);
+        $('#pixExpiry').textContent = 'Prazo de pagamento encerrado';
+        $('#copyPix').disabled = true; $('#pixQrImage').hidden = true;
+        $('#pixCopyPaste').hidden = true; $('#pixViewCode').hidden = true;
+        $('#pixStatus').textContent = 'O prazo informado para este Pix terminou. Consulte a loja antes de realizar outro pagamento.';
+      }
+    };
+    interval = setInterval(update, 1000); stopPixCountdown = () => clearInterval(interval); update();
+  }
+
   async function pollPayment(transactionId) {
     const refresh = async () => {
       try {
         const result = await window.PaymentService.getPaymentStatus(transactionId);
         const state = result.data.status;
         if (state === "PAID") {
+          stopPixCountdown(); $('#pixExpiry').textContent = 'Pagamento confirmado'; $('#pixCountdown').textContent = ''; $('#pixExpiryProgress').hidden = true;
+          $('#copyPix').disabled = true; $('#pixQrImage').hidden = true;
           $("#pixStatus").textContent = "Pagamento confirmado pela BlackCat.";
           $("#pixTitle").textContent = "Pagamento aprovado";
           localStorage.removeItem(CART_KEY);
@@ -1043,11 +1087,12 @@
           return;
         }
         if (state === "CANCELLED" || state === "REFUNDED") {
+          stopPixCountdown(); $('#copyPix').disabled = true; $('#pixQrImage').hidden = true;
           $("#pixStatus").textContent = state === "REFUNDED" ? "Este pagamento foi estornado." : "Este pagamento foi cancelado ou expirou.";
           $("#pixTitle").textContent = "Pagamento não concluído";
           return;
         }
-        $("#pixStatus").textContent = "Aguardando confirmação do Pix...";
+        if (!pixDeadlineExpired) $("#pixStatus").textContent = "Aguardando confirmação do Pix...";
       } catch {
         $("#pixStatus").textContent = "Não foi possível atualizar agora. O pagamento ainda pode ser consultado.";
       }

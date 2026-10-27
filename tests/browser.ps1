@@ -130,7 +130,23 @@ try {
   WaitFor "document.querySelector('#pixPayment') && !document.querySelector('#pixPayment').hidden"
   WaitFor "document.querySelector('#pixQrImage').naturalWidth>0"
   Check 'Pix com QR e copia e cola' "document.querySelector('#pixCopyPaste').value.startsWith('000201') && document.querySelector('#pixQrImage').naturalWidth>0"
+  Check 'Pix por chave não inventa expiração' "document.querySelector('#pixExpiry').textContent.includes('não possui expiração') && document.querySelector('#pixExpiryProgress').hidden"
+  Check 'Resumo Pix mostra entrega e valor real' "document.querySelector('#pixDeliveryReview').textContent.includes('Rua Teste') && document.querySelector('#pixOrderTotal').textContent===document.querySelector('#checkoutSubtotal').textContent"
+  Evaluate "document.querySelector('#pixViewCode').click();true" | Out-Null
+  Check 'Código completo pode ser expandido' "document.querySelector('#pixCopyPaste').rows===6 && document.querySelector('#pixViewCode').getAttribute('aria-expanded')==='true'"
+  Evaluate "Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.testCopiedPix=text;}}});document.querySelector('#copyPix').click();true" | Out-Null
+  WaitFor "window.testCopiedPix===document.querySelector('#pixCopyPaste').value"
+  Check 'Botão copia código Pix correto' "window.testCopiedPix.startsWith('000201')"
   Screenshot 'checkout-mobile.png'
+  Evaluate "const service=window.PaymentService;window.PaymentService={...service,createCharge:async data=>{const result=await service.createCharge(data);result.data.paymentData.expiresAt=new Date(Date.now()+4000).toISOString();return result;}};document.querySelector('#checkoutForm').requestSubmit();true" | Out-Null
+  WaitFor "document.querySelector('#pixCountdown').textContent.length>0"
+  Check 'Expiração retornada gera contagem e barra' "!document.querySelector('#pixExpiryProgress').hidden && document.querySelector('#pixCountdown').textContent!=='00:00'"
+  Screenshot 'pix-contagem-desktop.png'
+  Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
+  Check 'Tela Pix cabe no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
+  Screenshot 'pix-contagem-mobile.png'
+  WaitFor "document.querySelector('#pixCountdown').textContent==='00:00'"
+  Check 'Expiração desativa código e QR' "document.querySelector('#copyPix').disabled && document.querySelector('#pixQrImage').hidden && document.querySelector('#pixCopyPaste').hidden && document.querySelector('#pixStatus').textContent.includes('prazo')"
 
   Cdp 'Page.navigate' @{url=($base+'/admin.php')} | Out-Null
   WaitFor "document.querySelector('[data-order]')"
