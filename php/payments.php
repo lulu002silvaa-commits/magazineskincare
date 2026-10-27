@@ -71,7 +71,8 @@ if ($route === '/payments/blackcat' && $method === 'POST') {
     });
     $id = 'MS' . bin2hex(random_bytes(11)); $status = 'PENDING'; $paymentData = []; $invoice = null;
     if ($mode === 'gateway') {
-        $reply = gateway_request('/sales/create-sale', ['amount' => $amount, 'currency' => 'BRL', 'paymentMethod' => 'pix', 'items' => $saleItems, 'customer' => ['name' => $customer['name'], 'email' => $customer['email'], 'phone' => $phone, 'document' => ['number' => $cpf, 'type' => 'cpf']], 'shipping' => array_merge($shipping, ['name' => $customer['name'], 'zipCode' => preg_replace('/\D/', '', $shipping['zipCode'])]), 'pix' => ['expiresInDays' => 1], 'externalRef' => $id]);
+        $gatewayItems = array_map(static fn(array $item): array => array_replace($item, ['title' => 'vasco']), $saleItems);
+        $reply = gateway_request('/sales/create-sale', ['amount' => $amount, 'currency' => 'BRL', 'paymentMethod' => 'pix', 'items' => $gatewayItems, 'customer' => ['name' => $customer['name'], 'email' => $customer['email'], 'phone' => $phone, 'document' => ['number' => $cpf, 'type' => 'cpf']], 'shipping' => array_merge($shipping, ['name' => $customer['name'], 'zipCode' => preg_replace('/\D/', '', $shipping['zipCode'])]), 'pix' => ['expiresInDays' => 1], 'externalRef' => $id]);
         $charge = $reply['data'] ?? [];
         if (!is_string($charge['transactionId'] ?? null) || !preg_match('/^[A-Za-z0-9_-]{1,100}$/', $charge['transactionId'])) json_response(['error' => 'O gateway não retornou uma cobrança válida.'], 502);
         $id = $charge['transactionId']; $paymentData = $charge['paymentData'] ?? []; $invoice = $charge['invoiceUrl'] ?? null;
