@@ -133,6 +133,8 @@
     image.src = filename;
     image.alt = `Foto de ${product.nome}`;
     image.loading = "lazy";
+    image.decoding = "async";
+    image.width = 480; image.height = 480;
     image.addEventListener("load", () => {
       placeholder.hidden = true;
       figure.classList.add("has-image");
@@ -194,6 +196,7 @@
     image.alt = slides[0].alt || "Campanha da loja";
     image.src = slides[0].src;
     image.fetchPriority = "high";
+    image.decoding = 'async';
     image.addEventListener("load", () => {
       container.classList.add("has-image");
       $$(".placeholder-leaf, .placeholder-label, .placeholder-filename", container)
@@ -234,11 +237,12 @@
     $("[data-hero-next]", container).addEventListener("click", () => show(activeIndex + 1));
     const start = () => {
       stop();
-      if (!hovered && !focused && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (!hovered && !focused && !document.hidden && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         timer = window.setInterval(() => show(activeIndex + 1), 5000);
       }
     };
     const stop = () => window.clearInterval(timer);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else start(); });
     container.addEventListener("mouseenter", () => { hovered = true; stop(); });
     container.addEventListener("mouseleave", () => { hovered = false; start(); });
     container.addEventListener("focusin", () => { focused = true; stop(); });
@@ -636,6 +640,7 @@
 
   function renderProductGallery(product) {
     const mainImage = $("#productMainImage");
+    if (mainImage) { mainImage.loading = 'eager'; mainImage.fetchPriority = 'high'; mainImage.decoding = 'async'; }
     const mainContainer = $("#productMainImageContainer");
     const thumbnails = $("#productThumbnails");
     const previous = $("#productImagePrev");

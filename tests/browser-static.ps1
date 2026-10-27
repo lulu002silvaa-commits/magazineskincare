@@ -70,6 +70,22 @@ Cdp 'Page.navigate' @{url=($base+'/admin.html')} | Out-Null
 WaitFor "document.querySelector('#adminHelp') && !document.querySelector('#adminHelp').hidden"
 Check 'Painel PHP preservado sem redirecionar para 404' "location.pathname==='/admin.html' && document.querySelector('#loginForm')===null"
 Check 'Arquivos PHP não são publicados como texto' "(async()=>{const r=await fetch('/admin.php');return [403,404].includes(r.status);})()"
+foreach($page in @('index.html','produto.html?id=creamy-calming-cream-1','carrinho.html','checkout.html')) {
+  Cdp 'Page.navigate' @{url=($base+'/'+$page)} | Out-Null
+  WaitFor "document.readyState==='complete' && document.querySelector('#cartCount')"
+  foreach($width in @(320,360,390,768,1024,1440,1920)) {
+    Cdp 'Emulation.setDeviceMetricsOverride' @{width=$width;height=1000;deviceScaleFactor=1;mobile=($width -lt 700)} | Out-Null
+    Check ($page+' cabe em '+$width+'px') 'document.documentElement.scrollWidth<=window.innerWidth'
+  }
+}
+Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
+WaitFor "document.querySelectorAll('#productGrid .product-card').length===135"
+Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
+Evaluate "document.querySelector('.menu-toggle').click();true" | Out-Null
+Check 'Menu mobile abre com estado acessível' "document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='true' && document.querySelector('#mainNav').classList.contains('nav-open')"
+Evaluate "document.querySelector('#mainNav a').click();true" | Out-Null
+Check 'Menu mobile fecha ao escolher seção' "document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='false'"
+Screenshot 'otimizacao-home-mobile.png'
 Check 'Modo estático sem exceções JavaScript' 'true'
 if($script:errors.Count){throw ($script:errors -join ', ')}
 Cdp 'Page.removeScriptToEvaluateOnNewDocument' @{identifier=$monitor.identifier} | Out-Null
