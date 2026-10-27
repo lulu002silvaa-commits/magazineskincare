@@ -30,6 +30,8 @@ Check 'Diminuir quantidade restaura o preço unitário' "document.querySelector(
 Screenshot 'produto-referencia.png'
 Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
 Check 'Página do produto cabe no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
+Check 'Apresentação mobile aparece antes da foto' "document.querySelector('.product-intro').getBoundingClientRect().bottom<=document.querySelector('#productGallery').getBoundingClientRect().top && document.querySelector('#benefitsBlock').getBoundingClientRect().top>=document.querySelector('#productGallery').getBoundingClientRect().bottom"
+Check 'Foto do produto aproveita largura mobile' "document.querySelector('#productMainImageContainer').getBoundingClientRect().width>=window.innerWidth-30"
 Evaluate "document.querySelector('#productZoom').click();true" | Out-Null
 Check 'Ampliação mobile ocupa a tela' "document.querySelector('#productPhotoDialog').getBoundingClientRect().width>=window.innerWidth-2 && document.querySelector('#photoViewport').getBoundingClientRect().width>=window.innerWidth-24"
 Evaluate "document.querySelector('#photoZoomToggle').click();true" | Out-Null
@@ -99,6 +101,9 @@ Evaluate "document.querySelector('.menu-toggle').click();true" | Out-Null
 Check 'Menu mobile abre com estado acessível' "document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='true' && document.querySelector('#mainNav').classList.contains('nav-open')"
 Evaluate "document.querySelector('#mainNav a').click();true" | Out-Null
 Check 'Menu mobile fecha ao escolher seção' "document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='false'"
+Evaluate "document.querySelector('#mobileSearchToggle').click();true" | Out-Null
+Check 'Busca mobile abre e recebe foco' "document.querySelector('#searchForm').classList.contains('search-open') && document.activeElement.id==='searchInput'"
+Evaluate "document.querySelector('#mobileSearchToggle').click();true" | Out-Null
 Screenshot 'otimizacao-home-mobile.png'
 Check 'Modo estático sem exceções JavaScript' 'true'
 if($script:errors.Count){throw ($script:errors -join ', ')}

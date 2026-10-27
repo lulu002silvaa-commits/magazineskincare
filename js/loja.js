@@ -1229,6 +1229,13 @@
   }
 
   function initHeader() {
+    const mobileSearch = $('#mobileSearchToggle');
+    if (mobileSearch) mobileSearch.onclick = () => {
+      const open = $('#searchForm').classList.toggle('search-open');
+      mobileSearch.setAttribute('aria-expanded', String(open));
+      mobileSearch.setAttribute('aria-label', open ? 'Fechar busca' : 'Abrir busca');
+      if (open) $('#searchInput').focus();
+    };
     const announcement = $("#announcement");
     if (announcement && typeof config.brand.announcement === "string" && config.brand.announcement.trim()) {
       announcement.textContent = config.brand.announcement;
