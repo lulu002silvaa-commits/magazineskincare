@@ -172,8 +172,10 @@ try {
     Check ('Página inicial cabe em '+$width+'px') 'document.documentElement.scrollWidth<=window.innerWidth'
   }
   Screenshot 'loja-desktop.png'
-  $offline=Cdp 'Page.addScriptToEvaluateOnNewDocument' @{source="const originalFetch=window.fetch.bind(window);window.fetch=(url,options)=>typeof url==='string' && url.includes('/api/catalog')?Promise.resolve(new Response('{}',{status:503,headers:{'Content-Type':'application/json'}})):originalFetch(url,options);"}
+  $offline=Cdp 'Page.addScriptToEvaluateOnNewDocument' @{source="const originalFetch=window.fetch.bind(window);window.fetch=(url,options)=>typeof url==='string' && url.includes('/api/catalog')?new Promise(resolve=>setTimeout(()=>resolve(new Response('{}',{status:503,headers:{'Content-Type':'application/json'}})),5000)):originalFetch(url,options);"}
   Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
+  WaitFor "document.querySelectorAll('.hero-slider-dot').length===5 && document.querySelector('.hero-slide-image').naturalWidth>0"
+  Check 'Banner inicia sem esperar resposta do catálogo' "!document.querySelector('.store-notice') && document.querySelector('.hero-slide-image').complete"
   WaitFor "document.querySelector('.store-notice')"
   Check 'Falha no catálogo não permite comprar com preço antigo' "document.querySelector('.store-notice button')!==null && document.querySelectorAll('#productGrid button:not(:disabled)').length===0"
   Cdp 'Page.removeScriptToEvaluateOnNewDocument' @{identifier=$offline.identifier} | Out-Null

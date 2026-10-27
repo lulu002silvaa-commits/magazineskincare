@@ -7,6 +7,8 @@
   <meta name="description" content="Magazine do Skincare: produtos Creamy vendidos pela empresa identificada nesta loja.">
   <title>Magazine do Skincare | Produtos Creamy</title>
   <link rel="preload" href="public/fonts/roc-grotesk-regular.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" as="image" href="public/images/banners/home-1-mobile.png" media="(max-width: 650px)" fetchpriority="high">
+  <link rel="preload" as="image" href="public/images/banners/home-1-desktop.png" media="(min-width: 651px)" fetchpriority="high">
   <link rel="icon" href="public/images/brand/magazine-do-skincare.png" type="image/png">
   <link rel="stylesheet" href="css/skin.css?v=9">
   <link rel="stylesheet" href="css/commerce.css?v=25">
@@ -14,7 +16,7 @@
   <script src="js/api-base.js?v=10"></script>
   <script src="js/products.js?v=5" defer></script>
   <script src="js/catalog.js?v=25" defer></script>
-  <script src="js/loja.js?v=25" defer></script>
+  <script src="js/loja.js?v=26" defer></script>
 </head>
 <body data-page="home">
   <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
@@ -45,6 +47,7 @@
     <h1 class="sr-only">Magazine do Skincare: conheça os produtos para sua rotina de cuidados com a pele</h1>
     <section class="hero wrap" aria-label="Campanhas e produtos em destaque">
       <div class="media-placeholder hero-media" data-image-key="heroDesktop" data-mobile-image-key="heroMobile" aria-label="Campanhas da loja">
+        <picture><source media="(max-width: 650px)" srcset="public/images/banners/home-1-mobile.png"><img class="hero-slide-image" src="public/images/banners/home-1-desktop.png" alt="Creamy Days: até 40% de desconto" width="1668" height="600" loading="eager" fetchpriority="high" decoding="async"></picture>
         <span class="placeholder-leaf" aria-hidden="true">✳</span>
         <span class="placeholder-label">Conheça os cuidados para sua pele</span>
         <span class="placeholder-filename"></span>
@@ -120,7 +123,8 @@
     <section class="routine-section" id="rotinas">
       <div class="wrap split-feature">
         <div class="media-placeholder feature-media" data-image-key="routineDay" role="img" aria-label="Foto de uma rotina ou kit">
-          <span class="placeholder-leaf" aria-hidden="true">✳</span>
+          <picture><source media="(max-width: 650px)" srcset="public/images/banners/home-1-mobile.png"><img class="hero-slide-image" src="public/images/banners/home-1-desktop.png" alt="Creamy Days: até 40% de desconto" width="1668" height="600" loading="eager" fetchpriority="high" decoding="async"></picture>
+        <span class="placeholder-leaf" aria-hidden="true">✳</span>
           <span class="placeholder-label">Cuidados para sua rotina</span>
           <span class="placeholder-filename"></span>
         </div>

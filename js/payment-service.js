@@ -49,7 +49,7 @@
         const config = await getConfig();
         const blackcat = config.method === "gateway";
         const title = document.querySelector("#paymentProviderTitle");
-        if (title) title.textContent = blackcat ? "Pix via BlackCat" : "Pix pela chave da loja";
+        if (title) title.textContent = "Pagamento via Pix";
         return { available: config.available === true, method: config.method, message: config.message };
       } catch {
         const liveServerLocal = window.location.hostname === "127.0.0.1" && window.location.port === "5501";

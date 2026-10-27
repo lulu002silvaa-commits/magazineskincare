@@ -191,21 +191,24 @@
 
   function initHeroSlider(container, slides) {
     if (!slides.length) return;
-    const picture = document.createElement('picture'), source = document.createElement('source');
+    const picture = $('picture', container) || document.createElement('picture'), source = $('source', picture) || document.createElement('source');
     source.media = '(max-width: 650px)'; source.srcset = slides[0].mobileSrc || slides[0].src;
-    picture.append(source);
-    const image = document.createElement("img");
+    if (!source.parentNode) picture.append(source);
+    const image = $('.hero-slide-image', picture) || document.createElement("img");
     image.className = "hero-slide-image";
     image.alt = slides[0].alt || "Campanha da loja";
     image.src = slides[0].src;
     image.fetchPriority = "high";
     image.decoding = 'async';
-    image.addEventListener("load", () => {
+    const showLoadedBanner = () => {
       container.classList.add("has-image");
       $$(".placeholder-leaf, .placeholder-label, .placeholder-filename", container)
         .forEach((placeholder) => { placeholder.hidden = true; });
-    }, { once: true });
-    picture.append(image); container.append(picture);
+    };
+    image.addEventListener('load', showLoadedBanner, { once: true });
+    if (image.complete && image.naturalWidth > 0) showLoadedBanner();
+    if (!image.parentNode) picture.append(image);
+    if (!picture.parentNode) container.append(picture);
     const controls = $('.hero-slider-controls', container); container.after(controls);
     const pause = ui('button', 'hero-slider-pause', 'Ⅱ'); pause.type = 'button'; pause.setAttribute('aria-label', 'Pausar banners'); pause.setAttribute('aria-pressed', 'false'); controls.append(pause);
     const campaignLink = document.createElement("a");
@@ -1344,6 +1347,10 @@
   }
 
   async function initializeStore() {
+    initHeader();
+    renderBranding();
+    initConfiguredImages();
+    updateCartCount();
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 8000);
     try {
@@ -1374,9 +1381,6 @@
       retry.type = 'button'; retry.textContent = 'Tentar novamente'; retry.onclick = () => window.location.reload();
       notice.append(retry); document.body.prepend(notice);
     } finally { window.clearTimeout(timeout); }
-    initHeader();
-    renderBranding();
-    initConfiguredImages();
     initFeaturedCarousel();
     updateCartCount();
     renderCategoryTabs();

@@ -6,7 +6,7 @@ WaitFor "location.pathname.endsWith('/carrinho.html') && document.querySelector(
 Evaluate "document.querySelector('#checkoutLink').click();true" | Out-Null
 WaitFor "location.pathname.endsWith('/checkout.html') && document.querySelector('#reserveOrder') && !document.querySelector('#reserveOrder').disabled"
 Check 'Checkout aparece sem bloqueio estatico' "!document.querySelector('#checkoutForm').hidden && !document.querySelector('.checkout-unavailable')"
-Check 'BlackCat disponivel para gerar Pix' "document.querySelector('#paymentProviderTitle').textContent.includes('BlackCat') && document.querySelector('#paymentAvailability').textContent.includes('dispon')"
+Check 'BlackCat disponivel para gerar Pix' "document.querySelector('#paymentProviderTitle').textContent.includes('Pagamento via Pix') && document.querySelector('#paymentAvailability').textContent.includes('dispon')"
 Check 'Identificacao aparece na primeira etapa' "document.querySelector('#checkoutStepLabel').textContent==='Etapa 1 de 3'"
 foreach($width in @(320,390,768,1440)) {
   Cdp 'Emulation.setDeviceMetricsOverride' @{width=$width;height=1000;deviceScaleFactor=1;mobile=($width -lt 700)} | Out-Null
