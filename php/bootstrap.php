@@ -51,6 +51,16 @@ function update_data(string $name, callable $mutate, array $fallback = []): arra
     } finally { flock($lock, LOCK_UN); fclose($lock); }
 }
 
+function product_is_public(array $product): bool {
+    static $withdrawn = null;
+    if ($withdrawn === null) {
+        $policy = json_decode((string)file_get_contents(STORE_ROOT . '/withdrawn-products.json'), true, 512, JSON_THROW_ON_ERROR);
+        $withdrawn = $policy['ids'];
+    }
+    if (in_array($product['id'] ?? '', $withdrawn, true)) return false;
+    return !preg_match('/ghk[\s-]*cu|copper\s+tripeptide|peptide\s*cream|tripept[ií]deo.{0,15}cobre/iu', json_encode($product, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
+}
+
 function initial_products(): array {
     $source = (string)file_get_contents(STORE_ROOT . '/js/products.js');
     $source = preg_replace('/^\s*window\.CREAMY_PRODUCTS\s*=\s*/', '', $source);
@@ -75,7 +85,11 @@ function initial_store(): array {
     ];
 }
 
-function store_data(): array { return is_file(STORE_DATA . '/store.json') ? read_data('store') : initial_store(); }
+function store_data(): array {
+    $store = is_file(STORE_DATA . '/store.json') ? read_data('store') : initial_store();
+    $store['produtos'] = array_values(array_filter($store['produtos'], 'product_is_public'));
+    return $store;
+}
 
 function string_value(mixed $value, string $label, int $max = 200, bool $required = false): string {
     if (!is_string($value) || strlen($value) > $max || ($required && trim($value) === '')) throw new InvalidArgumentException('Confira o campo ' . $label . '.');
@@ -161,5 +175,6 @@ function validate_product(array $product): array {
     $specifications = $product['especificacoes'] ?? [];
     if (!is_array($specifications) || count($specifications) > 40) throw new InvalidArgumentException('Especificações inválidas.');
     foreach ($specifications as $label => $value) { string_value($label, 'especificação', 120); string_value($value, 'especificação', 50000); }
+    if (!product_is_public($product)) throw new InvalidArgumentException('Este produto está retirado da oferta pública e precisa de revisão antes de voltar à venda.');
     return $product;
 }

@@ -1,7 +1,7 @@
 ﻿$monitor=Cdp 'Page.addScriptToEvaluateOnNewDocument' @{source="window.__apiRequests=[];const staticFetch=window.fetch.bind(window);window.fetch=(url,options)=>{if(typeof url==='string' && url.includes('/api/'))window.__apiRequests.push(url);return staticFetch(url,options);};"}
 Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
-WaitFor "document.querySelectorAll('#productGrid .product-card').length===135"
-Check 'HTML carrega todos os produtos sem PHP' "document.querySelectorAll('#productGrid .product-card').length===135"
+WaitFor "document.querySelectorAll('#productGrid .product-card').length===126"
+Check 'HTML carrega todos os produtos sem PHP' "document.querySelectorAll('#productGrid .product-card').length===126"
 Check 'Não há aviso falso de atualização' "document.querySelector('.store-notice[role=alert]')===null"
 Check 'Vitrine não solicita API ausente' 'window.__apiRequests.length===0'
 Check 'Carrossel tem os cinco banners originais' "document.querySelectorAll('.hero-slider-dot').length===5"
@@ -23,7 +23,7 @@ WaitFor "[...document.querySelectorAll('#featuredGrid img')].every(image=>image.
 Check 'Vitrine tem cards no novo modelo' "document.querySelectorAll('#featuredGrid .product-card .product-pricing').length===4 && document.querySelectorAll('#featuredGrid .cart-icon-button').length===4"
 Screenshot 'vitrine-referencia.png'
 Evaluate "document.querySelector('#searchInput').value='mandelico';document.querySelector('#searchForm').requestSubmit();true" | Out-Null
-Check 'Busca funciona em hospedagem estática' "document.querySelectorAll('#productGrid .product-card').length>0 && document.querySelectorAll('#productGrid .product-card').length<135"
+Check 'Busca funciona em hospedagem estática' "document.querySelectorAll('#productGrid .product-card').length>0 && document.querySelectorAll('#productGrid .product-card').length<126"
 Cdp 'Page.navigate' @{url=($base+'/produto.html?id=creamy-calming-cream-1')} | Out-Null
 WaitFor "document.querySelector('#productDetail') && !document.querySelector('#productDetail').hidden"
 Check 'Galeria de fotos em HTML' "document.querySelectorAll('.product-gallery-thumbnail').length===4"
@@ -109,7 +109,7 @@ foreach($page in @('index.html','produto.html?id=creamy-calming-cream-1','carrin
   }
 }
 Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
-WaitFor "document.querySelectorAll('#productGrid .product-card').length===135"
+WaitFor "document.querySelectorAll('#productGrid .product-card').length===126"
 Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
 Evaluate "document.querySelector('.menu-toggle').click();true" | Out-Null
 Check 'Menu mobile abre com estado acessível' "document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='true' && document.querySelector('#mainNav').classList.contains('nav-open')"
@@ -124,6 +124,10 @@ WaitFor "document.querySelector('#devolucoes')"
 Check 'Atendimento usa contatos fornecidos pela loja' "document.querySelector('#atendimento a').href==='https://wa.me/5511919756184'"
 Check 'Entrega e devolução têm prazos distintos' "document.querySelector('#entrega').textContent.includes('3 dias') && document.querySelector('#devolucoes').textContent.includes('7 dias corridos')"
 Check 'Informações da loja cabem no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
+Check 'Política de privacidade está acessível' "document.querySelector('#privacidade').textContent.includes('dados')"
+Cdp 'Page.navigate' @{url=($base+'/produto.html?id=antiaging-peptide-cream')} | Out-Null
+WaitFor "document.querySelector('#productNotFound') && !document.querySelector('#productNotFound').hidden"
+Check 'Oferta retirada não gera compra nem dados estruturados' "document.querySelector('#productDetail').hidden && !document.querySelector('#productStructuredData')"
 Evaluate "localStorage.setItem('calma-pele-carrinho',JSON.stringify([{id:'creamy-calming-cream-1',quantity:7}]));true" | Out-Null
 Cdp 'Page.navigate' @{url=($base+'/carrinho.html')} | Out-Null
 WaitFor "document.querySelector('#cartGift')"

@@ -31,7 +31,7 @@ function check(string $name, bool $passed): void {
     $count++; echo "OK $name\n";
 }
 [$status, $catalog] = request('/catalog');
-check('Catálogo inicial com 135 produtos', $status === 200 && count($catalog['products']) === 135);
+check('Catálogo inicial com 126 produtos', $status === 200 && count($catalog['products']) === 126);
 [, , $headers] = request('/catalog', 'GET', null, null, null, 'https://magazineskincare.vercel.app');
 check('Backend permite conectar a vitrine autorizada', ($headers['access-control-allow-origin'] ?? '') === 'https://magazineskincare.vercel.app');
 [, , $headers] = request('/catalog', 'GET', null, null, null, 'https://origem-nao-autorizada.example.com');
@@ -58,6 +58,16 @@ $product = $catalog['products'][0]; $product['preco'] = 51.23; $product['descric
 [, $updated] = request('/catalog');
 check('Loja consulta o produto editado', $updated['products'][0]['preco'] === 51.23 && $updated['products'][0]['descricao'] === $product['descricao']);
 check('Galerias preservadas ao editar', $updated['products'][0]['imagens'] === $product['imagens']);
+$blocked = $product; $blocked['id'] = 'antiaging-peptide-cream'; $blocked['nome'] = 'Produto retirado';
+[$status] = request('/admin/product', 'POST', ['product' => $blocked, 'revision' => 1, 'create' => true]);
+check('Produto retirado não pode voltar por renomeação', $status === 422);
+$blocked['id'] = 'novo-produto-restrito'; $blocked['especificacoes']['Composição'] = 'Copper Tripeptide-1';
+[$status] = request('/admin/product', 'POST', ['product' => $blocked, 'revision' => 1, 'create' => true]);
+check('Composição relacionada exige revisão antes da venda', $status === 422);
+[, $publicCatalog] = request('/catalog');
+check('Catálogo público não oferece o ingrediente apontado', !preg_match('/ghk[\s-]*cu|copper\s+tripeptide|peptide\s*cream/iu', json_encode($publicCatalog, JSON_UNESCAPED_UNICODE)));
+curl_setopt_array($client, [CURLOPT_URL => $base . '/produto.html?id=antiaging-peptide-cream', CURLOPT_CUSTOMREQUEST => 'GET', CURLOPT_POSTFIELDS => null]); curl_setopt($client, CURLOPT_CUSTOMREQUEST, 'GET'); curl_exec($client);
+check('Página PHP do produto retirado retorna 404', curl_getinfo($client, CURLINFO_RESPONSE_CODE) === 404);
 [$status] = request('/admin/product', 'POST', ['product' => $product, 'revision' => 0]); check('Conflito entre edições detectado', $status === 409);
 $bad = $product; $bad['preco'] = -1;
 [$status] = request('/admin/product', 'POST', ['product' => $bad, 'revision' => 1]); check('Preço negativo rejeitado', $status === 422);

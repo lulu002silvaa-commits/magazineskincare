@@ -1,6 +1,6 @@
 # Magazine do Skincare
 
-Loja com catálogo de 135 produtos, 410 fotos reais e painel administrativo PHP.
+Loja com catálogo público de 126 produtos, 387 fotos reais e painel administrativo PHP. Nove ofertas foram retiradas na revisão de 27/10/2026; consulte GOOGLE-ADS-REVISAO.md.
 
 ## Abrir no computador
 
