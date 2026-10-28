@@ -27,6 +27,15 @@ Esta revisão não acessa nem altera a conta Google Ads ou os feeds externos.
 
 Não há garantia de aprovação: a avaliação é do Google, e novas exigências podem aparecer. A retirada preventiva destas ofertas não é uma afirmação de que todo cosmético tópico com peptídeos seja ilegal.
 
+## Revisão complementar
+
+- A conferência dos componentes na API pública do fabricante identificou mais sete kits contendo o SKU 48, também retirados da oferta. Total atual: 119 produtos, 377 fotos e 16 ofertas retiradas.
+- 55 GTINs foram conferidos na fonte do fabricante. Não foram inventados identificadores para os demais produtos.
+- Feed atualizado pelo backend: `https://magazineskincare.online/merchant-feed.xml`. Sitemap: `https://magazineskincare.online/sitemap.xml`. Preço e disponibilidade usam o catálogo atual.
+- `robots.txt` divulga o sitemap; sacola e checkout usam `noindex`.
+- Condições confirmadas pela loja: entrega em até 7 dias após a confirmação do pagamento; previsão de conclusão do reembolso em até 7 dias, preservados os direitos legais de restituição.
+- Na conta Google, atualize as ofertas retiradas e as condições comerciais antes de solicitar revisão. A aprovação depende da avaliação do Google. O serviço gratuito do Render ainda tem inicialização lenta e armazenamento não persistente; produção precisa de persistência para preservar pedidos.
+
 ## Referências oficiais
 
 - [Google Ads — Saúde e medicamentos](https://support.google.com/adspolicy/answer/176031?hl=pt-BR)

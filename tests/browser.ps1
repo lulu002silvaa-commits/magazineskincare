@@ -188,7 +188,7 @@ try {
   Evaluate "document.querySelector('[data-order]').click();true" | Out-Null
   Check 'Admin consulta cliente e entrega do pedido' "document.querySelector('.order-body').textContent.includes('Teste Navegador') && document.querySelector('.order-body').textContent.includes('Rua Teste')"
   Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
-  WaitFor "document.querySelectorAll('#productGrid .product-card').length===126"
+  WaitFor "document.querySelectorAll('#productGrid .product-card').length===119"
   foreach($width in 320,390,768,1440) {
     Cdp 'Emulation.setDeviceMetricsOverride' @{width=$width;height=1000;deviceScaleFactor=1;mobile=($width -lt 700)} | Out-Null
     Check ('Página inicial cabe em '+$width+'px') 'document.documentElement.scrollWidth<=window.innerWidth'

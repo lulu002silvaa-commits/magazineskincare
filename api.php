@@ -17,6 +17,10 @@ try {
         json_response(['error' => 'Acesso bloqueado.'], 403);
     }
     if ($route === '/health') json_response(['ok' => true, 'runtime' => 'php']);
+    if ($method === 'GET' && in_array($route, ['/merchant-feed', '/sitemap'], true)) {
+        require __DIR__ . '/php/merchant.php';
+        serve_merchant_document($route);
+    }
     if ($method === 'GET' && preg_match('~^/image/([a-f0-9]{32}\.(jpg|png|webp))$~', $route, $image)) {
         $path = STORE_DATA . '/uploads/' . $image[1];
         if (!is_file($path)) json_response(['error' => 'Imagem não encontrada.'], 404);

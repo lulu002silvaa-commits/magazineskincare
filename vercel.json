@@ -4,6 +4,10 @@
   "buildCommand": "node scripts/build-static.mjs",
   "installCommand": "",
   "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/merchant-feed.xml", "destination": "https://magazineskincare.onrender.com/api/merchant-feed" },
+    { "source": "/sitemap.xml", "destination": "https://magazineskincare.onrender.com/api/sitemap" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

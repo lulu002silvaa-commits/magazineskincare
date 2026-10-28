@@ -29,6 +29,7 @@ const apiOrigin = publicUrl(offline ? '' : (process.env.STORE_API_ORIGIN || host
 const adminUrl = publicUrl(offline ? '' : (process.env.STORE_ADMIN_URL || (apiOrigin ? `${apiOrigin}/admin.php` : '')), 'STORE_ADMIN_URL');
 const pages = ['index.html', 'produto.html', 'carrinho.html', 'checkout.html', 'empresa.html', 'admin.html'];
 for (const page of pages) await cp(join(root, page), join(output, page));
+await cp(join(root, 'robots.txt'), join(output, 'robots.txt'));
 for (const folder of ['css', 'js', 'public']) await cp(join(root, folder), join(output, folder), { recursive: true, dereference: false });
 await writeFile(join(output, 'js', 'deployment.js'), `// Configuração pública gerada para a vitrine HTML.\nwindow.STORE_DEPLOYMENT = ${JSON.stringify({ mode: 'static', apiOrigin, adminUrl })};\n`);
 

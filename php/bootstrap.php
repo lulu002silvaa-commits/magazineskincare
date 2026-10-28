@@ -51,6 +51,13 @@ function update_data(string $name, callable $mutate, array $fallback = []): arra
     } finally { flock($lock, LOCK_UN); fclose($lock); }
 }
 
+function valid_gtin(string $value): bool {
+    if (!preg_match('/^(?:\d{8}|\d{12}|\d{13}|\d{14})$/', $value)) return false;
+    $sum = 0;
+    for ($i = strlen($value) - 2, $weight = 3; $i >= 0; $i--, $weight = 4 - $weight) $sum += (int)$value[$i] * $weight;
+    return (10 - $sum % 10) % 10 === (int)$value[strlen($value) - 1];
+}
+
 function product_is_public(array $product): bool {
     static $withdrawn = null;
     if ($withdrawn === null) {
@@ -88,6 +95,12 @@ function initial_store(): array {
 function store_data(): array {
     $store = is_file(STORE_DATA . '/store.json') ? read_data('store') : initial_store();
     $store['produtos'] = array_values(array_filter($store['produtos'], 'product_is_public'));
+    $originals = array_column(initial_products(), null, 'id');
+    foreach ($store['produtos'] as &$product) {
+        $original = $originals[$product['id']] ?? [];
+        if (empty($product['gtin']) && ($original['nome'] ?? '') === $product['nome'] && !empty($original['gtin'])) $product['gtin'] = $original['gtin'];
+    }
+    unset($product);
     return $store;
 }
 
@@ -175,6 +188,7 @@ function validate_product(array $product): array {
     $specifications = $product['especificacoes'] ?? [];
     if (!is_array($specifications) || count($specifications) > 40) throw new InvalidArgumentException('Especificações inválidas.');
     foreach ($specifications as $label => $value) { string_value($label, 'especificação', 120); string_value($value, 'especificação', 50000); }
+    if (isset($product['gtin']) && (!is_string($product['gtin']) || !valid_gtin($product['gtin']))) throw new InvalidArgumentException('Informe o EAN/GTIN real e válido do fabricante.');
     if (!product_is_public($product)) throw new InvalidArgumentException('Este produto está retirado da oferta pública e precisa de revisão antes de voltar à venda.');
     return $product;
 }

@@ -1,7 +1,7 @@
 ﻿$monitor=Cdp 'Page.addScriptToEvaluateOnNewDocument' @{source="window.__apiRequests=[];const staticFetch=window.fetch.bind(window);window.fetch=(url,options)=>{if(typeof url==='string' && url.includes('/api/'))window.__apiRequests.push(url);return staticFetch(url,options);};"}
 Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
-WaitFor "document.querySelectorAll('#productGrid .product-card').length===126"
-Check 'HTML carrega todos os produtos sem PHP' "document.querySelectorAll('#productGrid .product-card').length===126"
+WaitFor "document.querySelectorAll('#productGrid .product-card').length===119"
+Check 'HTML carrega todos os produtos sem PHP' "document.querySelectorAll('#productGrid .product-card').length===119"
 Check 'Não há aviso falso de atualização' "document.querySelector('.store-notice[role=alert]')===null"
 Check 'Vitrine não solicita API ausente' 'window.__apiRequests.length===0'
 Check 'Carrossel tem os cinco banners originais' "document.querySelectorAll('.hero-slider-dot').length===5"
@@ -23,7 +23,7 @@ WaitFor "[...document.querySelectorAll('#featuredGrid img')].every(image=>image.
 Check 'Vitrine tem cards no novo modelo' "document.querySelectorAll('#featuredGrid .product-card .product-pricing').length===4 && document.querySelectorAll('#featuredGrid .cart-icon-button').length===4"
 Screenshot 'vitrine-referencia.png'
 Evaluate "document.querySelector('#searchInput').value='mandelico';document.querySelector('#searchForm').requestSubmit();true" | Out-Null
-Check 'Busca funciona em hospedagem estática' "document.querySelectorAll('#productGrid .product-card').length>0 && document.querySelectorAll('#productGrid .product-card').length<126"
+Check 'Busca funciona em hospedagem estática' "document.querySelectorAll('#productGrid .product-card').length>0 && document.querySelectorAll('#productGrid .product-card').length<119"
 Cdp 'Page.navigate' @{url=($base+'/produto.html?id=creamy-calming-cream-1')} | Out-Null
 WaitFor "document.querySelector('#productDetail') && !document.querySelector('#productDetail').hidden"
 Check 'Galeria de fotos em HTML' "document.querySelectorAll('.product-gallery-thumbnail').length===4"
@@ -66,7 +66,7 @@ Check 'Sacola tem entrega, cupom e resumo' "!!document.querySelector('#cartCoupo
 Check 'Sacola mostra recomendações complementares' "document.querySelectorAll('#cartRecommendations .product-card').length===4 && document.querySelectorAll('#cartReminders .product-card').length===4"
 Evaluate "window.originalAddressFetch=window.fetch;window.fetch=(url,options)=>/viacep.com.br|brasilapi.com.br|opencep.com/.test(String(url))?Promise.resolve({ok:true,json:()=>Promise.resolve(String(url).includes('00000000')?{erro:true}:{logradouro:'Rua de Teste',bairro:'Centro',localidade:'Belo Horizonte',uf:'MG',street:'Rua de Teste',neighborhood:'Centro',city:'Belo Horizonte',state:'MG'})}):window.originalAddressFetch(url,options);document.querySelector('#cartPostcode').value='30140-071';document.querySelector('[data-shipping-form]').requestSubmit();document.querySelector('#couponCode').value='TESTE-INVALIDO';document.querySelector('#cartCoupon').requestSubmit();true" | Out-Null
 WaitFor "document.querySelector('#cartShippingStatus').textContent.includes('Rua de Teste')"
-Check 'CEP mostra prazo de entrega informado pela loja' "document.querySelector('#cartShippingStatus').textContent.includes('Frete grátis') && document.querySelector('#cartShippingStatus').textContent.includes('3 dias')"
+Check 'CEP mostra prazo de entrega informado pela loja' "document.querySelector('#cartShippingStatus').textContent.includes('Frete grátis') && document.querySelector('#cartShippingStatus').textContent.includes('7 dias')"
 Check 'CEP preenche endereço e pede número' "document.querySelector('#cartPostcode-street').value==='Rua de Teste' && document.querySelector('#cartPostcode-street').hidden && !document.querySelector('#cartPostcode-number').hidden && document.querySelector('#cartShippingStatus').textContent.includes('Belo Horizonte')"
 Evaluate "document.querySelector('#cartPostcode-number').value='123';document.querySelector('#cartPostcode-number').dispatchEvent(new Event('input'));true" | Out-Null
 Check 'Número é preservado para o checkout' "JSON.parse(sessionStorage.getItem('magazine-delivery-address')).number==='123'"
@@ -109,7 +109,7 @@ foreach($page in @('index.html','produto.html?id=creamy-calming-cream-1','carrin
   }
 }
 Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
-WaitFor "document.querySelectorAll('#productGrid .product-card').length===126"
+WaitFor "document.querySelectorAll('#productGrid .product-card').length===119"
 Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
 Evaluate "document.querySelector('.menu-toggle').click();true" | Out-Null
 Check 'Menu mobile abre com estado acessível' "document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='true' && document.querySelector('#mainNav').classList.contains('nav-open')"
@@ -122,7 +122,7 @@ Screenshot 'otimizacao-home-mobile.png'
 Cdp 'Page.navigate' @{url=($base+'/empresa.html')} | Out-Null
 WaitFor "document.querySelector('#devolucoes')"
 Check 'Atendimento usa contatos fornecidos pela loja' "document.querySelector('#atendimento a').href==='https://wa.me/5511919756184'"
-Check 'Entrega e devolução têm prazos distintos' "document.querySelector('#entrega').textContent.includes('3 dias') && document.querySelector('#devolucoes').textContent.includes('7 dias corridos')"
+Check 'Entrega e devolução têm prazos distintos' "document.querySelector('#entrega').textContent.includes('7 dias') && document.querySelector('#devolucoes').textContent.includes('7 dias corridos')"
 Check 'Informações da loja cabem no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
 Check 'Política de privacidade está acessível' "document.querySelector('#privacidade').textContent.includes('dados')"
 Cdp 'Page.navigate' @{url=($base+'/produto.html?id=antiaging-peptide-cream')} | Out-Null

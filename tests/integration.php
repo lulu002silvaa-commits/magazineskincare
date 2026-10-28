@@ -31,7 +31,7 @@ function check(string $name, bool $passed): void {
     $count++; echo "OK $name\n";
 }
 [$status, $catalog] = request('/catalog');
-check('Catálogo inicial com 126 produtos', $status === 200 && count($catalog['products']) === 126);
+check('Catálogo inicial com 119 produtos', $status === 200 && count($catalog['products']) === 119);
 [, , $headers] = request('/catalog', 'GET', null, null, null, 'https://magazineskincare.vercel.app');
 check('Backend permite conectar a vitrine autorizada', ($headers['access-control-allow-origin'] ?? '') === 'https://magazineskincare.vercel.app');
 [, , $headers] = request('/catalog', 'GET', null, null, null, 'https://origem-nao-autorizada.example.com');
@@ -58,6 +58,17 @@ $product = $catalog['products'][0]; $product['preco'] = 51.23; $product['descric
 [, $updated] = request('/catalog');
 check('Loja consulta o produto editado', $updated['products'][0]['preco'] === 51.23 && $updated['products'][0]['descricao'] === $product['descricao']);
 check('Galerias preservadas ao editar', $updated['products'][0]['imagens'] === $product['imagens']);
+$feedClient = curl_init($base . '/api/merchant-feed');
+curl_setopt($feedClient, CURLOPT_RETURNTRANSFER, true); $feedText = curl_exec($feedClient);
+$feed = simplexml_load_string($feedText);
+check('Feed Merchant é XML válido com catálogo atual', $feed !== false && count($feed->channel->item) === 119);
+$feedItem = $feed->channel->item[0]->children('http://base.google.com/ns/1.0');
+check('Feed usa preço atual e identificador do produto', (string)$feedItem->id === $product['id'] && (string)$feedItem->price === '51.23 BRL');
+check('Feed não contém ofertas retiradas nem identificadores fictícios', !preg_match('/ghk[\s-]*cu|copper\s+tripeptide|peptide\s*cream/iu', $feedText) && !str_contains($feedText, '<g:identifier_exists>no'));
+check('Feed inclui GTIN verificado do fabricante', (string)$feedItem->gtin === $product['gtin']);
+curl_setopt($feedClient, CURLOPT_URL, $base . '/api/sitemap'); $sitemapText = curl_exec($feedClient); $sitemap = simplexml_load_string($sitemapText); curl_close($feedClient);
+check('Sitemap inclui produtos públicos e informações da loja', $sitemap !== false && count($sitemap->url) === 121);
+check('Sitemap não divulga painel nem checkout', !str_contains($sitemapText, 'admin.php') && !str_contains($sitemapText, 'checkout.html'));
 $blocked = $product; $blocked['id'] = 'antiaging-peptide-cream'; $blocked['nome'] = 'Produto retirado';
 [$status] = request('/admin/product', 'POST', ['product' => $blocked, 'revision' => 1, 'create' => true]);
 check('Produto retirado não pode voltar por renomeação', $status === 422);

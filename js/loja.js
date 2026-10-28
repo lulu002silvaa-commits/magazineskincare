@@ -427,7 +427,7 @@
           field.hidden = resolved; field.previousElementSibling.hidden = resolved;
         });
         const summary = [value.street, value.neighborhood, [value.city, value.state].filter(Boolean).join(' / ')].filter(Boolean).join(', ');
-        status.textContent = `${summary ? `${summary}. ` : ''}Frete grátis. Entrega em até 3 dias após a confirmação do pagamento. ${value.street && value.neighborhood ? 'Confirme o número da casa.' : 'Complete os dados do endereço e o número.'}`;
+        status.textContent = `${summary ? `${summary}. ` : ''}Frete grátis. Entrega em até 7 dias após a confirmação do pagamento. ${value.street && value.neighborhood ? 'Confirme o número da casa.' : 'Complete os dados do endereço e o número.'}`;
         saveDelivery(value);
       };
       const cached = readDelivery();
@@ -752,7 +752,7 @@
     $('#breadcrumbCategory').textContent = product.categoria || 'Produtos';
     $('#productCategory').textContent = product.categoria || '';
     $('#productName').textContent = product.nome;
-    $('#productDescription').textContent = product.descricao || '';
+    $('#productDescription').textContent = productDescriptionFor(product);
     const active = product.especificacoes?.['Principais ativos'];
     $('#productSummary').textContent = active ? `Ativos: ${active.replace(/\s*\n+\s*/g, ' + ')}` : (product.descricao || '').replace(/^O que é\?\s*/i, '').split(/\n\s*\n/)[0].slice(0, 240);
     const benefits = (product.especificacoes?.['Principais benefícios'] || '').split(/[\n;]+/).map(value => value.replace(/^[•\-\s]+/, '').trim()).filter(Boolean).slice(0, 6);
@@ -822,9 +822,17 @@
     updateProductMetadata(product);
   }
 
+  function productDescriptionFor(product) {
+    if ((product.descricao || '').trim()) return product.descricao.trim();
+    const parts = [product.nome];
+    if (product.categoria) parts.push(`Categoria: ${product.categoria}.`);
+    ['Principais benefícios', 'Principais ativos', 'Como usar'].forEach(key => { if (product.especificacoes?.[key]) parts.push(`${key}: ${product.especificacoes[key]}`); });
+    return parts.join('\n');
+  }
+
   function updateProductMetadata(product) {
     const url = new URL('/produto.html', 'https://magazineskincare.online'); url.searchParams.set('id', product.id);
-    const description = (product.descricao || product.nome).replace(/\s+/g, ' ').trim();
+    const description = productDescriptionFor(product).replace(/\s+/g, ' ').trim();
     const meta = (name, value, property = false) => {
       const attribute = property ? 'property' : 'name';
       let element = document.head.querySelector(`meta[${attribute}="${name}"]`);
@@ -840,6 +848,7 @@
     if (photos.length) meta('og:image', photos[0], true);
     if (!catalogVerified || !validPrice(currentPrice(product))) return;
     const data = { '@context': 'https://schema.org', '@type': 'Product', name: product.nome, description, image: photos, sku: product.id, brand: { '@type': 'Brand', name: 'Creamy' }, offers: { '@type': 'Offer', url: url.href, priceCurrency: 'BRL', price: currentPrice(product).toFixed(2), itemCondition: 'https://schema.org/NewCondition', availability: canPurchase(product) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock', seller: { '@type': 'Organization', name: config.brand.name } } };
+    if (product.gtin && /^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(product.gtin)) data.gtin = product.gtin;
     const script = document.createElement('script'); script.type = 'application/ld+json'; script.id = 'productStructuredData';
     script.textContent = JSON.stringify(data); document.head.append(script);
   }

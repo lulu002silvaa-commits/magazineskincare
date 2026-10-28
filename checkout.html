@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
+  <meta name="robots" content="noindex,follow">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#145493">
   <title>Finalizar pedido | Magazine do Skincare</title>
@@ -11,12 +12,12 @@
   <link rel="stylesheet" href="css/commerce.css?v=25">
   <script src="js/deployment.js?v=10"></script>
   <script src="js/api-base.js?v=10"></script>
-  <script src="js/products.js?v=30" defer></script>
+  <script src="js/products.js?v=31" defer></script>
   <script src="js/catalog.js?v=25" defer></script>
   <script src="js/pix.js" defer></script>
   <script src="js/vendor/qrcode.min.js" defer></script>
   <script src="js/payment-service.js?v=26" defer></script>
-  <script src="js/loja.js?v=27" defer></script>
+  <script src="js/loja.js?v=31" defer></script>
 </head>
 <body data-page="checkout" class="checkout-reference">
   <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
@@ -54,8 +55,8 @@
           <div class="form-field"><label for="shippingState">Estado (UF)</label><input id="shippingState" name="state" maxlength="2" pattern="[A-Za-z]{2}" autocomplete="address-level1" required></div>
           </div>
         </fieldset>
-        <section class="delivery-choice" data-checkout-stage="2" hidden><h3>Como deseja receber?</h3><label><input type="radio" name="deliveryMethod" value="standard" checked> Entrega padrão <strong>Grátis</strong></label><p>Entrega em até 3 dias após a confirmação do pagamento.</p></section>
-        <section data-checkout-stage="3" id="checkoutPaymentStage" hidden><p id="checkoutContactReview"></p><h3>1. Endereço e entrega</h3><div class="checkout-address-review"><p id="checkoutAddressReview"></p><button type="button" data-edit-delivery>Trocar endereço</button></div><div class="delivery-choice"><strong>Entrega padrão · Grátis</strong><p>Entrega em até 3 dias após a confirmação do pagamento.</p></div><h3>2. Pagamento</h3><div class="payment-methods" aria-label="Formas de pagamento"><button type="button" disabled aria-label="Cartão de crédito indisponível"><span aria-hidden="true">▣</span>Cartão de crédito<small>Indisponível</small></button><button type="button" class="selected" aria-pressed="true" aria-label="Pix selecionado"><span aria-hidden="true">❖</span>Pix<small>Disponível</small></button><button type="button" disabled aria-label="Pix parcelado indisponível"><span aria-hidden="true">◈</span>Pix parcelado<small>Indisponível</small></button><button type="button" disabled aria-label="Google Pay indisponível"><span aria-hidden="true">G Pay</span>Google Pay<small>Indisponível</small></button></div><p class="pix-instructions">Clique em “Gerar Pix” para obter o QR Code e o código copia e cola.</p></section>
+        <section class="delivery-choice" data-checkout-stage="2" hidden><h3>Como deseja receber?</h3><label><input type="radio" name="deliveryMethod" value="standard" checked> Entrega padrão <strong>Grátis</strong></label><p>Entrega em até 7 dias após a confirmação do pagamento.</p></section>
+        <section data-checkout-stage="3" id="checkoutPaymentStage" hidden><p id="checkoutContactReview"></p><h3>1. Endereço e entrega</h3><div class="checkout-address-review"><p id="checkoutAddressReview"></p><button type="button" data-edit-delivery>Trocar endereço</button></div><div class="delivery-choice"><strong>Entrega padrão · Grátis</strong><p>Entrega em até 7 dias após a confirmação do pagamento.</p></div><h3>2. Pagamento</h3><div class="payment-methods" aria-label="Formas de pagamento"><button type="button" disabled aria-label="Cartão de crédito indisponível"><span aria-hidden="true">▣</span>Cartão de crédito<small>Indisponível</small></button><button type="button" class="selected" aria-pressed="true" aria-label="Pix selecionado"><span aria-hidden="true">❖</span>Pix<small>Disponível</small></button><button type="button" disabled aria-label="Pix parcelado indisponível"><span aria-hidden="true">◈</span>Pix parcelado<small>Indisponível</small></button><button type="button" disabled aria-label="Google Pay indisponível"><span aria-hidden="true">G Pay</span>Google Pay<small>Indisponível</small></button></div><p class="pix-instructions">Clique em “Gerar Pix” para obter o QR Code e o código copia e cola.</p></section>
         <button type="button" class="button button-dark button-full" id="checkoutContinue">Continuar</button>
         <div data-checkout-stage="3" hidden>
         <p class="checkout-privacy-note">Seus dados são usados para processar o pagamento e organizar a entrega.</p>
@@ -78,7 +79,7 @@
       <p id="pixCopyStatus" class="pix-copy-status" role="status"></p>
       <button class="button button-outline" id="pixInvoice" type="button" hidden>Confirmar pagamento</button><p class="field-help">A confirmação depende da identificação do crédito pelo banco.</p>
       <div class="pix-method-review"><span aria-hidden="true">❖</span><div><strong>Meio de pagamento</strong><p>Pix à vista · <span id="pixMethodTotal"></span></p></div></div>
-      <div class="pix-order-review"><h3>Entrega padrão · Frete grátis</h3><p class="pix-delivery-note">Entrega em até 3 dias após a confirmação do pagamento.</p><p id="pixDeliveryReview"></p></div>
+      <div class="pix-order-review"><h3>Entrega padrão · Frete grátis</h3><p class="pix-delivery-note">Entrega em até 7 dias após a confirmação do pagamento.</p><p id="pixDeliveryReview"></p></div>
       <div class="pix-totals"><div class="summary-row"><span>Total do pedido</span><strong id="pixOrderTotal"></strong></div><div class="summary-row pix-savings"><span>Você economizou</span><strong id="pixSavings"></strong></div></div>
       <section class="pix-order-review pix-purchase-summary"><h3>Resumo da compra</h3><div class="summary-row"><span>Subtotal</span><span id="pixRegularSubtotal"></span></div><div class="summary-row"><span>Frete</span><span>Grátis</span></div><div class="summary-row"><span>Descontos</span><span id="pixDiscount"></span></div><div class="summary-row pix-summary-total"><strong>Total</strong><strong id="pixSummaryTotal"></strong></div><details open class="pix-items-details"><summary>Revise os itens do pedido</summary><div id="pixOrderItems"></div></details></section>
       <p class="pix-confirmation-note">O pedido será confirmado após a identificação do pagamento.</p><a class="text-link" href="index.html">Voltar para a loja</a>
