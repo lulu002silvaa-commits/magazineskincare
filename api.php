@@ -61,7 +61,7 @@ try {
         $needsLocation = $source === 'view' || (in_array($source, ['heartbeat', 'stage'], true) && (read_data('analytics')['sessions'][$id]['ip'] ?? '') !== $ip);
         $location = $needsLocation ? ip_location($ip) : ['city' => '', 'state' => '', 'country' => ''];
         $analytics = update_data('analytics', function ($data) use ($id, $ip, $agent, $body, $source, $now, $location, $pageId, $path, $stage, $productName) {
-            $data['sessions'] = array_filter($data['sessions'] ?? [], fn($s) => ($s['lastSeen'] ?? 0) > $now - 120);
+            $data['sessions'] = array_filter($data['sessions'] ?? [], fn($s) => ($s['lastSeen'] ?? 0) > $now - 45);
             $previous = $data['sessions'][$id] ?? [];
             $currentPage = !$pageId || empty($previous['pageId']) || ($previous['pageId'] ?? '') === $pageId;
             $activeEvent = $source === 'view' || ($currentPage && (($previous['active'] ?? true) || $source === 'leave'));
@@ -86,7 +86,7 @@ try {
                     $data['history'][$index]['stage'] = $stage;
                     $data['history'][$index]['lastSeen'] = $now;
                     if (($row['ip'] ?? '') !== $ip) {
-                        $data['history'][$index] = array_merge($data['history'][$index], $location, ['ip' => $ip]);
+                        $data['history'][$index] = array_merge($data['history'][$index], $location, ['ip' => $ip, 'locationNote' => '']);
                     }
                     if ($stage) $data['history'][$index]['stages'][$stage] ??= $now;
                     if ($productName !== '') $data['history'][$index]['productName'] = $productName;
@@ -152,7 +152,7 @@ try {
             $enriched = enrich_visit_locations($visits);
             if ($enriched !== $visits) {
                 $locations = [];
-                foreach ($enriched as $visit) if (!empty($visit['city']) || !empty($visit['state'])) $locations[$visit['id']] = array_intersect_key($visit, array_flip(['city', 'state', 'country']));
+                foreach ($enriched as $visit) $locations[$visit['id']] = array_intersect_key($visit, array_flip(['city', 'state', 'country', 'locationNote']));
                 update_data('analytics', function ($data) use ($locations) {
                     foreach ($data['history'] ?? [] as $index => $visit) if (isset($locations[$visit['id']])) $data['history'][$index] = array_merge($visit, $locations[$visit['id']]);
                     return $data;
@@ -164,7 +164,7 @@ try {
             foreach ($visits as &$visit) {
                 $session = $analytics['sessions'][$visit['sessionId'] ?? ''] ?? [];
                 $samePage = !empty($visit['pageId']) ? $visit['pageId'] === ($session['pageId'] ?? '') : ($visit['path'] ?? '') === ($session['path'] ?? '');
-                $visit['online'] = ($visit['id'] ?? '') === ($latestVisits[$visit['sessionId'] ?? ''] ?? '') && $samePage && ($session['active'] ?? true) && (int)($session['lastSeen'] ?? 0) >= time() - 120;
+                $visit['online'] = ($visit['id'] ?? '') === ($latestVisits[$visit['sessionId'] ?? ''] ?? '') && $samePage && ($session['active'] ?? true) && (int)($session['lastSeen'] ?? 0) >= time() - 45;
             }
             unset($visit);
             // Mantém o histórico salvo, mas apresenta somente o estado atual de cada visitante.
@@ -190,6 +190,7 @@ try {
             $charges = [];
             foreach ($transactions as $id => $charge) {
                 if (!empty($charge['archivedAt']) && ($charge['status'] ?? 'PENDING') === 'PENDING') continue;
+                if (cloudflare_ip($charge['ip'] ?? '')) $charge = array_merge($charge, ['city' => '', 'state' => '', 'country' => '']);
                 $charge['id'] = (string)$id; $charges[] = $charge;
             }
             usort($charges, fn($a, $b) => ($b['createdAt'] ?? 0) <=> ($a['createdAt'] ?? 0));

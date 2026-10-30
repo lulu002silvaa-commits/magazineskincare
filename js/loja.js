@@ -1337,7 +1337,7 @@
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') report('heartbeat'); });
     window.setInterval(() => {
       if (document.visibilityState === "visible") report("heartbeat");
-    }, 15000);
+    }, 5000);
   }
 
   function initHeader() {
