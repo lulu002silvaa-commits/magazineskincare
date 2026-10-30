@@ -20,7 +20,8 @@
 
 /* Fundo fixo em tela cheia, ativado quando a imagem local estiver presente. */
 body.admin-wallpaper{min-height:100dvh;isolation:isolate;background:transparent;--panel:rgba(18,24,33,.86)}
-body.admin-wallpaper::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(rgba(3,6,10,.36),rgba(3,6,10,.58)),url('../public/images/admin/background.png') center center/cover no-repeat;background-color:#080b10}
+body.admin-wallpaper::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:#080b10 url('../public/images/admin/background.png') center/cover no-repeat;filter:blur(18px);transform:scale(1.06);opacity:.3}
+body.admin-wallpaper::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at center,rgba(3,6,10,.12) 15%,rgba(3,6,10,.55) 100%),url('../public/images/admin/background.png') center/contain no-repeat}
 .admin-wallpaper .sidebar{background:rgba(12,17,25,.9)}
 .admin-wallpaper .stat,.admin-wallpaper .table-panel,.admin-wallpaper .login-card,.admin-wallpaper .settings-panel{background:var(--panel)}
 .admin-wallpaper th{background:rgba(16,23,34,.86)}
