@@ -21,7 +21,7 @@ if ($route === '/payments/blackcat' && $method === 'POST') {
     $mode = $store['pagamento']['metodo'] ?? 'pix'; $pix = $store['pix'] ?? [];
     if ($mode === 'gateway' && !(getenv('BLACKCAT_API_KEY') ?: '')) json_response(['error' => 'Gateway não configurado.'], 503);
     if ($mode === 'pix' && !valid_pix($pix)) json_response(['error' => 'A chave Pix da loja ainda não foi configurada.'], 503);
-    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    $ip = visitor_ip($_SERVER);
     $key = hash('sha256', $ip);
     update_data('payment-limits', function ($data) use ($key) {
         $times = array_values(array_filter($data[$key] ?? [], fn($t) => $t > time() - 60));
@@ -77,8 +77,13 @@ if ($route === '/payments/blackcat' && $method === 'POST') {
         if (!is_string($charge['transactionId'] ?? null) || !preg_match('/^[A-Za-z0-9_-]{1,100}$/', $charge['transactionId'])) json_response(['error' => 'O gateway não retornou uma cobrança válida.'], 502);
         $id = $charge['transactionId']; $paymentData = $charge['paymentData'] ?? []; $invoice = $charge['invoiceUrl'] ?? null;
     }
-    update_data('transactions', function ($data) use ($id, $amount, $ip, $mode, $saleItems, $cpf, $customer, $shipping, $gifts) {
-        $data[$id] = ['amount' => $amount, 'createdAt' => time(), 'status' => 'PENDING', 'ip' => $ip, 'agent' => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 400), 'paymentMethod' => $mode === 'pix' ? 'manual_pix' : 'blackcat', 'items' => array_merge($saleItems, $gifts), 'customer' => ['name' => $customer['name'], 'email' => $customer['email'], 'phone' => $customer['phone']], 'shipping' => $shipping, 'documentMasked' => '***.***.***-' . substr($cpf, -2)]; return $data;
+    // Prazo do checkout, independente da validade bancária oferecida pelo gateway.
+    $paymentData['checkoutExpiresAt'] = gmdate('Y-m-d\TH:i:s\Z', time() + 600);
+    $location = ip_location($ip);
+    update_data('transactions', function ($data) use ($id, $amount, $ip, $mode, $saleItems, $cpf, $customer, $shipping, $gifts, $location) {
+        $data[$id] = ['amount' => $amount, 'createdAt' => time(), 'status' => 'PENDING', 'ip' => $ip, 'agent' => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 400), 'paymentMethod' => $mode === 'pix' ? 'manual_pix' : 'blackcat', 'items' => array_merge($saleItems, $gifts), 'customer' => ['name' => $customer['name'], 'email' => $customer['email'], 'phone' => $customer['phone']], 'shipping' => $shipping, 'documentMasked' => '***.***.***-' . substr($cpf, -2)];
+        $data[$id] = array_merge($data[$id], $location);
+        return $data;
     });
     $response = ['success' => true, 'data' => ['transactionId' => $id, 'status' => $status, 'amount' => $amount, 'paymentMethod' => $mode === 'pix' ? 'manual_pix' : 'blackcat', 'paymentData' => $paymentData, 'invoiceUrl' => $invoice, 'pix' => ['key' => $pix['chave'] ?? '', 'receiverName' => $pix['nome'] ?? '', 'receiverCity' => $pix['cidade'] ?? '']]];
     update_data('payment-requests', function ($data) use ($requestKey, $response) { $data[$requestKey]['response'] = $response; return $data; });

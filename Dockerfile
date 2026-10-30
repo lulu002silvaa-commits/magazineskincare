@@ -1,4 +1,5 @@
 FROM php:8.4-apache
+RUN apt-get update && apt-get install -y --no-install-recommends libcurl4-openssl-dev ca-certificates && docker-php-ext-install curl && rm -rf /var/lib/apt/lists/*
 RUN a2enmod rewrite
 RUN printf '<Directory /var/www/html>\nAllowOverride All\nRequire all granted\n</Directory>\n' > /etc/apache2/conf-available/store.conf && a2enconf store
 COPY . /var/www/html/

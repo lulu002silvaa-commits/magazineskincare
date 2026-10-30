@@ -997,9 +997,10 @@
       event.target.value = digits.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
     });
     $("#copyPix").addEventListener("click", async () => {
+      if (!$('#pixCopyPaste').value.trim() || $('#copyPix').disabled) return;
       let copied = false;
       try { await navigator.clipboard.writeText($('#pixCopyPaste').value); copied = true; }
-      catch { $('#pixCopyPaste').select(); try { copied = document.execCommand('copy'); } catch { /* Permite copiar manualmente. */ } }
+      catch { $('#pixCopyPaste').focus(); $('#pixCopyPaste').select(); $('#pixCopyPaste').setSelectionRange(0, $('#pixCopyPaste').value.length); try { copied = document.execCommand('copy'); } catch { /* Permite copiar manualmente. */ } }
       $('#copyPix').textContent = copied ? 'Código copiado' : 'Copiar código Pix';
       $('#pixCopyStatus').textContent = copied ? 'Código Pix copiado. Cole no aplicativo do seu banco.' : 'Selecione e copie o código acima para colar no aplicativo do seu banco.';
     });
@@ -1134,8 +1135,10 @@
     }));
   }
 
+  let submittingPayment = false;
   async function submitPayment(event) {
     event.preventDefault();
+    if (submittingPayment) return;
     const form = event.currentTarget;
     if (!form.reportValidity()) return;
     const button = $("#reserveOrder");
@@ -1149,6 +1152,7 @@
     const data = Object.fromEntries(new FormData(form).entries());
     const customer = { name: data.name, email: data.email, phone: data.phone, document: { number: data.cpf, type: "cpf" } };
     const shipping = { street: data.address, number: data.number, complement: data.complement, neighborhood: data.neighborhood, city: data.city, state: data.state, zipCode: data.zipCode };
+    submittingPayment = true;
     button.disabled = true;
     $('#reserveOrderTop').disabled = true;
     button.textContent = "Gerando Pix seguro...";
@@ -1158,6 +1162,9 @@
       const result = await window.PaymentService.createCharge({ customer, shipping, items, expectedAmount });
       const payment = result.data;
       if (!result.success || !payment?.transactionId) throw new Error("A BlackCat não retornou os dados do pagamento.");
+      if (['PAID', 'CANCELLED', 'REFUNDED'].includes(payment.status)) {
+        throw new Error(payment.status === 'PAID' ? 'Este pedido já foi pago. Consulte a loja para acompanhar a entrega.' : 'Esta cobrança foi encerrada. Atualize a página e revise o pedido.');
+      }
       $("#confirmationReference").textContent = `Pedido ${payment.transactionId}`;
       $("#pixCopyPaste").value = payment.paymentData?.copyPaste || payment.paymentData?.qrCode || "";
       $('#pixCopyPaste').rows = 2; $('#pixViewCode').setAttribute('aria-expanded', 'false'); $('#pixViewCode').textContent = 'Ver código completo';
@@ -1168,7 +1175,8 @@
         $("#pixQrImage").src = qr;
         $("#pixQrImage").hidden = false;
       }
-      startPixCountdown(payment.paymentData?.expiresAt);
+      $('#pixRetry').hidden = true;
+      startPixCountdown(payment.paymentData?.checkoutExpiresAt || payment.paymentData?.expiresAt);
       $("#pixPayment").hidden = false;
       $('#pixDeliveryReview').textContent = addressReview();
       $('#pixOrderItems').replaceChildren(...Array.from($('#checkoutItems').children, child => child.cloneNode(true)));
@@ -1190,6 +1198,7 @@
     } catch (submitError) {
       error.textContent = submitError.message;
     } finally {
+      submittingPayment = false;
       button.disabled = false;
       $('#reserveOrderTop').disabled = false;
       button.textContent = `Gerar Pix · ${$('#checkoutSubtotal').textContent}`;
@@ -1202,17 +1211,17 @@
     stopPixCountdown();
     pixDeadlineExpired = false;
     $('#copyPix').disabled = false; $('#pixCopyPaste').hidden = false; $('#pixViewCode').hidden = false;
-    const deadline = typeof expiresAt === 'string' ? Date.parse(expiresAt) : NaN;
+    const deadline = window.PaymentService.expirationTime(expiresAt);
     const timer = $('#pixCountdown'), progress = $('#pixExpiryProgress');
     timer.textContent = ''; progress.hidden = true;
     if (!Number.isFinite(deadline)) {
       $('#pixExpiry').textContent = 'Este Pix não possui expiração automática informada.';
       return;
     }
-    $('#pixExpiry').textContent = 'Expira em'; progress.hidden = false;
-    const duration = Math.max(1, deadline - Date.now()); let interval;
+    $('#pixExpiry').textContent = 'Tempo para pagar neste checkout'; progress.hidden = false;
+    const duration = Math.max(1, deadline - window.PaymentService.now()); let interval;
     const update = () => {
-      const remaining = Math.max(0, deadline - Date.now()), seconds = Math.ceil(remaining / 1000);
+      const remaining = Math.max(0, deadline - window.PaymentService.now()), seconds = Math.ceil(remaining / 1000);
       const hours = Math.floor(seconds / 3600), minutes = Math.floor(seconds % 3600 / 60);
       timer.textContent = `${hours ? `${String(hours).padStart(2, '0')}:` : ''}${String(minutes).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
       progress.value = remaining / duration * 100;
@@ -1222,6 +1231,7 @@
         $('#pixExpiry').textContent = 'Prazo de pagamento encerrado';
         $('#copyPix').disabled = true; $('#pixQrImage').hidden = true;
         $('#pixCopyPaste').hidden = true; $('#pixViewCode').hidden = true;
+        $('#pixRetry').hidden = false;
         $('#pixStatus').textContent = 'O prazo informado para este Pix terminou. Consulte a loja antes de realizar outro pagamento.';
       }
     };
@@ -1232,12 +1242,13 @@
   function pollPayment(transactionId, manual = false) {
     stopPaymentWatch();
     const button = $('#pixInvoice');
-    let timer, busy = false, terminal = false, disposed = false;
+    let timer, busy = false, terminal = false, disposed = false, lastStatus = null;
     button.hidden = false; button.disabled = false; button.textContent = 'Confirmar pagamento';
     stopPaymentWatch = () => { disposed = true; clearTimeout(timer); };
     const refresh = async (requested = false) => {
       if (busy || terminal || disposed) return;
       clearTimeout(timer); busy = true; button.disabled = true;
+      lastStatus = null;
       if (requested) { button.textContent = 'Consultando pagamento…'; $('#pixStatus').textContent = 'Verificando o recebimento do Pix…'; }
       try {
         const result = await window.PaymentService.getPaymentStatus(transactionId);
@@ -1245,7 +1256,9 @@
         if (!result.success || result.data?.transactionId !== transactionId) throw new Error('Consulta inválida');
         const state = result.data.status;
         if (!['PENDING', 'PAID', 'CANCELLED', 'REFUNDED'].includes(state)) throw new Error('Status inválido');
+        lastStatus = state;
         if (state === 'PAID') {
+          $('#pixRetry').hidden = true;
           terminal = true; stopPixCountdown();
           $('#pixExpiry').textContent = 'Pagamento confirmado'; $('#pixCountdown').textContent = ''; $('#pixExpiryProgress').hidden = true;
           $('#copyPix').disabled = true; $('#pixQrImage').hidden = true; $('#pixCopyPaste').hidden = true; $('#pixViewCode').hidden = true;
@@ -1253,6 +1266,7 @@
           button.textContent = 'Pagamento confirmado';
           localStorage.removeItem(CART_KEY); updateCartCount();
         } else if (state === 'CANCELLED' || state === 'REFUNDED') {
+          $('#pixRetry').hidden = state !== 'CANCELLED';
           terminal = true; stopPixCountdown();
           $('#copyPix').disabled = true; $('#pixQrImage').hidden = true; $('#pixCopyPaste').hidden = true; $('#pixViewCode').hidden = true;
           $('#pixCountdown').textContent = ''; $('#pixExpiryProgress').hidden = true; $('#pixExpiry').textContent = '';
@@ -1274,6 +1288,19 @@
       }
     };
     button.onclick = () => refresh(true);
+    $('#pixRetry').onclick = async () => {
+      if (busy || disposed) return;
+      if (!window.confirm('Se você já pagou, não gere outro Pix: aguarde a confirmação ou fale com a loja. Deseja revisar o pedido para uma nova tentativa?')) return;
+      await refresh(true);
+      if (disposed || $('#pixTitle').textContent === 'Pagamento aprovado') return;
+      // Uma falha na consulta não autoriza criar uma segunda cobrança.
+      if (!['PENDING', 'CANCELLED'].includes(lastStatus)) return;
+      stopPaymentWatch(); stopPixCountdown();
+      window.PaymentService.resetIntent();
+      $('#pixPayment').hidden = true; $('#checkoutLayout').hidden = false;
+      $('#checkoutError').textContent = 'Confira os dados antes de gerar um novo Pix. Pague somente a nova cobrança.';
+      $('#checkoutLayout').scrollIntoView({ block: 'start' });
+    };
     timer = setTimeout(() => refresh(), 10000);
   }
   function initVisitorAnalytics() {

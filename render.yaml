@@ -10,6 +10,10 @@ services:
       mountPath: /var/www/html/.data
       sizeGB: 1
     envVars:
+      - key: STORE_DATA_DIR
+        value: /var/www/html/.data
+      - key: STORE_REQUIRE_PERSISTENT_DISK
+        value: "1"
       - key: HOST
         value: 0.0.0.0
       - key: ADMIN_USERNAME

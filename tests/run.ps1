@@ -26,6 +26,10 @@ try {
   if($process.HasExited){throw 'O processo de testes encerrou. Confira se a porta 8092 está disponível.'}
   & $runtime -c php-local.ini tests/integration.php
   if($LASTEXITCODE -ne 0){throw 'Falha nos testes da API.'}
+  & $runtime -c php-local.ini tests/geolocation.php
+  if($LASTEXITCODE -ne 0){throw 'Falha nos testes de localização.'}
+  & $runtime -c php-local.ini tests/persistence.php
+  if($LASTEXITCODE -ne 0){throw 'Falha nos testes de persistência.'}
   if($Browser){& (Join-Path $PSScriptRoot 'browser.ps1')}
 } finally {
   if($process -and !$process.HasExited){Stop-Process -Id $process.Id -Force}

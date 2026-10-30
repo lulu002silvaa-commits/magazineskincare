@@ -17,3 +17,10 @@
 .order-details dd { margin: 0; }
 
 .generated-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}.generated-heading h2{margin:0}@media(max-width:600px){.generated-heading .btn{min-height:44px;width:100%}}
+
+/* Fundo fixo em tela cheia, ativado quando a imagem local estiver presente. */
+body.admin-wallpaper{min-height:100dvh;isolation:isolate;background:transparent;--panel:rgba(18,24,33,.86)}
+body.admin-wallpaper::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(rgba(3,6,10,.36),rgba(3,6,10,.58)),url('../public/images/admin/background.png') center center/cover no-repeat;background-color:#080b10}
+.admin-wallpaper .sidebar{background:rgba(12,17,25,.9)}
+.admin-wallpaper .stat,.admin-wallpaper .table-panel,.admin-wallpaper .login-card,.admin-wallpaper .settings-panel{background:var(--panel)}
+.admin-wallpaper th{background:rgba(16,23,34,.86)}

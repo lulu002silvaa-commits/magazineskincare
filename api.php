@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__ . '/php/bootstrap.php';
+require __DIR__ . '/php/geolocation.php';
 
 $route = '/' . trim((string)($_GET['route'] ?? ''), '/');
 $method = $_SERVER['REQUEST_METHOD'];
@@ -13,7 +14,7 @@ if (!str_starts_with($route, '/admin/') && in_array($_SERVER['HTTP_ORIGIN'] ?? '
     if ($method === 'OPTIONS') { http_response_code(204); exit; }
 }
 try {
-    if (!str_starts_with($route, '/admin/') && $route !== '/health' && in_array($_SERVER['REMOTE_ADDR'] ?? '', read_data('blocked')['ips'] ?? [], true)) {
+    if (!str_starts_with($route, '/admin/') && $route !== '/health' && in_array(visitor_ip($_SERVER), read_data('blocked')['ips'] ?? [], true)) {
         json_response(['error' => 'Acesso bloqueado.'], 403);
     }
     if ($route === '/health') json_response(['ok' => true, 'runtime' => 'php']);
@@ -40,7 +41,7 @@ try {
     }
     if ($route === '/analytics' && $method === 'POST') {
         $body = input_json();
-        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+        $ip = visitor_ip($_SERVER);
         $blocked = read_data('blocked')['ips'] ?? [];
         if (in_array($ip, $blocked, true)) json_response(['error' => 'Acesso bloqueado.'], 403);
         $id = (string)($body['sessionId'] ?? '');
@@ -49,13 +50,15 @@ try {
         if (!in_array($source, ['view', 'heartbeat', 'click'], true)) json_response(['error' => 'Evento inválido.'], 400);
         $agent = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 400);
         $now = time();
-        $analytics = update_data('analytics', function ($data) use ($id, $ip, $agent, $body, $source, $now) {
+        $location = $source === 'view' ? ip_location($ip) : ['city' => '', 'state' => '', 'country' => ''];
+        $analytics = update_data('analytics', function ($data) use ($id, $ip, $agent, $body, $source, $now, $location) {
             $data['sessions'] = array_filter($data['sessions'] ?? [], fn($s) => ($s['lastSeen'] ?? 0) > $now - 120);
             $data['sessions'][$id] = ['lastSeen' => $now, 'ip' => $ip];
             if ($source === 'view') {
                 $data['totalViews'] = (int)($data['totalViews'] ?? 0) + 1;
                 $data['history'][] = ['id' => bin2hex(random_bytes(10)), 'timestamp' => $now, 'sessionId' => $id, 'ip' => $ip, 'source' => 'view', 'path' => substr((string)($body['path'] ?? '/'), 0, 500), 'referrer' => substr((string)($body['referrer'] ?? ''), 0, 500), 'agent' => $agent, 'city' => '', 'state' => '', 'country' => ''];
-                $data['history'] = array_slice($data['history'], -1000);
+                $last = array_key_last($data['history']);
+                $data['history'][$last] = array_merge($data['history'][$last], $location);
             }
             if ($source === 'click') $data['totalClicks'] = (int)($data['totalClicks'] ?? 0) + 1;
             return $data;
@@ -113,6 +116,16 @@ try {
             $store = store_data(); unset($store['senhaAdmin'], $store['pagamento']['gateway']);
             $analytics = read_data('analytics');
             $visits = array_reverse(array_values(array_filter($analytics['history'] ?? [], fn($v) => ($v['source'] ?? 'view') === 'view')));
+            $enriched = enrich_visit_locations($visits);
+            if ($enriched !== $visits) {
+                $locations = [];
+                foreach ($enriched as $visit) if (!empty($visit['city']) || !empty($visit['state'])) $locations[$visit['id']] = array_intersect_key($visit, array_flip(['city', 'state', 'country']));
+                update_data('analytics', function ($data) use ($locations) {
+                    foreach ($data['history'] ?? [] as $index => $visit) if (isset($locations[$visit['id']])) $data['history'][$index] = array_merge($visit, $locations[$visit['id']]);
+                    return $data;
+                });
+                $visits = $enriched;
+            }
             foreach ($visits as &$visit) { $visit['online'] = (int)($analytics['sessions'][$visit['sessionId'] ?? '']['lastSeen'] ?? 0) >= time() - 120; }
             unset($visit);
             $transactions = read_data('transactions');
@@ -124,7 +137,7 @@ try {
             usort($charges, fn($a, $b) => ($b['createdAt'] ?? 0) <=> ($a['createdAt'] ?? 0));
             $online = count(array_filter($analytics['sessions'] ?? [], fn($s) => ($s['lastSeen'] ?? 0) >= time() - 120));
             $revenue = array_sum(array_map(fn($p) => ($p['status'] ?? '') === 'PAID' ? (int)($p['amount'] ?? 0) : 0, $charges));
-            json_response(['store' => $store, 'visits' => array_slice($visits, 0, 1000), 'charges' => $charges, 'blocked' => read_data('blocked')['ips'] ?? [], 'stats' => ['visits' => (int)($analytics['totalViews'] ?? 0), 'pix' => count($charges), 'revenue' => $revenue, 'online' => $online], 'gatewayConfigured' => (getenv('BLACKCAT_API_KEY') ?: '') !== '']);
+            json_response(['store' => $store, 'visits' => $visits, 'charges' => $charges, 'blocked' => read_data('blocked')['ips'] ?? [], 'stats' => ['visits' => count($visits), 'pix' => count($charges), 'revenue' => $revenue, 'online' => $online], 'gatewayConfigured' => (getenv('BLACKCAT_API_KEY') ?: '') !== '']);
         }
         if ($route === '/admin/payment' && $method === 'DELETE') {
             $body = input_json(); $id = $body['id'] ?? '';
@@ -222,7 +235,11 @@ try {
         }
         if ($route === '/admin/visit' && $method === 'DELETE') {
             $body = input_json(); $id = (string)($body['id'] ?? '');
-            update_data('analytics', function ($data) use ($id) { $data['history'] = array_values(array_filter($data['history'] ?? [], fn($row) => ($row['id'] ?? '') !== $id)); return $data; });
+            update_data('analytics', function ($data) use ($id) {
+                $data['history'] = array_values(array_filter($data['history'] ?? [], fn($row) => ($row['id'] ?? '') !== $id));
+                $data['totalViews'] = count(array_filter($data['history'], fn($row) => ($row['source'] ?? 'view') === 'view'));
+                return $data;
+            });
             json_response(['success' => true]);
         }
         json_response(['error' => 'Rota administrativa não encontrada.'], 404);

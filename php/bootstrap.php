@@ -29,10 +29,27 @@ function data_directory(): void {
 
 function read_data(string $name, array $fallback = []): array {
     $path = STORE_DATA . '/' . $name . '.json';
-    if (!is_file($path)) return $fallback;
-    $value = json_decode((string)file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
-    if (!is_array($value)) throw new RuntimeException('Arquivo de dados inválido.');
-    return $value;
+    foreach ([$path, STORE_DATA . '/' . $name . '.backup.json'] as $candidate) {
+        if (!is_file($candidate)) continue;
+        try {
+            $value = json_decode((string)file_get_contents($candidate), true, 512, JSON_THROW_ON_ERROR);
+            if (is_array($value)) {
+                if ($candidate !== $path) error_log('Dados recuperados da cópia de segurança: ' . $name);
+                return $value;
+            }
+        } catch (JsonException) { /* Tenta a cópia antes de interromper a operação. */ }
+    }
+    if (is_file($path) || is_file(STORE_DATA . '/' . $name . '.backup.json')) throw new RuntimeException('Arquivo de dados inválido. Restaure uma cópia de segurança.');
+    return $fallback;
+}
+
+function write_data_file(string $path, string $contents): void {
+    $temp = tempnam(STORE_DATA, 'save-');
+    if ($temp === false) throw new RuntimeException('Não foi possível preparar a gravação.');
+    try {
+        $bytes = file_put_contents($temp, $contents);
+        if ($bytes !== strlen($contents) || !rename($temp, $path)) throw new RuntimeException('Não foi possível salvar os dados.');
+    } finally { if (is_file($temp)) unlink($temp); }
 }
 
 function update_data(string $name, callable $mutate, array $fallback = []): array {
@@ -41,12 +58,10 @@ function update_data(string $name, callable $mutate, array $fallback = []): arra
     if (!$lock || !flock($lock, LOCK_EX)) throw new RuntimeException('Não foi possível bloquear os dados.');
     try {
         $value = $mutate(read_data($name, $fallback));
-        $temp = tempnam(STORE_DATA, 'save-');
-        if ($temp === false) throw new RuntimeException('Não foi possível preparar a gravação.');
-        try {
-            $bytes = file_put_contents($temp, json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
-            if ($bytes === false || !rename($temp, STORE_DATA . '/' . $name . '.json')) throw new RuntimeException('Não foi possível salvar os dados.');
-        } finally { if (is_file($temp)) unlink($temp); }
+        $contents = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        write_data_file(STORE_DATA . '/' . $name . '.json', $contents);
+        try { write_data_file(STORE_DATA . '/' . $name . '.backup.json', $contents); }
+        catch (RuntimeException $error) { error_log('Falha na cópia de segurança de ' . $name . ': ' . $error->getMessage()); }
         return $value;
     } finally { flock($lock, LOCK_UN); fclose($lock); }
 }
@@ -93,7 +108,7 @@ function initial_store(): array {
 }
 
 function store_data(): array {
-    $store = is_file(STORE_DATA . '/store.json') ? read_data('store') : initial_store();
+    $store = read_data('store', initial_store());
     $store['produtos'] = array_values(array_filter($store['produtos'], 'product_is_public'));
     $originals = array_column(initial_products(), null, 'id');
     foreach ($store['produtos'] as &$product) {

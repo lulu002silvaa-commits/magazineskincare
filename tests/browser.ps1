@@ -61,6 +61,12 @@ try {
   Evaluate "document.querySelector('[name=username]').value='admin';document.querySelector('[name=password]').value='php-admin-test-only-2026';document.querySelector('#loginForm').requestSubmit();true" | Out-Null
   WaitFor "document.querySelector('#stats .stat')"
   Check 'Quatro indicadores no dashboard' "document.querySelectorAll('.stat').length===4"
+  Check 'Imagem do painel cobre toda a tela' "document.body.classList.contains('admin-wallpaper') && getComputedStyle(document.body,'::before').backgroundSize.includes('cover')"
+  Check 'Imagem de fundo do painel carrega' "(async()=>{const image=new Image();return await new Promise(resolve=>{image.onload=()=>resolve(image.naturalWidth>0);image.onerror=()=>resolve(false);image.src='/public/images/admin/background.png';});})()"
+  Evaluate "window.panelFetch=window.fetch;window.panelRows=document.querySelectorAll('tbody tr').length;window.fetch=async(url,options)=>String(url).includes(encodeURIComponent('/admin/data'))?new Response(JSON.stringify({error:'Falha temporária de teste'}),{status:503,headers:{'Content-Type':'application/json'}}):window.panelFetch(url,options);document.querySelector('#refresh').click();true" | Out-Null
+  WaitFor "document.querySelector('#notice').textContent==='Falha temporária de teste'"
+  Check 'Falha temporária não apaga dados exibidos no painel' "document.querySelectorAll('tbody tr').length===window.panelRows && document.querySelectorAll('.stat').length===4"
+  Evaluate "window.fetch=window.panelFetch;true" | Out-Null
   Check 'Menu lateral e tabelas' "!!document.querySelector('.sidebar') && document.querySelectorAll('table').length===2"
   Check 'Painel exibe limpeza de gerados e status aprovado' "!!document.querySelector('#clearGenerated') && document.querySelector('#content').textContent.includes('Aprovado')"
   Check 'Exclusão individual aparece na tabela de Pix' "document.querySelectorAll('[data-delete-payment]').length>0"
@@ -157,7 +163,7 @@ try {
   WaitFor "!document.querySelector('#pixInvoice').disabled"
   Check 'Confirmar pagamento consulta sem aprovar Pix pendente' "document.querySelector('#pixInvoice').tagName==='BUTTON' && document.querySelector('#pixInvoice').textContent==='Confirmar pagamento' && document.querySelector('#pixStatus').textContent.includes('ainda não') && localStorage.getItem('calma-pele-carrinho')!==null"
   Check 'Blocos da finalização ocupam largura uniforme' "getComputedStyle(document.querySelector('#pixPayment')).display==='block' && Math.abs(document.querySelector('.pix-method-review').getBoundingClientRect().width-document.querySelector('#pixPayment').getBoundingClientRect().width)<2"
-  Check 'Pix por chave não inventa expiração' "document.querySelector('#pixExpiry').textContent.includes('não possui expiração') && document.querySelector('#pixExpiryProgress').hidden"
+  Check 'Checkout Pix mostra prazo de dez minutos' "document.querySelector('#pixExpiry').textContent.includes('neste checkout') && !document.querySelector('#pixExpiryProgress').hidden && /^09:|^10:00$/.test(document.querySelector('#pixCountdown').textContent)"
   Check 'Resumo Pix mostra entrega e valor real' "document.querySelector('#pixDeliveryReview').textContent.includes('Rua Teste') && document.querySelector('#pixOrderTotal').textContent===document.querySelector('#checkoutSubtotal').textContent"
   Evaluate "document.querySelector('#pixViewCode').click();true" | Out-Null
   Check 'Código completo pode ser expandido' "document.querySelector('#pixCopyPaste').rows===6 && document.querySelector('#pixViewCode').getAttribute('aria-expanded')==='true'"
@@ -166,8 +172,9 @@ try {
   Check 'Botão copia código Pix correto' "window.testCopiedPix.startsWith('000201')"
   Check 'Cópia informa sucesso e resumo mantém total' "document.querySelector('#pixCopyStatus').textContent.includes('copiado') && document.querySelector('#pixSummaryTotal').textContent===document.querySelector('#pixOrderTotal').textContent"
   Screenshot 'checkout-mobile.png'
-  Check 'QR do gateway funciona mesmo com imagem quebrada' "(async()=>{const original=window.fetch,payload=document.querySelector('#pixCopyPaste').value,expiry='2030-01-01T12:00:00Z';try{for(const broken of ['imagem-invalida','https://example.invalid/qr.png','data:image/png;base64,quebrado','']){window.fetch=async url=>new Response(JSON.stringify(String(url).includes('payment-config')?{method:'gateway',available:true}:{success:true,data:{transactionId:'TEST-QR-ONLY',amount:5234,paymentMethod:'blackcat',paymentData:{copyPaste:payload,qrCodeBase64:broken,expiresAt:expiry}}}),{status:200,headers:{'Content-Type':'application/json'}});const result=await window.PaymentService.createCharge({test:'qr-only'});if(result.data.paymentData.copyPaste!==payload || result.data.paymentData.expiresAt!==expiry)return false;const loaded=await new Promise(resolve=>{const image=new Image();image.onload=()=>resolve(image.naturalWidth>0);image.onerror=()=>resolve(false);image.src=result.data.paymentData.qrCodeBase64;});if(!loaded)return false;}return true;}finally{window.fetch=original;}})()"
-  Evaluate "const service=window.PaymentService;window.PaymentService={...service,createCharge:async data=>{const result=await service.createCharge(data);result.data.paymentData.expiresAt=new Date(Date.now()+4000).toISOString();return result;}};document.querySelector('#checkoutForm').requestSubmit();true" | Out-Null
+  Check 'QR do gateway funciona mesmo com imagem quebrada' "(async()=>{const original=window.fetch,payload=document.querySelector('#pixCopyPaste').value,expiry='2030-01-01T12:00:00Z';try{for(const broken of ['imagem-invalida','https://example.invalid/qr.png','data:image/png;base64,quebrado','']){window.fetch=async url=>new Response(JSON.stringify(String(url).includes('payment-config')?{method:'gateway',available:true}:{success:true,data:{transactionId:'TEST-QR-ONLY',amount:5234,paymentMethod:'blackcat',paymentData:{copyPaste:payload,qrCodeBase64:broken,expiresAt:expiry}}}),{status:200,headers:{'Content-Type':'application/json'}});const result=await window.PaymentService.createCharge({test:'qr-only',expectedAmount:5234});if(result.data.paymentData.copyPaste!==payload || result.data.paymentData.expiresAt!==expiry)return false;const loaded=await new Promise(resolve=>{const image=new Image();image.onload=()=>resolve(image.naturalWidth>0);image.onerror=()=>resolve(false);image.src=result.data.paymentData.qrCodeBase64;});if(!loaded)return false;}return true;}finally{window.fetch=original;}})()"
+  Check 'Expiração aceita timestamps e fusos e ignora datas ambíguas' "(()=>{const s=window.PaymentService,t=Date.parse('2030-01-01T12:00:00Z');return s.expirationTime(t)===t && s.expirationTime(t/1000)===t && s.expirationTime(String(t/1000))===t && s.expirationTime('2030-01-01T09:00:00-03:00')===t && Number.isNaN(s.expirationTime('2030-01-01T12:00:00')) && Number.isNaN(s.expirationTime(null));})()"
+  Evaluate "const service=window.PaymentService;window.PaymentService={...service,createCharge:async data=>{const result=await service.createCharge(data);result.data.paymentData.checkoutExpiresAt=new Date(service.now()+4000).toISOString();return result;}};document.querySelector('#checkoutForm').requestSubmit();true" | Out-Null
   WaitFor "document.querySelector('#pixCountdown').textContent.length>0"
   Check 'Expiração retornada gera contagem e barra' "!document.querySelector('#pixExpiryProgress').hidden && document.querySelector('#pixCountdown').textContent!=='00:00'"
   Screenshot 'pix-contagem-desktop.png'
@@ -176,9 +183,13 @@ try {
   Screenshot 'pix-contagem-mobile.png'
   WaitFor "document.querySelector('#pixCountdown').textContent==='00:00'"
   Check 'Expiração desativa código e QR' "document.querySelector('#copyPix').disabled && document.querySelector('#pixQrImage').hidden && document.querySelector('#pixCopyPaste').hidden && document.querySelector('#pixStatus').textContent.includes('prazo')"
+  Check 'Pix vencido permite revisar o pedido' "!document.querySelector('#pixRetry').hidden"
   Evaluate "window.PaymentService={...window.PaymentService,getPaymentStatus:async()=>{throw new Error('Falha simulada');}};document.querySelector('#pixInvoice').click();true" | Out-Null
   WaitFor "!document.querySelector('#pixInvoice').disabled"
   Check 'Falha na consulta não marca pedido como pago' "document.querySelector('#pixStatus').textContent.includes('Não foi possível') && localStorage.getItem('calma-pele-carrinho')!==null"
+  Evaluate "window.confirm=()=>true;document.querySelector('#pixRetry').click();true" | Out-Null
+  WaitFor "!document.querySelector('#pixInvoice').disabled"
+  Check 'Falha na consulta impede segunda cobrança' "!document.querySelector('#pixPayment').hidden && document.querySelector('#checkoutLayout').hidden"
   Evaluate "window.PaymentService={...window.PaymentService,getPaymentStatus:async id=>({success:true,data:{transactionId:id,status:'PAID'}})};document.querySelector('#pixInvoice').click();true" | Out-Null
   WaitFor "document.querySelector('#pixTitle').textContent==='Pagamento aprovado'"
   Check 'Resposta paga confirma e encerra cobrança na tela' "document.querySelector('#pixInvoice').disabled && document.querySelector('#pixInvoice').textContent==='Pagamento confirmado' && localStorage.getItem('calma-pele-carrinho')===null"
