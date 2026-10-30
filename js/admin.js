@@ -3,7 +3,7 @@
   const app = document.querySelector('#app');
   const state = { csrf:'', data:null, page:'dashboard', search:'', category:'', stock:'', productPage:1, visitPage:1, chargePage:1, realtime:true, busy:false };
   let timer;
-  let soundEnabled=false, audioContext, seenPix=new Set(), soundStartedAt=0;
+  let soundEnabled=false, pixAudio, pendingSounds=0, soundPlaying=false, seenPix=new Set(), soundStartedAt=0;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money = value => Number(value || 0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
   const date = value => value ? new Date(typeof value === 'number' ? value*1000 : value).toLocaleString('pt-BR') : '—';
@@ -37,29 +37,36 @@
     soundButton.setAttribute('aria-pressed',String(soundEnabled));soundButton.textContent=soundEnabled?'Desativar som de Pix':'Ativar som de Pix';
     soundButton.onclick=async()=>{
       try{
-        if(soundEnabled){soundEnabled=false;}else{
-          const Audio=window.AudioContext || window.webkitAudioContext;
-          if(!Audio)throw new Error('Este navegador não suporta o alerta sonoro.');
-          audioContext=audioContext || new Audio();await audioContext.resume();
-          if(audioContext.state!=='running')throw new Error('Toque novamente para permitir o som neste navegador.');
-          soundEnabled=true;ringPix();
+        if(soundEnabled){soundEnabled=false;pendingSounds=0;soundPlaying=false;pixAudio?.pause();if(pixAudio)pixAudio.currentTime=0;}else{
+          pixAudio=pixAudio || new Audio('public/audio/pix-gerado.mp3');
+          pixAudio.preload='auto';pixAudio.volume=1;
+          pixAudio.onended=()=>{soundPlaying=false;playNextPixSound().catch(soundFailure);};
+          pixAudio.onerror=()=>soundFailure(new Error('Não foi possível carregar o áudio de Pix.'));
+          soundEnabled=true;await ringPix();
         }
         soundButton.setAttribute('aria-pressed',String(soundEnabled));soundButton.textContent=soundEnabled?'Desativar som de Pix':'Ativar som de Pix';
         notice(soundEnabled?'Som ativado. Novos Pix serão avisados com o painel aberto.':'Som desativado.');
-      }catch(error){soundEnabled=false;notice(error.message,true);}
+      }catch(error){soundFailure(error);}
     };
     render();clearInterval(timer);timer=setInterval(()=>{if(state.realtime && (!document.hidden || soundEnabled) && !document.querySelector('dialog[open]') && state.page!=='settings')refresh();},3000);
   }
   function navigate(page){state.page=page;document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));render();}
-  function ringPix(){
-    if(!soundEnabled || !audioContext || audioContext.state!=='running')return;
-    [660,880].forEach((frequency,index)=>{const tone=audioContext.createOscillator(),gain=audioContext.createGain(),at=audioContext.currentTime+index*.2;tone.type='sine';tone.frequency.value=frequency;gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(.15,at+.02);gain.gain.exponentialRampToValueAtTime(.001,at+.25);tone.connect(gain);gain.connect(audioContext.destination);tone.start(at);tone.stop(at+.28);tone.onended=()=>{tone.disconnect();gain.disconnect();};});
+  function soundFailure(error){soundEnabled=false;pendingSounds=0;soundPlaying=false;pixAudio?.pause();const button=document.querySelector('#pixSound');if(button){button.setAttribute('aria-pressed','false');button.textContent='Ativar som de Pix';}notice(error.message || 'Ative o som novamente para permitir o áudio.',true);}
+  async function playNextPixSound(){
+    if(!soundEnabled || !pixAudio || soundPlaying || !pendingSounds)return;
+    pendingSounds--;soundPlaying=true;pixAudio.currentTime=0;
+    await pixAudio.play();
+  }
+  async function ringPix(count=1){
+    if(!soundEnabled || !pixAudio)return;
+    pendingSounds+=count;
+    await playNextPixSound();
   }
   async function refresh(showMessage=false){if(state.busy)return;state.busy=true;try{
     const next=await api('/admin/data');
     const fresh=next.charges.filter(row=>!seenPix.has(row.id) && row.createdAt>=soundStartedAt);
     next.charges.forEach(row=>seenPix.add(row.id));state.data=next;render();
-    if(fresh.length){ringPix();notice(fresh.length===1?'Novo Pix gerado.':fresh.length+' novos Pix gerados.');}else if(showMessage)notice('Painel atualizado.');
+    if(fresh.length){ringPix(fresh.length).catch(soundFailure);notice(fresh.length===1?'Novo Pix gerado.':fresh.length+' novos Pix gerados.');}else if(showMessage)notice('Painel atualizado.');
   }catch(error){notice(error.message,true);}finally{state.busy=false;}}
   function render(){if(!state.data || !document.querySelector('#content'))return;const d=state.data;document.querySelector('#gatewaySelect').value=d.store.pagamento?.metodo || 'pix';document.querySelector('#gatewayHint').textContent=d.store.pagamento?.metodo==='gateway'?(d.gatewayConfigured?'BlackCat configurada no servidor':'BlackCat: chave não configurada'):(d.store.pix?.chave?'Chave Pix cadastrada':'Chave Pix não cadastrada');document.querySelector('#lastUpdate').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR');document.querySelector('#productCount').textContent=d.store.produtos.length;document.querySelector('#pageTitle').textContent={dashboard:'Visão geral',products:'Editar produtos',payments:'Pagamentos e Pix',settings:'Configurações'}[state.page];document.querySelector('#stats').innerHTML=[['Visitas',d.stats.visits,'blue'],['Pix gerados',d.stats.pix,'green'],['Total gerado',money(d.stats.generatedAmount/100),'blue'],['Faturamento confirmado',money(d.stats.revenue/100),'amber'],['Pessoas online',d.stats.online,'purple']].map(([label,value,color])=>`<article class="stat ${color}"><span>${label}</span><strong>${esc(value)}</strong></article>`).join('');if(state.page==='products')renderProducts();else if(state.page==='settings')renderSettings();else renderDashboard();}
   function device(agent=''){return /android/i.test(agent)?'Android':/iphone|ipad/i.test(agent)?'iOS':/windows/i.test(agent)?'Windows':/mac/i.test(agent)?'macOS':/linux/i.test(agent)?'Linux':'Não informado';}

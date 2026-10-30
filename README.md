@@ -36,6 +36,8 @@ Sem senha configurada, o primeiro acesso pelo próprio computador permite criar 
 
 ## Painel
 
+O botão Ativar som de Pix toca uma prévia do áudio “Lula ele não gosta de toque”, indicado em https://www.myinstants.com/pt/instant/lula-ele-nao-gosta-de-toque-51832/. O arquivo local é `public/audio/pix-gerado.mp3`. Cada nova cobrança detectada com o painel aberto dispara um toque; eventos simultâneos entram em fila e cobranças já vistas não repetem o aviso. Desativar o som interrompe a reprodução e limpa a fila. O navegador exige uma ação do usuário para habilitar áudio; reprodução em segundo plano depende das restrições do dispositivo.
+
 - Visão geral: visitas, Pix gerados, faturamento confirmado e pessoas online.
 - Tabelas de visitas e cobranças, paginação e atualização a cada 15 segundos.
 - Bloqueio e desbloqueio de IPs; o acesso administrativo continua disponível para desfazer bloqueios.

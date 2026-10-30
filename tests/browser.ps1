@@ -70,11 +70,13 @@ try {
   Check 'Menu lateral e tabelas' "!!document.querySelector('.sidebar') && document.querySelectorAll('table').length===2"
   Check 'Painel exibe limpeza de gerados e status aprovado' "!!document.querySelector('#clearGenerated') && document.querySelector('#content').textContent.includes('Aprovado')"
   Check 'Exclusão individual aparece na tabela de Pix' "document.querySelectorAll('[data-delete-payment]').length>0"
-  Evaluate "window.testTones=0;window.AudioContext=class{constructor(){this.state='running';this.currentTime=0;this.destination={};}async resume(){}createOscillator(){return{frequency:{value:0},connect(){},disconnect(){},start(){window.testTones++;},stop(){}};}createGain(){return{gain:{setValueAtTime(){},linearRampToValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},disconnect(){}};}};document.querySelector('#pixSound').click();true" | Out-Null
+  Check 'Áudio solicitado pode ser carregado pelo navegador' "(async()=>{const audio=new Audio('/public/audio/pix-gerado.mp3');return await new Promise(resolve=>{const timer=setTimeout(()=>resolve(false),8000);audio.oncanplay=()=>{clearTimeout(timer);resolve(audio.duration>0);};audio.onerror=()=>{clearTimeout(timer);resolve(false);};audio.load();});})()"
+  Evaluate "window.testTones=0;window.Audio=class{constructor(src){window.testAudioSource=src;this.currentTime=0;}async play(){window.testTones++;queueMicrotask(()=>this.onended?.());}pause(){}};document.querySelector('#pixSound').click();true" | Out-Null
   WaitFor "document.querySelector('#pixSound').getAttribute('aria-pressed')==='true'"
-  Check 'Som pode ser ativado com prévia' 'window.testTones===2'
-  Evaluate "window.soundOriginalFetch=window.fetch;window.fetch=async(url,options)=>{const response=await window.soundOriginalFetch(url,options);if(String(url).includes(encodeURIComponent('/admin/data'))){const data=await response.json();data.charges.push({id:'sound-fixture-only',createdAt:Math.floor(Date.now()/1000)+1,status:'PENDING',amount:100,items:[]});return new Response(JSON.stringify(data),{status:200,headers:{'Content-Type':'application/json'}});}return response;};document.querySelector('#refresh').click();true" | Out-Null
+  Check 'Som pode ser ativado com prévia' 'window.testTones===1'
+  Evaluate "window.soundOriginalFetch=window.fetch;window.fetch=async(url,options)=>{const response=await window.soundOriginalFetch(url,options);if(String(url).includes(encodeURIComponent('/admin/data'))){const data=await response.json();for(const id of ['sound-fixture-only','sound-fixture-two','sound-fixture-three'])data.charges.push({id,createdAt:Math.floor(Date.now()/1000)+1,status:'PENDING',amount:100,items:[]});return new Response(JSON.stringify(data),{status:200,headers:{'Content-Type':'application/json'}});}return response;};document.querySelector('#refresh').click();true" | Out-Null
   WaitFor 'window.testTones===4'
+  Check 'Cada novo Pix toca o áudio solicitado uma vez' "window.testAudioSource==='public/audio/pix-gerado.mp3' && window.testTones===4"
   Evaluate "document.querySelector('#refresh').click();true" | Out-Null
   WaitFor "document.querySelector('#notice').textContent==='Painel atualizado.'"
   Check 'Mesmo Pix não dispara alerta repetido' 'window.testTones===4'

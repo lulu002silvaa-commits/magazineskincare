@@ -41,7 +41,7 @@ const photos = new Set(products.flatMap(product => [product.imagem, ...(product.
 for (const path of photos) {
   if (typeof path !== 'string' || !path.startsWith('public/images/') || path.includes('..') || !await exists(join(output, path))) throw new Error(`Foto inválida ou ausente: ${path}`);
 }
-const extensions = new Set(['.html', '.css', '.js', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.ico', '.ttf', '.otf', '.txt']);
+const extensions = new Set(['.html', '.css', '.js', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.ico', '.ttf', '.otf', '.txt', '.mp3']);
 async function check(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name);
