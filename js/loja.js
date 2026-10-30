@@ -1072,6 +1072,7 @@
       $('#checkoutContinue').hidden = stage === 3; $('#reserveOrderTop').hidden = stage !== 3;
       $('#checkoutContactReview').textContent = $('#customerEmail').value;
       $('#checkoutAddressReview').textContent = addressReview();
+      document.dispatchEvent(new CustomEvent('visitor-stage', { detail: ['checkout_identification', 'checkout_delivery', 'checkout_review'][stage - 1] }));
     };
     $('#checkoutContinue').onclick = () => {
       const fields = $$(`[data-checkout-stage="${stage}"] input`, form);
@@ -1195,6 +1196,7 @@
         $("#pixTitle").textContent = "Realize o pagamento para garantir sua compra";
       }
       pollPayment(payment.transactionId, payment.paymentMethod === 'manual_pix');
+      document.dispatchEvent(new CustomEvent('visitor-stage', { detail: 'pix_pending' }));
     } catch (submitError) {
       error.textContent = submitError.message;
     } finally {
@@ -1258,6 +1260,7 @@
         if (!['PENDING', 'PAID', 'CANCELLED', 'REFUNDED'].includes(state)) throw new Error('Status inválido');
         lastStatus = state;
         if (state === 'PAID') {
+          document.dispatchEvent(new CustomEvent('visitor-stage', { detail: 'paid' }));
           $('#pixRetry').hidden = true;
           terminal = true; stopPixCountdown();
           $('#pixExpiry').textContent = 'Pagamento confirmado'; $('#pixCountdown').textContent = ''; $('#pixExpiryProgress').hidden = true;
@@ -1306,21 +1309,35 @@
   function initVisitorAnalytics() {
     if (!connection.apiEnabled || window.location.protocol === "file:") return;
     const key = "mineironet_creamystore_session";
-    let sessionId = sessionStorage.getItem(key);
+    let sessionId;
+    try { sessionId = sessionStorage.getItem(key); } catch { /* Navegação privada pode bloquear armazenamento. */ }
     if (!sessionId) {
       sessionId = window.crypto?.randomUUID?.() || `visit-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      sessionStorage.setItem(key, sessionId);
+      try { sessionStorage.setItem(key, sessionId); } catch { /* Mantém a visita funcional sem armazenamento. */ }
     }
-    const send = (source) => fetch("/api/analytics", {
+    const pageId = window.crypto?.randomUUID?.() || `page-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    let stage = { home: 'home', product: 'product', cart: 'cart', checkout: 'checkout_identification' }[document.body.dataset.page] || '';
+    const product = productById(new URLSearchParams(location.search).get('id'));
+    let queue = Promise.resolve();
+    const send = (source, reportedStage = stage) => fetch("/api/analytics", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       cache: "no-store",
-      body: JSON.stringify({ source, sessionId, path: window.location.pathname + window.location.search, page: document.title, referrer: document.referrer })
+      keepalive: true,
+      body: JSON.stringify({ source, sessionId, pageId, stage: reportedStage, productName: product?.nome || readCart().map(item => productById(item.id)?.nome).filter(Boolean).join(' · ').slice(0, 180), path: window.location.pathname + window.location.search, page: document.title, referrer: document.referrer })
     }).catch(() => {});
-    send("view");
+    queue = send('view');
+    const report = source => { const reportedStage = stage; queue = queue.then(() => send(source, reportedStage)); };
+    document.addEventListener('visitor-stage', event => { if (event.detail && stage !== event.detail) { stage = event.detail; report('stage'); } });
+    document.addEventListener('click', event => {
+      if (event.target.closest('#addProduct') && !$('#addProduct')?.disabled) { stage = 'added_to_cart'; report('stage'); }
+    }, true);
+    window.addEventListener('pagehide', () => send('leave'));
+    window.addEventListener('pageshow', event => { if (event.persisted) report('view'); });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') report('heartbeat'); });
     window.setInterval(() => {
-      if (document.visibilityState === "visible") send("heartbeat");
-    }, 30000);
+      if (document.visibilityState === "visible") report("heartbeat");
+    }, 15000);
   }
 
   function initHeader() {
@@ -1399,6 +1416,7 @@
   }
 
   async function initializeStore() {
+    initVisitorAnalytics();
     initHeader();
     renderBranding();
     initConfiguredImages();
@@ -1441,7 +1459,6 @@
     renderCart();
     renderCheckout();
     initCommerceForms();
-    initVisitorAnalytics();
   }
   initializeStore();
 })();

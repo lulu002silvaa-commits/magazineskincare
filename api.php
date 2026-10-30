@@ -47,23 +47,56 @@ try {
         $id = (string)($body['sessionId'] ?? '');
         if (!preg_match('/^[a-zA-Z0-9_-]{1,160}$/', $id)) json_response(['error' => 'Sessão inválida.'], 400);
         $source = $body['source'] ?? 'view';
-        if (!in_array($source, ['view', 'heartbeat', 'click'], true)) json_response(['error' => 'Evento inválido.'], 400);
+        if (!in_array($source, ['view', 'heartbeat', 'click', 'stage', 'leave'], true)) json_response(['error' => 'Evento inválido.'], 400);
+        $pageId = string_value($body['pageId'] ?? '', 'página', 100);
+        $path = string_value($body['path'] ?? '/', 'caminho', 500);
+        $stage = string_value($body['stage'] ?? '', 'etapa', 40);
+        $stages = ['home', 'product', 'added_to_cart', 'cart', 'checkout_identification', 'checkout_delivery', 'checkout_review', 'pix_pending', 'paid'];
+        if (!in_array($stage, $stages, true)) $stage = match (parse_url($path, PHP_URL_PATH)) {
+            '/', '/index.html' => 'home', '/produto.html' => 'product', '/carrinho.html' => 'cart', '/checkout.html' => 'checkout_identification', default => ''
+        };
+        $productName = string_value($body['productName'] ?? '', 'produto', 1000);
         $agent = substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 400);
         $now = time();
-        $location = $source === 'view' ? ip_location($ip) : ['city' => '', 'state' => '', 'country' => ''];
-        $analytics = update_data('analytics', function ($data) use ($id, $ip, $agent, $body, $source, $now, $location) {
+        $needsLocation = $source === 'view' || (in_array($source, ['heartbeat', 'stage'], true) && (read_data('analytics')['sessions'][$id]['ip'] ?? '') !== $ip);
+        $location = $needsLocation ? ip_location($ip) : ['city' => '', 'state' => '', 'country' => ''];
+        $analytics = update_data('analytics', function ($data) use ($id, $ip, $agent, $body, $source, $now, $location, $pageId, $path, $stage, $productName) {
             $data['sessions'] = array_filter($data['sessions'] ?? [], fn($s) => ($s['lastSeen'] ?? 0) > $now - 120);
-            $data['sessions'][$id] = ['lastSeen' => $now, 'ip' => $ip];
+            $previous = $data['sessions'][$id] ?? [];
+            $currentPage = !$pageId || empty($previous['pageId']) || ($previous['pageId'] ?? '') === $pageId;
+            $activeEvent = $source === 'view' || ($currentPage && (($previous['active'] ?? true) || $source === 'leave'));
+            if ($activeEvent) {
+                $data['sessions'][$id] = ['lastSeen' => $now, 'ip' => $ip, 'pageId' => $pageId, 'path' => $path, 'stage' => $stage, 'active' => $source !== 'leave'];
+            }
             if ($source === 'view') {
                 $data['totalViews'] = (int)($data['totalViews'] ?? 0) + 1;
                 $data['history'][] = ['id' => bin2hex(random_bytes(10)), 'timestamp' => $now, 'sessionId' => $id, 'ip' => $ip, 'source' => 'view', 'path' => substr((string)($body['path'] ?? '/'), 0, 500), 'referrer' => substr((string)($body['referrer'] ?? ''), 0, 500), 'agent' => $agent, 'city' => '', 'state' => '', 'country' => ''];
                 $last = array_key_last($data['history']);
                 $data['history'][$last] = array_merge($data['history'][$last], $location);
+                $data['history'][$last]['pageId'] = $pageId;
+                $data['history'][$last]['stage'] = $stage;
+                $data['history'][$last]['productName'] = $productName;
+                $data['history'][$last]['lastSeen'] = $now;
+                $data['history'][$last]['stages'] = $stage ? [$stage => $now] : [];
+            }
+            if ($activeEvent && $currentPage && in_array($source, ['heartbeat', 'stage'], true)) {
+                for ($index = count($data['history'] ?? []) - 1; $index >= 0; $index--) {
+                    $row = $data['history'][$index];
+                    if (($row['sessionId'] ?? '') !== $id || ($pageId && ($row['pageId'] ?? '') !== $pageId)) continue;
+                    $data['history'][$index]['stage'] = $stage;
+                    $data['history'][$index]['lastSeen'] = $now;
+                    if (($row['ip'] ?? '') !== $ip) {
+                        $data['history'][$index] = array_merge($data['history'][$index], $location, ['ip' => $ip]);
+                    }
+                    if ($stage) $data['history'][$index]['stages'][$stage] ??= $now;
+                    if ($productName !== '') $data['history'][$index]['productName'] = $productName;
+                    break;
+                }
             }
             if ($source === 'click') $data['totalClicks'] = (int)($data['totalClicks'] ?? 0) + 1;
             return $data;
         });
-        json_response(['success' => true, 'onlineUsers' => count($analytics['sessions'])]);
+        json_response(['success' => true, 'onlineUsers' => count(array_filter($analytics['sessions'], fn($session) => $session['active'] ?? true))]);
     }
 
     // Administração: sessão PHP e token CSRF em toda gravação.
@@ -126,7 +159,13 @@ try {
                 });
                 $visits = $enriched;
             }
-            foreach ($visits as &$visit) { $visit['online'] = (int)($analytics['sessions'][$visit['sessionId'] ?? '']['lastSeen'] ?? 0) >= time() - 120; }
+            $latestVisits = [];
+            foreach ($visits as $visit) $latestVisits[$visit['sessionId'] ?? ''] ??= $visit['id'] ?? '';
+            foreach ($visits as &$visit) {
+                $session = $analytics['sessions'][$visit['sessionId'] ?? ''] ?? [];
+                $samePage = !empty($visit['pageId']) ? $visit['pageId'] === ($session['pageId'] ?? '') : ($visit['path'] ?? '') === ($session['path'] ?? '');
+                $visit['online'] = ($visit['id'] ?? '') === ($latestVisits[$visit['sessionId'] ?? ''] ?? '') && $samePage && ($session['active'] ?? true) && (int)($session['lastSeen'] ?? 0) >= time() - 120;
+            }
             unset($visit);
             $transactions = read_data('transactions');
             $charges = [];
@@ -135,7 +174,7 @@ try {
                 $charge['id'] = (string)$id; $charges[] = $charge;
             }
             usort($charges, fn($a, $b) => ($b['createdAt'] ?? 0) <=> ($a['createdAt'] ?? 0));
-            $online = count(array_filter($analytics['sessions'] ?? [], fn($s) => ($s['lastSeen'] ?? 0) >= time() - 120));
+            $online = count(array_filter($analytics['sessions'] ?? [], fn($s) => ($s['active'] ?? true) && ($s['lastSeen'] ?? 0) >= time() - 120));
             $revenue = array_sum(array_map(fn($p) => ($p['status'] ?? '') === 'PAID' ? (int)($p['amount'] ?? 0) : 0, $charges));
             json_response(['store' => $store, 'visits' => $visits, 'charges' => $charges, 'blocked' => read_data('blocked')['ips'] ?? [], 'stats' => ['visits' => count($visits), 'pix' => count($charges), 'revenue' => $revenue, 'online' => $online], 'gatewayConfigured' => (getenv('BLACKCAT_API_KEY') ?: '') !== '']);
         }

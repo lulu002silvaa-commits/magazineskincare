@@ -25,3 +25,4 @@ body.admin-wallpaper::after{content:"";position:fixed;inset:0;z-index:-1;pointer
 .admin-wallpaper .sidebar{background:rgba(12,17,25,.9)}
 .admin-wallpaper .stat,.admin-wallpaper .table-panel,.admin-wallpaper .login-card,.admin-wallpaper .settings-panel{background:var(--panel)}
 .admin-wallpaper th{background:rgba(16,23,34,.86)}
+.visitor-stage{min-width:190px;max-width:260px;white-space:normal}.visitor-stage strong{color:#c2dcff}.visitor-stage small{margin-top:4px;overflow-wrap:anywhere}
