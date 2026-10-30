@@ -167,6 +167,25 @@ try {
                 $visit['online'] = ($visit['id'] ?? '') === ($latestVisits[$visit['sessionId'] ?? ''] ?? '') && $samePage && ($session['active'] ?? true) && (int)($session['lastSeen'] ?? 0) >= time() - 120;
             }
             unset($visit);
+            // Mantém o histórico salvo, mas apresenta somente o estado atual de cada visitante.
+            $visitors = [];
+            foreach ($visits as $visit) {
+                $key = !empty($visit['sessionId']) ? 'session:' . $visit['sessionId'] : 'visit:' . $visit['id'];
+                if (!isset($visitors[$key])) {
+                    $visitors[$key] = $visit;
+                    $visitors[$key]['stages'] = [];
+                }
+                $visitors[$key]['id'] = $visit['id'];
+                $visitors[$key]['firstSeen'] = $visit['timestamp'];
+                if (!empty($visit['referrer'])) $visitors[$key]['referrer'] = $visit['referrer'];
+                foreach ($visit['stages'] ?? [] as $stage => $time) {
+                    $visitors[$key]['stages'][$stage] = min($visitors[$key]['stages'][$stage] ?? $time, $time);
+                }
+            }
+            $visits = array_values($visitors);
+            foreach ($visits as &$visit) asort($visit['stages']);
+            unset($visit);
+            usort($visits, fn($a, $b) => ($b['lastSeen'] ?? $b['timestamp']) <=> ($a['lastSeen'] ?? $a['timestamp']));
             $transactions = read_data('transactions');
             $charges = [];
             foreach ($transactions as $id => $charge) {
@@ -174,7 +193,7 @@ try {
                 $charge['id'] = (string)$id; $charges[] = $charge;
             }
             usort($charges, fn($a, $b) => ($b['createdAt'] ?? 0) <=> ($a['createdAt'] ?? 0));
-            $online = count(array_filter($analytics['sessions'] ?? [], fn($s) => ($s['active'] ?? true) && ($s['lastSeen'] ?? 0) >= time() - 120));
+            $online = count(array_filter($visits, fn($visit) => $visit['online']));
             $revenue = array_sum(array_map(fn($p) => ($p['status'] ?? '') === 'PAID' ? (int)($p['amount'] ?? 0) : 0, $charges));
             json_response(['store' => $store, 'visits' => $visits, 'charges' => $charges, 'blocked' => read_data('blocked')['ips'] ?? [], 'stats' => ['visits' => count($visits), 'pix' => count($charges), 'revenue' => $revenue, 'online' => $online], 'gatewayConfigured' => (getenv('BLACKCAT_API_KEY') ?: '') !== '']);
         }
@@ -275,7 +294,10 @@ try {
         if ($route === '/admin/visit' && $method === 'DELETE') {
             $body = input_json(); $id = (string)($body['id'] ?? '');
             update_data('analytics', function ($data) use ($id) {
-                $data['history'] = array_values(array_filter($data['history'] ?? [], fn($row) => ($row['id'] ?? '') !== $id));
+                $sessionId = null;
+                foreach ($data['history'] ?? [] as $row) if (($row['id'] ?? '') === $id) { $sessionId = $row['sessionId'] ?? null; break; }
+                $data['history'] = array_values(array_filter($data['history'] ?? [], fn($row) => ($row['id'] ?? '') !== $id && (!$sessionId || ($row['sessionId'] ?? '') !== $sessionId)));
+                if ($sessionId) unset($data['sessions'][$sessionId]);
                 $data['totalViews'] = count(array_filter($data['history'], fn($row) => ($row['source'] ?? 'view') === 'view'));
                 return $data;
             });

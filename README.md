@@ -49,6 +49,8 @@ Edições são salvas no servidor e consultadas pela loja em `/api/catalog`. O c
 
 ## Dados e arquivos
 
+A lista de visitas apresenta uma linha por sessão de visitante, atualizada com página, etapa, produtos e última atividade. O histórico de páginas fica salvo e suas etapas são reunidas nessa linha. O contador acompanha os visitantes listados. Excluir a linha remove os registros daquela sessão, impedindo que uma página anterior reapareça no lugar da excluída.
+
 O painel relaciona as páginas por identificador de sessão e mostra a etapa atual: início, produto, sacola, identificação, entrega, revisão, Pix pendente e pagamento confirmado. A coluna Etapa / produto mostra os produtos e o identificador resumido do visitante; ao passar o mouse, exibe as etapas registradas e seus horários. As mudanças de etapa não aumentam o contador de visitas. A presença recebe atualização a cada 15 segundos com a página visível e expira após 120 segundos sem contato; páginas antigas da mesma sessão não aparecem simultaneamente como online. Fechar a página envia um aviso de saída quando o navegador permite. Localização por IP é aproximada e pode refletir VPN, operadora ou robôs, sem garantir a posição física da pessoa.
 
 O histórico de visitas não tem mais exclusão automática após mil registros. A paginação do painel permite consultar os registros preservados. Cada gravação JSON cria uma cópia `.backup.json` na mesma pasta; a leitura usa essa cópia quando o arquivo principal estiver ausente ou inválido. Isso protege contra falhas do arquivo, mas não contra a perda do disco inteiro nem substitui backups externos. Exclusões manuais continuam disponíveis com confirmação.
