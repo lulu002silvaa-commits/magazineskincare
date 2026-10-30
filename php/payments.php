@@ -89,15 +89,23 @@ if ($route === '/payments/blackcat' && $method === 'POST') {
     update_data('payment-requests', function ($data) use ($requestKey, $response) { $data[$requestKey]['response'] = $response; return $data; });
     json_response($response, 201);
 }
-if ($method === 'GET' && preg_match('~^/payments/([A-Za-z0-9_-]{1,100})$~', $route, $match)) {
+if (($method === 'GET' && preg_match('~^/payments/([A-Za-z0-9_-]{1,100})$~', $route, $match)) || ($method === 'POST' && preg_match('~^/payments/([A-Za-z0-9_-]{1,100})/confirm$~', $route, $match))) {
     $id = $match[1]; $record = read_data('transactions')[$id] ?? null;
     if (!$record) json_response(['error' => 'Pedido não encontrado.'], 404);
+    if ($method === 'POST' && empty($record['customerReportedAt'])) {
+        $updated = update_data('transactions', function ($data) use ($id) {
+            $data[$id]['customerReportedAt'] ??= time();
+            return $data;
+        });
+        $record = $updated[$id];
+    }
     if (($record['paymentMethod'] ?? '') !== 'manual_pix') {
         if (!(getenv('BLACKCAT_API_KEY') ?: '')) json_response(['error' => 'Gateway não configurado.'], 503);
         $reply = gateway_request('/sales/' . rawurlencode($id) . '/status'); $confirmed = $reply['data'] ?? [];
         if (($confirmed['transactionId'] ?? null) !== $id || ($confirmed['amount'] ?? null) !== $record['amount'] || !in_array($confirmed['status'] ?? '', ['PENDING', 'PAID', 'CANCELLED', 'REFUNDED'], true)) json_response(['error' => 'Não foi possível confirmar o pagamento.'], 502);
         $record['status'] = $confirmed['status']; $record['paidAt'] = $confirmed['paidAt'] ?? null;
-        update_data('transactions', function ($data) use ($id, $record) { $data[$id] = $record; return $data; });
+        $updated = update_data('transactions', function ($data) use ($id, $record) { $data[$id]['status'] = $record['status']; $data[$id]['paidAt'] = $record['paidAt']; return $data; });
+        $record = $updated[$id];
     }
     json_response(['success' => true, 'data' => ['transactionId' => $id, 'amount' => $record['amount'], 'status' => $record['status'] ?? 'PENDING', 'paidAt' => $record['paidAt'] ?? null]]);
 }

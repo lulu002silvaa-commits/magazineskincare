@@ -67,6 +67,8 @@ A logo está em `public/images/brand/magazine-do-skincare.png`. Os banners e as 
 
 ## Pagamentos
 
+O cartão Total gerado soma, em reais, as cobranças atualmente listadas no painel; não representa recebimento. O botão Confirmar pagamento registra `customerReportedAt` no pedido e consulta o gateway. Cobranças pendentes avisadas pelo cliente aparecem como Cliente informou pagamento. Cliques repetidos preservam o primeiro aviso e não duplicam valores. Faturamento confirmado continua somando somente status PAID retornado pela confirmação do pagamento.
+
 Cadastre a chave, o nome e a cidade do recebedor no painel para Pix próprio. Uma cobrança gerada permanece pendente e não entra no faturamento confirmado. Confira o crédito na conta da loja.
 
 Para BlackCat, configure `BLACKCAT_API_KEY` somente no servidor e selecione a opção no painel. Os preços são calculados no servidor; o navegador não pode escolher o valor cobrado. A confirmação da BlackCat exige correspondência do identificador e do valor do pedido. Consulte `BLACKCAT-INTEGRACAO.md`.

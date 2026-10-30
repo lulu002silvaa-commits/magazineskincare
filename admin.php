@@ -14,8 +14,8 @@ $hasWallpaper = is_file(__DIR__ . '/public/images/admin/background.png');
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Administração · Magazine do Skincare</title>
   <link rel="icon" href="public/images/brand/magazine-do-skincare.png" type="image/png">
-  <link rel="stylesheet" href="css/admin.css?v=31">
-  <script src="js/admin.js?v=34" defer></script>
+  <link rel="stylesheet" href="css/admin.css?v=32">
+  <script src="js/admin.js?v=35" defer></script>
 </head>
 <body<?= $hasWallpaper ? ' class="admin-wallpaper"' : '' ?>>
   <div id="app"><div class="loading">Carregando painel…</div></div>

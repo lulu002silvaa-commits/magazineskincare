@@ -1247,13 +1247,13 @@
     let timer, busy = false, terminal = false, disposed = false, lastStatus = null;
     button.hidden = false; button.disabled = false; button.textContent = 'Confirmar pagamento';
     stopPaymentWatch = () => { disposed = true; clearTimeout(timer); };
-    const refresh = async (requested = false) => {
+    const refresh = async (requested = false, customerConfirmation = requested) => {
       if (busy || terminal || disposed) return;
       clearTimeout(timer); busy = true; button.disabled = true;
       lastStatus = null;
       if (requested) { button.textContent = 'Consultando pagamento…'; $('#pixStatus').textContent = 'Verificando o recebimento do Pix…'; }
       try {
-        const result = await window.PaymentService.getPaymentStatus(transactionId);
+        const result = await window.PaymentService.getPaymentStatus(transactionId, customerConfirmation);
         if (disposed) return;
         if (!result.success || result.data?.transactionId !== transactionId) throw new Error('Consulta inválida');
         const state = result.data.status;
@@ -1276,7 +1276,7 @@
           $('#pixStatus').textContent = state === 'REFUNDED' ? 'Este pagamento foi estornado.' : 'Este pagamento foi cancelado ou expirou.';
           $('#pixTitle').textContent = 'Pagamento não concluído'; button.textContent = 'Pagamento encerrado';
         } else if (!pixDeadlineExpired) {
-          $('#pixStatus').textContent = manual ? 'O crédito ainda não foi confirmado pela loja.' : (requested ? 'O Pix ainda não foi identificado. Se já pagou, aguarde e consulte novamente.' : 'Aguardando confirmação do Pix…');
+          $('#pixStatus').textContent = manual ? (customerConfirmation ? 'Sua informação foi registrada. O crédito ainda não foi confirmado pela loja.' : 'O crédito ainda não foi confirmado pela loja.') : (requested ? 'O Pix ainda não foi identificado. Se já pagou, aguarde e consulte novamente.' : 'Aguardando confirmação do Pix…');
         } else if (requested) {
           $('#pixStatus').textContent = 'O prazo terminou e o crédito ainda não foi confirmado. Consulte a loja antes de pagar novamente.';
         }
@@ -1294,7 +1294,7 @@
     $('#pixRetry').onclick = async () => {
       if (busy || disposed) return;
       if (!window.confirm('Se você já pagou, não gere outro Pix: aguarde a confirmação ou fale com a loja. Deseja revisar o pedido para uma nova tentativa?')) return;
-      await refresh(true);
+      await refresh(true, false);
       if (disposed || $('#pixTitle').textContent === 'Pagamento aprovado') return;
       // Uma falha na consulta não autoriza criar uma segunda cobrança.
       if (!['PENDING', 'CANCELLED'].includes(lastStatus)) return;

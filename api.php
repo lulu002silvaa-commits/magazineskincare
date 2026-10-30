@@ -196,7 +196,8 @@ try {
             usort($charges, fn($a, $b) => ($b['createdAt'] ?? 0) <=> ($a['createdAt'] ?? 0));
             $online = count(array_filter($visits, fn($visit) => $visit['online']));
             $revenue = array_sum(array_map(fn($p) => ($p['status'] ?? '') === 'PAID' ? (int)($p['amount'] ?? 0) : 0, $charges));
-            json_response(['store' => $store, 'visits' => $visits, 'charges' => $charges, 'blocked' => read_data('blocked')['ips'] ?? [], 'stats' => ['visits' => count($visits), 'pix' => count($charges), 'revenue' => $revenue, 'online' => $online], 'gatewayConfigured' => (getenv('BLACKCAT_API_KEY') ?: '') !== '']);
+            $generatedAmount = array_sum(array_map(fn($p) => (int)($p['amount'] ?? 0), $charges));
+            json_response(['store' => $store, 'visits' => $visits, 'charges' => $charges, 'blocked' => read_data('blocked')['ips'] ?? [], 'stats' => ['visits' => count($visits), 'pix' => count($charges), 'revenue' => $revenue, 'generatedAmount' => $generatedAmount, 'online' => $online], 'gatewayConfigured' => (getenv('BLACKCAT_API_KEY') ?: '') !== '']);
         }
         if ($route === '/admin/payment' && $method === 'DELETE') {
             $body = input_json(); $id = $body['id'] ?? '';

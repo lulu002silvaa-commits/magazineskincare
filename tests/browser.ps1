@@ -60,12 +60,12 @@ try {
   WaitFor "document.querySelector('#loginForm')"
   Evaluate "document.querySelector('[name=username]').value='admin';document.querySelector('[name=password]').value='php-admin-test-only-2026';document.querySelector('#loginForm').requestSubmit();true" | Out-Null
   WaitFor "document.querySelector('#stats .stat')"
-  Check 'Quatro indicadores no dashboard' "document.querySelectorAll('.stat').length===4"
+  Check 'Cinco indicadores no dashboard' "document.querySelectorAll('.stat').length===5"
   Check 'Imagem do painel cobre toda a tela' "document.body.classList.contains('admin-wallpaper') && getComputedStyle(document.body,'::before').backgroundSize.includes('cover')"
   Check 'Imagem de fundo do painel carrega' "(async()=>{const image=new Image();return await new Promise(resolve=>{image.onload=()=>resolve(image.naturalWidth>0);image.onerror=()=>resolve(false);image.src='/public/images/admin/background.png';});})()"
   Evaluate "window.panelFetch=window.fetch;window.panelRows=document.querySelectorAll('tbody tr').length;window.fetch=async(url,options)=>String(url).includes(encodeURIComponent('/admin/data'))?new Response(JSON.stringify({error:'Falha temporária de teste'}),{status:503,headers:{'Content-Type':'application/json'}}):window.panelFetch(url,options);document.querySelector('#refresh').click();true" | Out-Null
   WaitFor "document.querySelector('#notice').textContent==='Falha temporária de teste'"
-  Check 'Falha temporária não apaga dados exibidos no painel' "document.querySelectorAll('tbody tr').length===window.panelRows && document.querySelectorAll('.stat').length===4"
+  Check 'Falha temporária não apaga dados exibidos no painel' "document.querySelectorAll('tbody tr').length===window.panelRows && document.querySelectorAll('.stat').length===5"
   Evaluate "window.fetch=window.panelFetch;true" | Out-Null
   Check 'Menu lateral e tabelas' "!!document.querySelector('.sidebar') && document.querySelectorAll('table').length===2"
   Check 'Painel exibe limpeza de gerados e status aprovado' "!!document.querySelector('#clearGenerated') && document.querySelector('#content').textContent.includes('Aprovado')"

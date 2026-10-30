@@ -138,8 +138,10 @@
       }
       return result;
     },
-    async getPaymentStatus(transactionId) {
-      return request(`/api/payments/${encodeURIComponent(transactionId)}`);
+    async getPaymentStatus(transactionId, customerConfirmation = false) {
+      return customerConfirmation
+        ? request(`/api/payments/${encodeURIComponent(transactionId)}/confirm`, { method: 'POST', body: '{}' })
+        : request(`/api/payments/${encodeURIComponent(transactionId)}`);
     }
   });
 })();
