@@ -8,16 +8,17 @@
   <title>Finalizar pedido | Magazine do Skincare</title>
   <link rel="preload" href="public/fonts/roc-grotesk-regular.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="icon" href="public/images/brand/magazine-do-skincare.png" type="image/png">
-  <link rel="stylesheet" href="css/skin.css?v=9">
+  <link rel="stylesheet" href="css/skin.css?v=10">
   <link rel="stylesheet" href="css/commerce.css?v=25">
   <script src="js/deployment.js?v=10"></script>
   <script src="js/api-base.js?v=10"></script>
   <script src="js/products.js?v=31" defer></script>
-  <script src="js/catalog.js?v=25" defer></script>
+  <script src="js/catalog.js?v=26" defer></script>
   <script src="js/pix.js" defer></script>
   <script src="js/vendor/qrcode.min.js" defer></script>
   <script src="js/payment-service.js?v=29" defer></script>
-  <script src="js/loja.js?v=36" defer></script>
+  <script src="js/loja.js?v=37" defer></script>
+  <script src="js/marketing.js?v=1"></script>
 </head>
 <body data-page="checkout" class="checkout-reference">
   <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
@@ -56,14 +57,14 @@
           </div>
         </fieldset>
         <section class="delivery-choice" data-checkout-stage="2" hidden><h3>Como deseja receber?</h3><label><input type="radio" name="deliveryMethod" value="standard" checked> Entrega padrão <strong>Grátis</strong></label><p>Entrega em até 7 dias após a confirmação do pagamento.</p></section>
-        <section data-checkout-stage="3" id="checkoutPaymentStage" hidden><p id="checkoutContactReview"></p><h3>1. Endereço e entrega</h3><div class="checkout-address-review"><p id="checkoutAddressReview"></p><button type="button" data-edit-delivery>Trocar endereço</button></div><div class="delivery-choice"><strong>Entrega padrão · Grátis</strong><p>Entrega em até 7 dias após a confirmação do pagamento.</p></div><h3>2. Pagamento</h3><div class="payment-methods" aria-label="Formas de pagamento"><button type="button" disabled aria-label="Cartão de crédito indisponível"><span aria-hidden="true">▣</span>Cartão de crédito<small>Indisponível</small></button><button type="button" class="selected" aria-pressed="true" aria-label="Pix selecionado"><span aria-hidden="true">❖</span>Pix<small>Disponível</small></button><button type="button" disabled aria-label="Pix parcelado indisponível"><span aria-hidden="true">◈</span>Pix parcelado<small>Indisponível</small></button><button type="button" disabled aria-label="Google Pay indisponível"><span aria-hidden="true">G Pay</span>Google Pay<small>Indisponível</small></button></div><p class="pix-instructions">Clique em “Gerar Pix” para obter o QR Code e o código copia e cola.</p></section>
+        <section data-checkout-stage="3" id="checkoutPaymentStage" hidden><p id="checkoutContactReview"></p><h3>1. Endereço e entrega</h3><div class="checkout-address-review"><p id="checkoutAddressReview"></p><button type="button" data-edit-delivery>Trocar endereço</button></div><div class="delivery-choice"><strong>Entrega padrão · Grátis</strong><p>Entrega em até 7 dias após a confirmação do pagamento.</p></div><h3>2. Pagamento</h3><div class="payment-methods" aria-label="Formas de pagamento"><button type="button" class="selected" aria-pressed="true" aria-label="Pix selecionado"><span aria-hidden="true">❖</span>Pix<small>Disponível</small></button></div><p class="pix-instructions">Clique em “Gerar Pix” para obter o QR Code e o código copia e cola.</p></section>
         <button type="button" class="button button-dark button-full" id="checkoutContinue">Continuar</button>
         <div data-checkout-stage="3" hidden>
         <p class="checkout-privacy-note">Seus dados são usados para processar o pagamento e organizar a entrega.</p>
         <button class="button button-dark button-full checkout-submit" id="reserveOrder" type="submit" disabled>Gerar Pix seguro</button>
         </div><p id="checkoutError" class="form-status error-text" role="alert"></p>
       </form>
-      <aside class="checkout-summary"><button type="submit" form="checkoutForm" id="reserveOrderTop" class="button button-dark button-full" hidden disabled>Gerar Pix</button><h2>Resumo da compra <span id="checkoutItemCount"></span></h2><div class="summary-row"><span>Subtotal</span><span id="checkoutRegularSubtotal">R$ 0,00</span></div><div class="summary-row"><span>Frete</span><span>Grátis</span></div><div class="summary-row"><span>Descontos</span><span id="checkoutDiscount">R$ 0,00</span></div><div class="summary-row summary-total"><strong>Total</strong><strong id="checkoutSubtotal">R$ 0,00</strong></div><details class="checkout-coupon"><summary>Possui vale ou cupom?</summary><div><label class="sr-only" for="checkoutCouponCode">Cupom</label><input id="checkoutCouponCode" placeholder="Digite o código" maxlength="40"><button type="button" id="checkoutApplyCoupon">Aplicar</button></div><p id="checkoutCouponStatus" role="status"></p></details><details open class="checkout-items-review"><summary>Revise os itens para envio</summary><div id="checkoutItems"></div></details><div class="payment-notice"><strong id="paymentProviderTitle">Pagamento por Pix</strong><p id="paymentAvailability">Verificando disponibilidade do pagamento...</p></div></aside>
+      <aside class="checkout-summary"><button type="submit" form="checkoutForm" id="reserveOrderTop" class="button button-dark button-full" hidden disabled>Gerar Pix</button><h2>Resumo da compra <span id="checkoutItemCount"></span></h2><div class="summary-row"><span>Subtotal</span><span id="checkoutRegularSubtotal">R$ 0,00</span></div><div class="summary-row"><span>Frete</span><span>Grátis</span></div><div class="summary-row"><span>Descontos</span><span id="checkoutDiscount">R$ 0,00</span></div><div class="summary-row summary-total"><strong>Total</strong><strong id="checkoutSubtotal">R$ 0,00</strong></div><details class="checkout-coupon"><summary>Possui vale ou cupom?</summary><div><label class="sr-only" for="checkoutCouponCode">Cupom</label><input id="checkoutCouponCode" placeholder="Digite o código" maxlength="40"><button type="button" id="checkoutApplyCoupon">Aplicar</button></div><p id="checkoutCouponStatus" role="status"></p></details><details open class="checkout-items-review"><summary>Revise os itens para envio</summary><div id="checkoutItems"></div></details><div class="payment-notice"><strong id="paymentProviderTitle">Pagamento por Pix à vista</strong><p id="paymentAvailability">Verificando disponibilidade do pagamento...</p></div></aside>
     </div>
     <section class="confirmation-card pix-payment-card" id="pixPayment" hidden aria-labelledby="pixTitle">
       <div class="pix-payment-banner"><h2 id="pixTitle">Realize o pagamento para garantir sua compra</h2><span id="confirmationReference"></span></div>

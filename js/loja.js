@@ -23,6 +23,33 @@
   let toastTimer;
   let catalogVerified = false;
   const connection = window.StoreConnection || { apiEnabled: true, mode: 'php' };
+  const attribution = (() => {
+    let saved = {};
+    try { saved = JSON.parse(sessionStorage.getItem('store-campaign') || '{}') || {}; } catch { /* Opcional. */ }
+    const params = new URLSearchParams(location.search);
+    const campaign = {};
+    for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']) {
+      const value = params.get(key);
+      if (value) campaign[key] = value.slice(0, 120);
+    }
+    if (Object.keys(campaign).length) saved = campaign;
+    try { sessionStorage.setItem('store-campaign', JSON.stringify(saved)); } catch { /* Opcional. */ }
+    return saved;
+  })();
+
+  // Eventos sem dados pessoais. A conexão às plataformas requer os IDs reais.
+  function commerceEvent(event, items = readCart(), extra = {}) {
+    const products = items.map(item => {
+      const product = productById(item.id);
+      return product && { item_id: product.id, item_name: product.nome, price: currentPrice(product), quantity: item.quantity };
+    }).filter(Boolean);
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ ecommerce: null });
+    window.dataLayer.push({ event, ecommerce: { currency: 'BRL', value: products.reduce((sum, p) => sum + Math.round(p.price * 100) * p.quantity, 0) / 100, items: products, ...extra } });
+    if (event === 'purchase' && window.StoreMarketing?.purchaseLabel && typeof window.gtag === 'function') {
+      window.gtag('event', 'conversion', { send_to: `${window.StoreMarketing.googleAdsId}/${window.StoreMarketing.purchaseLabel}`, transaction_id: extra.transaction_id, value: extra.value, currency: 'BRL' });
+    }
+  }
 
   function money(value) {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -658,6 +685,8 @@
     if (existing) existing.quantity = nextQuantity;
     else cart.push({ id: product.id, quantity });
     if (!writeCart(cart)) return false;
+    document.dispatchEvent(new CustomEvent('visitor-stage', { detail: 'added_to_cart' }));
+    commerceEvent('add_to_cart', [{ id: product.id, quantity }]);
     showToast(`${product.nome} foi adicionado à sacola.`);
     return true;
   }
@@ -955,6 +984,7 @@
     $("#checkoutLayout").hidden = !hasItems;
     $("#checkoutEmpty").hidden = hasItems;
     if (!hasItems) return;
+    commerceEvent('begin_checkout');
     let subtotal = 0, regularSubtotal = 0;
     container.replaceChildren();
     validItems.forEach(({ product, quantity }) => {
@@ -993,8 +1023,17 @@
     }
     $("#checkoutForm").addEventListener("submit", submitPayment);
     $("#customerCpf").addEventListener("input", (event) => {
+      event.target.setCustomValidity('');
       const digits = event.target.value.replace(/\D/g, "").slice(0, 11);
       event.target.value = digits.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    });
+    $('#customerCpf').addEventListener('blur', event => {
+      const cpf = event.target.value.replace(/\D/g, '');
+      const valid = /^\d{11}$/.test(cpf) && !/^(\d)\1{10}$/.test(cpf) && [9, 10].every(length => {
+        const sum = [...cpf.slice(0, length)].reduce((total, digit, i) => total + Number(digit) * (length + 1 - i), 0);
+        return ((sum * 10) % 11) % 10 === Number(cpf[length]);
+      });
+      event.target.setCustomValidity(valid ? '' : 'Confira o CPF informado.');
     });
     $("#copyPix").addEventListener("click", async () => {
       if (!$('#pixCopyPaste').value.trim() || $('#copyPix').disabled) return;
@@ -1160,7 +1199,7 @@
     error.textContent = "";
     try {
       const expectedAmount = cart.reduce((sum, item) => sum + Math.round(currentPrice(productById(item.id)) * 100) * item.quantity, 0);
-      const result = await window.PaymentService.createCharge({ customer, shipping, items, expectedAmount });
+      const result = await window.PaymentService.createCharge({ customer, shipping, items, expectedAmount, attribution });
       const payment = result.data;
       if (!result.success || !payment?.transactionId) throw new Error("A BlackCat não retornou os dados do pagamento.");
       if (['PAID', 'CANCELLED', 'REFUNDED'].includes(payment.status)) {
@@ -1197,8 +1236,10 @@
       }
       pollPayment(payment.transactionId, payment.paymentMethod === 'manual_pix');
       document.dispatchEvent(new CustomEvent('visitor-stage', { detail: 'pix_pending' }));
+      commerceEvent('pix_generated', cart, { transaction_id: payment.transactionId });
     } catch (submitError) {
       error.textContent = submitError.message;
+      document.dispatchEvent(new CustomEvent('visitor-stage', { detail: 'payment_error' }));
     } finally {
       submittingPayment = false;
       button.disabled = false;
@@ -1244,6 +1285,7 @@
   function pollPayment(transactionId, manual = false) {
     stopPaymentWatch();
     const button = $('#pixInvoice');
+    const orderedItems = readCart();
     let timer, busy = false, terminal = false, disposed = false, lastStatus = null;
     button.hidden = false; button.disabled = false; button.textContent = 'Confirmar pagamento';
     stopPaymentWatch = () => { disposed = true; clearTimeout(timer); };
@@ -1260,6 +1302,14 @@
         if (!['PENDING', 'PAID', 'CANCELLED', 'REFUNDED'].includes(state)) throw new Error('Status inválido');
         lastStatus = state;
         if (state === 'PAID') {
+          if (!Number.isInteger(result.data.amount) || result.data.amount <= 0) throw new Error('Valor inválido');
+          const conversionKey = `store-purchase-${transactionId}`;
+          let reported = false;
+          try { reported = sessionStorage.getItem(conversionKey) === '1'; } catch { /* Opcional. */ }
+          if (!reported) {
+            commerceEvent('purchase', orderedItems, { transaction_id: transactionId, value: result.data.amount / 100 });
+            try { sessionStorage.setItem(conversionKey, '1'); } catch { /* Opcional. */ }
+          }
           document.dispatchEvent(new CustomEvent('visitor-stage', { detail: 'paid' }));
           $('#pixRetry').hidden = true;
           terminal = true; stopPixCountdown();
@@ -1324,14 +1374,11 @@
       headers: { "Content-Type": "application/json" },
       cache: "no-store",
       keepalive: true,
-      body: JSON.stringify({ source, sessionId, pageId, stage: reportedStage, productName: product?.nome || readCart().map(item => productById(item.id)?.nome).filter(Boolean).join(' · ').slice(0, 180), path: window.location.pathname + window.location.search, page: document.title, referrer: document.referrer })
+      body: JSON.stringify({ source, sessionId, pageId, stage: reportedStage, attribution, productName: product?.nome || readCart().map(item => productById(item.id)?.nome).filter(Boolean).join(' · ').slice(0, 180), path: window.location.pathname + window.location.search, page: document.title, referrer: document.referrer })
     }).catch(() => {});
     queue = send('view');
     const report = source => { const reportedStage = stage; queue = queue.then(() => send(source, reportedStage)); };
     document.addEventListener('visitor-stage', event => { if (event.detail && stage !== event.detail) { stage = event.detail; report('stage'); } });
-    document.addEventListener('click', event => {
-      if (event.target.closest('#addProduct') && !$('#addProduct')?.disabled) { stage = 'added_to_cart'; report('stage'); }
-    }, true);
     window.addEventListener('pagehide', () => send('leave'));
     window.addEventListener('pageshow', event => { if (event.persisted) report('view'); });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') report('heartbeat'); });
@@ -1421,8 +1468,13 @@
     renderBranding();
     initConfiguredImages();
     updateCartCount();
+    // Exibe a vitrine imediatamente. A compra continua bloqueada até validar
+    // preços e estoque no servidor, inclusive em conexões lentas.
+    initFeaturedCarousel();
+    renderCategoryTabs();
+    renderCatalog();
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 8000);
+    const timeout = window.setTimeout(() => controller.abort(), 30000);
     try {
       if (!connection.apiEnabled) {
         if (!Array.isArray(config.products) || !config.products.length) throw new Error('Catálogo estático indisponível');
@@ -1451,11 +1503,12 @@
       retry.type = 'button'; retry.textContent = 'Tentar novamente'; retry.onclick = () => window.location.reload();
       notice.append(retry); document.body.prepend(notice);
     } finally { window.clearTimeout(timeout); }
-    initFeaturedCarousel();
     updateCartCount();
     renderCategoryTabs();
     renderCatalog();
     renderProductPage();
+    const viewedProduct = productById(new URLSearchParams(location.search).get('id'));
+    if (catalogVerified && document.body.dataset.page === 'product' && viewedProduct) commerceEvent('view_item', [{ id: viewedProduct.id, quantity: 1 }]);
     renderCart();
     renderCheckout();
     initCommerceForms();

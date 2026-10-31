@@ -109,14 +109,15 @@ if ($uploadPath && $uploadRoot && str_starts_with($uploadPath, $uploadRoot . DIR
 [, $config] = request('/payment-config'); check('Checkout recebe configuração salva', $config['available'] && $config['method'] === 'pix');
 $order = ['items' => [['id' => $product['id'], 'quantity' => 2, 'price' => 0.01]], 'customer' => ['name' => 'Teste de integração', 'email' => 'teste@example.com', 'phone' => '11999999999', 'document' => ['number' => '52998224725']], 'shipping' => ['street' => 'Rua de Teste', 'number' => '1', 'neighborhood' => 'Centro', 'city' => 'Brasilia', 'state' => 'DF', 'zipCode' => '70000000']];
 $order['idempotencyKey'] = 'integration-payment-request'; $order['expectedAmount'] = 10246;
+$order['attribution'] = ['utm_source' => 'google', 'utm_campaign' => 'busca-skincare', 'ignored' => 'not-saved'];
 $invalid = $order; $invalid['customer']['document']['number'] = '11111111111';
 [$status] = request('/payments/blackcat', 'POST', $invalid); check('CPF inválido rejeitado', $status === 422);
 [$status, $charge] = request('/payments/blackcat', 'POST', $order);
 check('Pix manual calculado pelo servidor', $status === 201 && $charge['data']['amount'] === 10246 && $charge['data']['paymentMethod'] === 'manual_pix');
-check('Checkout tem prazo de dez minutos', abs(strtotime($charge['data']['paymentData']['checkoutExpiresAt']) - time() - 600) <= 3);
+check('Pix sem validade bancária não recebe expiração artificial', !isset($charge['data']['paymentData']['checkoutExpiresAt']));
 [$status, $repeated] = request('/payments/blackcat', 'POST', $order);
 check('Repetir pedido reutiliza a mesma cobrança', $status === 200 && $repeated['data']['transactionId'] === $charge['data']['transactionId']);
-check('Repetir pedido preserva prazo original', $repeated['data']['paymentData']['checkoutExpiresAt'] === $charge['data']['paymentData']['checkoutExpiresAt']);
+check('Repetir pedido preserva dados do Pix', $repeated['data']['paymentData'] === $charge['data']['paymentData']);
 $priceChanged = $order; $priceChanged['expectedAmount'] = 1;
 [$status] = request('/payments/blackcat', 'POST', $priceChanged); check('Mudança de preço exige revisão da sacola', $status === 409);
 $negative = $order; $negative['items'][] = ['id' => $product['id'], 'quantity' => -1];
@@ -131,6 +132,7 @@ request('/payments/' . $charge['data']['transactionId'] . '/confirm', 'POST', []
 [, $reportedAgain] = request('/admin/data');
 check('Cliques repetidos não duplicam valor nem aviso', $reportedAgain['stats']['generatedAmount'] === $data['stats']['generatedAmount'] && $reportedAgain['charges'][0]['customerReportedAt'] === $reportedAt);
 check('Pedido guarda contato e entrega para a loja', $data['charges'][0]['customer']['email'] === 'teste@example.com' && $data['charges'][0]['shipping']['street'] === 'Rua de Teste');
+check('Pedido preserva campanha sem campos arbitrários', $data['charges'][0]['attribution'] === ['utm_source' => 'google', 'utm_campaign' => 'busca-skincare']);
 check('Pedido guarda IP e campos de localização sem inventar cidade para IP local', $data['charges'][0]['ip'] === '127.0.0.1' && array_key_exists('city', $data['charges'][0]) && array_key_exists('state', $data['charges'][0]) && $data['charges'][0]['city'] === '');
 check('Referência Pix preserva limite do identificador', strlen($charge['data']['transactionId']) <= 25);
 [$status, $payment] = request('/payments/' . $charge['data']['transactionId']); check('Pix manual permanece pendente', $status === 200 && $payment['data']['status'] === 'PENDING');
@@ -160,6 +162,9 @@ check('Limpeza preserva aprovado e faturamento confirmado', count($afterClear['c
 check('Pix removido da lista continua consultável sem aprovação falsa', $status === 200 && $archivedPayment['data']['status'] === 'PENDING');
 [$status] = request('/analytics', 'POST', ['source' => 'view', 'sessionId' => 'integration-visit', 'path' => '/produto.html', 'referrer' => 'https://example.com']); check('Registrar visita real', $status === 200);
 [, $data] = request('/admin/data'); check('Visita e pessoa online no painel', $data['stats']['visits'] === 1 && $data['stats']['online'] === 1);
+request('/analytics', 'POST', ['source' => 'view', 'sessionId' => 'integration-visit', 'pageId' => 'campaign-page', 'path' => '/produto.html', 'attribution' => ['utm_source' => 'meta', 'utm_campaign' => str_repeat('á', 150)]]);
+[, $campaignData] = request('/admin/data');
+check('Campanha limita tamanho preservando UTF-8 válido', $campaignData['visits'][0]['attribution']['utm_campaign'] === str_repeat('á', 120));
 [$status] = request('/admin/visit', 'DELETE', ['id' => $data['visits'][0]['id']]); check('Excluir registro de visita', $status === 200);
 [, $afterDelete] = request('/admin/data');
 check('Excluir visita reduz contador de visitas', $afterDelete['stats']['visits'] === 0 && count($afterDelete['visits']) === 0);

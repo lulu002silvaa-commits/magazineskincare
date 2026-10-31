@@ -51,7 +51,7 @@ try {
         $pageId = string_value($body['pageId'] ?? '', 'página', 100);
         $path = string_value($body['path'] ?? '/', 'caminho', 500);
         $stage = string_value($body['stage'] ?? '', 'etapa', 40);
-        $stages = ['home', 'product', 'added_to_cart', 'cart', 'checkout_identification', 'checkout_delivery', 'checkout_review', 'pix_pending', 'paid'];
+        $stages = ['home', 'product', 'added_to_cart', 'cart', 'checkout_identification', 'checkout_delivery', 'checkout_review', 'pix_pending', 'paid', 'payment_error'];
         if (!in_array($stage, $stages, true)) $stage = match (parse_url($path, PHP_URL_PATH)) {
             '/', '/index.html' => 'home', '/produto.html' => 'product', '/carrinho.html' => 'cart', '/checkout.html' => 'checkout_identification', default => ''
         };
@@ -72,6 +72,7 @@ try {
                 $data['totalViews'] = (int)($data['totalViews'] ?? 0) + 1;
                 $data['history'][] = ['id' => bin2hex(random_bytes(10)), 'timestamp' => $now, 'sessionId' => $id, 'ip' => $ip, 'source' => 'view', 'path' => substr((string)($body['path'] ?? '/'), 0, 500), 'referrer' => substr((string)($body['referrer'] ?? ''), 0, 500), 'agent' => $agent, 'city' => '', 'state' => '', 'country' => ''];
                 $last = array_key_last($data['history']);
+                $data['history'][$last]['attribution'] = campaign_attribution($body['attribution'] ?? []);
                 $data['history'][$last] = array_merge($data['history'][$last], $location);
                 $data['history'][$last]['pageId'] = $pageId;
                 $data['history'][$last]['stage'] = $stage;

@@ -77,12 +77,15 @@ if ($route === '/payments/blackcat' && $method === 'POST') {
         if (!is_string($charge['transactionId'] ?? null) || !preg_match('/^[A-Za-z0-9_-]{1,100}$/', $charge['transactionId'])) json_response(['error' => 'O gateway não retornou uma cobrança válida.'], 502);
         $id = $charge['transactionId']; $paymentData = $charge['paymentData'] ?? []; $invoice = $charge['invoiceUrl'] ?? null;
     }
-    // Prazo do checkout, independente da validade bancária oferecida pelo gateway.
-    $paymentData['checkoutExpiresAt'] = gmdate('Y-m-d\TH:i:s\Z', time() + 600);
+    // Somente o banco/gateway determina a validade da cobrança.
+    // Não esconda um Pix válido por causa de um cronômetro local.
+    if (!empty($paymentData['expiresAt'])) $paymentData['checkoutExpiresAt'] = $paymentData['expiresAt'];
     $location = ip_location($ip);
-    update_data('transactions', function ($data) use ($id, $amount, $ip, $mode, $saleItems, $cpf, $customer, $shipping, $gifts, $location) {
+    $attribution = campaign_attribution($body['attribution'] ?? []);
+    update_data('transactions', function ($data) use ($id, $amount, $ip, $mode, $saleItems, $cpf, $customer, $shipping, $gifts, $location, $attribution) {
         $data[$id] = ['amount' => $amount, 'createdAt' => time(), 'status' => 'PENDING', 'ip' => $ip, 'agent' => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 400), 'paymentMethod' => $mode === 'pix' ? 'manual_pix' : 'blackcat', 'items' => array_merge($saleItems, $gifts), 'customer' => ['name' => $customer['name'], 'email' => $customer['email'], 'phone' => $customer['phone']], 'shipping' => $shipping, 'documentMasked' => '***.***.***-' . substr($cpf, -2)];
         $data[$id] = array_merge($data[$id], $location);
+        $data[$id]['attribution'] = $attribution;
         return $data;
     });
     $response = ['success' => true, 'data' => ['transactionId' => $id, 'status' => $status, 'amount' => $amount, 'paymentMethod' => $mode === 'pix' ? 'manual_pix' : 'blackcat', 'paymentData' => $paymentData, 'invoiceUrl' => $invoice, 'pix' => ['key' => $pix['chave'] ?? '', 'receiverName' => $pix['nome'] ?? '', 'receiverCity' => $pix['cidade'] ?? '']]];

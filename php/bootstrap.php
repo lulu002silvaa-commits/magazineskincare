@@ -83,6 +83,18 @@ function product_is_public(array $product): bool {
     return !preg_match('/ghk[\s-]*cu|copper\s+tripeptide|peptide\s*cream|tripept[ií]deo.{0,15}cobre/iu', json_encode($product, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
 }
 
+function campaign_attribution(mixed $input): array {
+    if (!is_array($input)) return [];
+    $result = [];
+    foreach (['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as $key) {
+        if (isset($input[$key]) && is_string($input[$key])) {
+            preg_match('/^.{0,120}/us', preg_replace('/[\x00-\x1f\x7f]/', '', $input[$key]), $match);
+            $result[$key] = $match[0] ?? '';
+        }
+    }
+    return $result;
+}
+
 function initial_products(): array {
     $source = (string)file_get_contents(STORE_ROOT . '/js/products.js');
     $source = preg_replace('/^\s*window\.CREAMY_PRODUCTS\s*=\s*/', '', $source);

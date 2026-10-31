@@ -60,12 +60,13 @@ try {
   WaitFor "document.querySelector('#loginForm')"
   Evaluate "document.querySelector('[name=username]').value='admin';document.querySelector('[name=password]').value='php-admin-test-only-2026';document.querySelector('#loginForm').requestSubmit();true" | Out-Null
   WaitFor "document.querySelector('#stats .stat')"
-  Check 'Cinco indicadores no dashboard' "document.querySelectorAll('.stat').length===5"
+  Check 'Cinco indicadores no dashboard' "document.querySelectorAll('#stats .stat').length===5"
+  Check 'Painel mostra funil sem misturar receita e Pix pendente' "document.querySelector('#salesFunnel').textContent.includes('Pedidos pagos') && document.querySelector('#salesFunnel').textContent.includes('Erros de pagamento')"
   Check 'Imagem do painel cobre toda a tela' "document.body.classList.contains('admin-wallpaper') && getComputedStyle(document.body,'::before').backgroundSize.includes('cover')"
   Check 'Imagem de fundo do painel carrega' "(async()=>{const image=new Image();return await new Promise(resolve=>{image.onload=()=>resolve(image.naturalWidth>0);image.onerror=()=>resolve(false);image.src='/public/images/admin/background.png';});})()"
   Evaluate "window.panelFetch=window.fetch;window.panelRows=document.querySelectorAll('tbody tr').length;window.fetch=async(url,options)=>String(url).includes(encodeURIComponent('/admin/data'))?new Response(JSON.stringify({error:'Falha temporária de teste'}),{status:503,headers:{'Content-Type':'application/json'}}):window.panelFetch(url,options);document.querySelector('#refresh').click();true" | Out-Null
   WaitFor "document.querySelector('#notice').textContent==='Falha temporária de teste'"
-  Check 'Falha temporária não apaga dados exibidos no painel' "document.querySelectorAll('tbody tr').length===window.panelRows && document.querySelectorAll('.stat').length===5"
+  Check 'Falha temporária não apaga dados exibidos no painel' "document.querySelectorAll('tbody tr').length===window.panelRows && document.querySelectorAll('#stats .stat').length===5"
   Evaluate "window.fetch=window.panelFetch;true" | Out-Null
   Check 'Menu lateral e tabelas' "!!document.querySelector('.sidebar') && document.querySelectorAll('table').length===2"
   Check 'Painel exibe limpeza de gerados e status aprovado' "!!document.querySelector('#clearGenerated') && document.querySelector('#content').textContent.includes('Aprovado')"
@@ -112,7 +113,7 @@ try {
   Check 'Título da sacola preservado' "document.title.startsWith('Sua sacola')"
   Check 'Sacola cabe no celular' 'document.documentElement.scrollWidth<=window.innerWidth'
   Evaluate "const c=JSON.parse(localStorage.getItem('calma-pele-carrinho'));c.push({id:'produto-removido',quantity:1});localStorage.setItem('calma-pele-carrinho',JSON.stringify(c));location.reload();true" | Out-Null
-  WaitFor "document.querySelectorAll('.cart-item').length===2"
+  WaitFor "document.querySelector('.cart-item-unavailable')"
   Check 'Produto removido pode sair da sacola' "[...document.querySelectorAll('.cart-item')].find(row=>row.textContent.includes('não está mais')).querySelector('button')!==null"
   Evaluate "[...document.querySelectorAll('.cart-item')].find(row=>row.textContent.includes('não está mais')).querySelector('button').click();true" | Out-Null
   Check 'Sacola liberada após remover item inválido' "document.querySelectorAll('.cart-item').length===1 && document.querySelector('#checkoutLink').getAttribute('aria-disabled')==='false'"
@@ -131,6 +132,11 @@ try {
   Cdp 'Page.navigate' @{url=($base+'/checkout.html')} | Out-Null
   WaitFor "document.querySelector('#reserveOrder') && !document.querySelector('#reserveOrder').disabled"
   Check 'Checkout com QR local' "typeof window.qrcode==='function' && [...document.scripts].every(script=>!script.src.startsWith('https://'))"
+  Check 'Checkout registra início sem marcar compra paga' "window.dataLayer.some(e=>e.event==='begin_checkout') && !window.dataLayer.some(e=>e.event==='purchase')"
+  Evaluate "document.querySelector('#customerCpf').value='11111111111';document.querySelector('#customerCpf').dispatchEvent(new Event('blur'));true" | Out-Null
+  Check 'CPF inválido é detectado antes de solicitar pagamento' "!document.querySelector('#customerCpf').checkValidity()"
+  Evaluate "document.querySelector('#customerCpf').value='52998224725';document.querySelector('#customerCpf').dispatchEvent(new Event('input'));document.querySelector('#customerCpf').dispatchEvent(new Event('blur'));true" | Out-Null
+  Check 'Corrigir CPF libera a validação' "document.querySelector('#customerCpf').checkValidity()"
   Evaluate "window.cepOriginalFetch=window.fetch;window.fetch=(url,options)=>/viacep.com.br|brasilapi.com.br|opencep.com/.test(String(url))?Promise.resolve({ok:true,json:()=>Promise.resolve({logradouro:'Rua Consulta',bairro:'Centro',localidade:'São Paulo',uf:'SP',street:'Rua Consulta',neighborhood:'Centro',city:'São Paulo',state:'SP'})}):window.cepOriginalFetch(url,options);document.querySelector('#shippingZipCode').value='01001-000';document.querySelector('#shippingZipCode').dispatchEvent(new Event('input'));true" | Out-Null
   WaitFor "document.querySelector('#shippingAddress').value==='Rua Consulta'"
   Check 'Consulta de CEP preenche checkout' "document.querySelector('#shippingNeighborhood').value==='Centro' && document.querySelector('#shippingCity').value==='São Paulo' && document.querySelector('#shippingState').value==='SP'"
@@ -152,7 +158,7 @@ try {
   Check 'Etapa de entrega exibe endereço e frete' "!document.querySelector('.address-fieldset').hidden && document.querySelector('#checkoutStepLabel').textContent==='Etapa 2 de 3'"
   Screenshot 'checkout-entrega-mobile.png'
   Evaluate "document.querySelector('#checkoutContinue').click();true" | Out-Null
-  Check 'Somente Pix disponível nas formas de pagamento' "document.querySelectorAll('#checkoutPaymentStage .payment-methods button:disabled').length===3 && !document.querySelector('#checkoutPaymentStage .payment-methods .selected').disabled && !document.querySelector('#checkoutPaymentStage').hidden"
+  Check 'Somente Pix disponível nas formas de pagamento' "document.querySelectorAll('#checkoutPaymentStage .payment-methods button:disabled').length===0 && !document.querySelector('#checkoutPaymentStage .payment-methods .selected').disabled && !document.querySelector('#checkoutPaymentStage').hidden"
   Check 'Pagamento revisa endereço e total' "document.querySelector('#checkoutAddressReview').textContent.includes('Rua Teste') && document.querySelector('#reserveOrderTop').textContent.includes(document.querySelector('#checkoutSubtotal').textContent)"
   Screenshot 'checkout-pagamento-mobile.png'
   Cdp 'Emulation.setDeviceMetricsOverride' @{width=1440;height=1000;deviceScaleFactor=1;mobile=$false} | Out-Null
@@ -161,13 +167,14 @@ try {
   WaitFor "document.querySelector('#pixPayment') && !document.querySelector('#pixPayment').hidden"
   WaitFor "document.querySelector('#pixQrImage').naturalWidth>0"
   Check 'Pix com QR e copia e cola' "document.querySelector('#pixCopyPaste').value.startsWith('000201') && document.querySelector('#pixQrImage').naturalWidth>0"
+  Check 'Pix gerado não dispara evento de compra paga' "window.dataLayer.some(e=>e.event==='pix_generated') && !window.dataLayer.some(e=>e.event==='purchase')"
   WaitFor "(async()=>{const data=await(await fetch('/api/admin/data')).json();const id=sessionStorage.getItem('mineironet_creamystore_session');return data.visits.some(row=>row.sessionId===id && row.stage==='pix_pending');})()"
   Check 'Painel acompanha produto entrega revisão e Pix do mesmo visitante' "(async()=>{const data=await(await fetch('/api/admin/data')).json();const id=sessionStorage.getItem('mineironet_creamystore_session'),visits=data.visits.filter(row=>row.sessionId===id),current=visits.find(row=>row.online);return visits.length===1 && current.stages.product && current.productName && current.stage==='pix_pending' && current.stages.checkout_delivery && current.stages.checkout_review && visits.filter(row=>row.online).length===1;})()"
   Evaluate "document.querySelector('#pixInvoice').click();true" | Out-Null
   WaitFor "!document.querySelector('#pixInvoice').disabled"
   Check 'Confirmar pagamento consulta sem aprovar Pix pendente' "document.querySelector('#pixInvoice').tagName==='BUTTON' && document.querySelector('#pixInvoice').textContent==='Confirmar pagamento' && document.querySelector('#pixStatus').textContent.includes('ainda não') && localStorage.getItem('calma-pele-carrinho')!==null"
   Check 'Blocos da finalização ocupam largura uniforme' "getComputedStyle(document.querySelector('#pixPayment')).display==='block' && Math.abs(document.querySelector('.pix-method-review').getBoundingClientRect().width-document.querySelector('#pixPayment').getBoundingClientRect().width)<2"
-  Check 'Checkout Pix mostra prazo de dez minutos' "document.querySelector('#pixExpiry').textContent.includes('neste checkout') && !document.querySelector('#pixExpiryProgress').hidden && /^09:|^10:00$/.test(document.querySelector('#pixCountdown').textContent)"
+  Check 'Pix manual permanece utilizável sem expiração artificial' "document.querySelector('#pixExpiryProgress').hidden && !document.querySelector('#copyPix').disabled && document.querySelector('#pixCountdown').textContent==='';"
   Check 'Resumo Pix mostra entrega e valor real' "document.querySelector('#pixDeliveryReview').textContent.includes('Rua Teste') && document.querySelector('#pixOrderTotal').textContent===document.querySelector('#checkoutSubtotal').textContent"
   Evaluate "document.querySelector('#pixViewCode').click();true" | Out-Null
   Check 'Código completo pode ser expandido' "document.querySelector('#pixCopyPaste').rows===6 && document.querySelector('#pixViewCode').getAttribute('aria-expanded')==='true'"
@@ -194,9 +201,10 @@ try {
   Evaluate "window.confirm=()=>true;document.querySelector('#pixRetry').click();true" | Out-Null
   WaitFor "!document.querySelector('#pixInvoice').disabled"
   Check 'Falha na consulta impede segunda cobrança' "!document.querySelector('#pixPayment').hidden && document.querySelector('#checkoutLayout').hidden"
-  Evaluate "window.PaymentService={...window.PaymentService,getPaymentStatus:async id=>({success:true,data:{transactionId:id,status:'PAID'}})};document.querySelector('#pixInvoice').click();true" | Out-Null
+  Evaluate "window.PaymentService={...window.PaymentService,getPaymentStatus:async id=>({success:true,data:{transactionId:id,status:'PAID',amount:5234}})};document.querySelector('#pixInvoice').click();true" | Out-Null
   WaitFor "document.querySelector('#pixTitle').textContent==='Pagamento aprovado'"
   Check 'Resposta paga confirma e encerra cobrança na tela' "document.querySelector('#pixInvoice').disabled && document.querySelector('#pixInvoice').textContent==='Pagamento confirmado' && localStorage.getItem('calma-pele-carrinho')===null"
+  Check 'Compra confirmada registra valor e transação uma única vez' "window.dataLayer.filter(e=>e.event==='purchase').length===1 && window.dataLayer.find(e=>e.event==='purchase').ecommerce.value===52.34 && !!window.dataLayer.find(e=>e.event==='purchase').ecommerce.transaction_id"
 
   Cdp 'Page.navigate' @{url=($base+'/admin.php')} | Out-Null
   WaitFor "document.querySelector('[data-order]')"
@@ -211,8 +219,9 @@ try {
   Screenshot 'loja-desktop.png'
   $offline=Cdp 'Page.addScriptToEvaluateOnNewDocument' @{source="const originalFetch=window.fetch.bind(window);window.fetch=(url,options)=>typeof url==='string' && url.includes('/api/catalog')?new Promise(resolve=>setTimeout(()=>resolve(new Response('{}',{status:503,headers:{'Content-Type':'application/json'}})),5000)):originalFetch(url,options);"}
   Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
-  WaitFor "document.querySelectorAll('.hero-slider-dot').length===5 && document.querySelector('.hero-slide-image').naturalWidth>0"
+  WaitFor "document.querySelectorAll('.hero-slider-dot').length===3 && document.querySelector('.hero-slide-image').naturalWidth>0"
   Check 'Banner inicia sem esperar resposta do catálogo' "!document.querySelector('.store-notice') && document.querySelector('.hero-slide-image').complete"
+  Check 'Produtos aparecem enquanto o servidor confirma disponibilidade' "document.querySelectorAll('#productGrid .product-card').length===119 && document.querySelectorAll('#productGrid button:not(:disabled)').length===0"
   WaitFor "document.querySelector('.store-notice')"
   Check 'Falha no catálogo não permite comprar com preço antigo' "document.querySelector('.store-notice button')!==null && document.querySelectorAll('#productGrid button:not(:disabled)').length===0"
   Cdp 'Page.removeScriptToEvaluateOnNewDocument' @{identifier=$offline.identifier} | Out-Null
