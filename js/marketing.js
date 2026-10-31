@@ -1,7 +1,7 @@
 (() => {
   'use strict';
-  // IDs públicos. Preencher o rótulo somente com o snippet real do Google Ads.
-  window.StoreMarketing = Object.freeze({ googleAdsId: 'AW-18464200120', purchaseLabel: '' });
+  // Identificadores públicos da ação de compra fornecida pela loja.
+  window.StoreMarketing = Object.freeze({ googleAdsId: 'AW-18464200120', purchaseLabel: 'gm6TCL79_asdELirteRE' });
   window.dataLayer = window.dataLayer || [];
   window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
   let choice = '';

@@ -20,7 +20,7 @@ O abandono registrado concentra-se antes de produto/sacola. A configuração pú
 
 ## Integrações pendentes
 
-Falta o rótulo da conversão de compra do Google Ads, presente no snippet como AW-18464200120/ROTULO. Não foi inventado um rótulo. O evento de conversão do Google permanece desativado até recebê-lo. Os eventos na dataLayer, sozinhos, não configuram uma ação de conversão na conta. Também falta o ID do Pixel da Meta. Não houve alteração de orçamento, público, palavras-chave ou objetivo nas contas.
+O rótulo de compra foi fornecido pela loja e conectado: AW-18464200120/gm6TCL79_asdELirteRE. O evento de conversão usa valor real em BRL e identificador da transação, somente após pagamento confirmado pelo servidor. A validação local simula a resposta PAID sem enviar cobrança nem eventos de teste à conta; a atribuição efetiva no Google Ads precisa ser conferida após uma compra real. Ainda falta o ID do Pixel da Meta. Não houve alteração de orçamento, público, palavras-chave ou objetivo nas contas.
 
 ## Como avaliar tráfego com intenção de compra
 

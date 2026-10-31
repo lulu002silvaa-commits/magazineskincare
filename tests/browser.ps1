@@ -168,6 +168,7 @@ try {
   WaitFor "document.querySelector('#pixQrImage').naturalWidth>0"
   Check 'Pix com QR e copia e cola' "document.querySelector('#pixCopyPaste').value.startsWith('000201') && document.querySelector('#pixQrImage').naturalWidth>0"
   Check 'Pix gerado não dispara evento de compra paga' "window.dataLayer.some(e=>e.event==='pix_generated') && !window.dataLayer.some(e=>e.event==='purchase')"
+  Check 'Pix pendente não envia conversão ao Google Ads' "!window.dataLayer.some(e=>e[0]==='event' && e[1]==='conversion')"
   WaitFor "(async()=>{const data=await(await fetch('/api/admin/data')).json();const id=sessionStorage.getItem('mineironet_creamystore_session');return data.visits.some(row=>row.sessionId===id && row.stage==='pix_pending');})()"
   Check 'Painel acompanha produto entrega revisão e Pix do mesmo visitante' "(async()=>{const data=await(await fetch('/api/admin/data')).json();const id=sessionStorage.getItem('mineironet_creamystore_session'),visits=data.visits.filter(row=>row.sessionId===id),current=visits.find(row=>row.online);return visits.length===1 && current.stages.product && current.productName && current.stage==='pix_pending' && current.stages.checkout_delivery && current.stages.checkout_review && visits.filter(row=>row.online).length===1;})()"
   Evaluate "document.querySelector('#pixInvoice').click();true" | Out-Null
@@ -205,6 +206,7 @@ try {
   WaitFor "document.querySelector('#pixTitle').textContent==='Pagamento aprovado'"
   Check 'Resposta paga confirma e encerra cobrança na tela' "document.querySelector('#pixInvoice').disabled && document.querySelector('#pixInvoice').textContent==='Pagamento confirmado' && localStorage.getItem('calma-pele-carrinho')===null"
   Check 'Compra confirmada registra valor e transação uma única vez' "window.dataLayer.filter(e=>e.event==='purchase').length===1 && window.dataLayer.find(e=>e.event==='purchase').ecommerce.value===52.34 && !!window.dataLayer.find(e=>e.event==='purchase').ecommerce.transaction_id"
+  Check 'Google Ads recebe rótulo correto com valor e transação reais' "window.dataLayer.filter(e=>e[0]==='event' && e[1]==='conversion').length===1 && window.dataLayer.some(e=>e[0]==='event' && e[1]==='conversion' && e[2].send_to==='AW-18464200120/gm6TCL79_asdELirteRE' && e[2].value===52.34 && e[2].currency==='BRL' && e[2].transaction_id===window.dataLayer.find(p=>p.event==='purchase').ecommerce.transaction_id)"
 
   Cdp 'Page.navigate' @{url=($base+'/admin.php')} | Out-Null
   WaitFor "document.querySelector('[data-order]')"
