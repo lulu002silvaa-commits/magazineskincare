@@ -205,6 +205,9 @@ function validate_product(array $product): array {
     foreach (['nome' => 200, 'categoria' => 120, 'descricao' => 50000] as $key => $max) {
         if (!is_string($product[$key] ?? null) || strlen($product[$key]) > $max || ($key !== 'descricao' && trim($product[$key]) === '')) throw new InvalidArgumentException('Confira nome, categoria e descrição.');
     }
+    foreach (['marca' => 120, 'fabricante' => 200, 'conteudo' => 120] as $key => $max) {
+        if (isset($product[$key])) $product[$key] = string_value($product[$key], $key, $max);
+    }
     foreach (['preco', 'precoRegular', 'precoPix'] as $key) {
         $value = $product[$key] ?? null;
         if (($key === 'preco' && $value === null) || ($value !== null && (!is_numeric($value) || !is_finite((float)$value) || (float)$value <= 0 || (float)$value > 100000))) throw new InvalidArgumentException('Informe preços válidos e maiores que zero.');

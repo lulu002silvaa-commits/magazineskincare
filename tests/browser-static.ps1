@@ -7,6 +7,7 @@ if ((Invoke-WebRequest ($base+'/js/catalog.js') -UseBasicParsing).Content.Contai
   Check 'Aviso explica indisponibilidade e mantém atendimento' "!document.querySelector('[data-catalog-review]').hidden && document.querySelector('[data-catalog-review] a').href.endsWith('empresa.html#atendimento')"
   Check 'Vendedor identificado antes da vitrine' "document.querySelector('.seller-disclosure').textContent.includes('Morgana Wagner de Souza LTDA') && document.querySelector('.seller-disclosure').textContent.includes('34.105.837/0001-17')"
   Check 'Campanhas usam identidade da própria loja' "window.STORE_CONFIG.images.heroSlides.every(s=>s.src.includes('/magazine-') && !/Creamy|Jade/.test(s.alt))"
+  Check 'Revisão não exibe chamadas de compra para seções indisponíveis' "getComputedStyle(document.querySelector('.campaign-section')).display==='none' && getComputedStyle(document.querySelector('.benefits-strip')).display==='none'"
   foreach($width in 320,390,1440) {
     Cdp 'Emulation.setDeviceMetricsOverride' @{width=$width;height=1000;deviceScaleFactor=1;mobile=($width -lt 700)} | Out-Null
     Check ('Loja em revisão cabe em '+$width+'px') 'document.documentElement.scrollWidth<=innerWidth'

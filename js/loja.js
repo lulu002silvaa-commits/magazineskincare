@@ -819,6 +819,17 @@
     decorateProductImage($('#productMainImageContainer'), product);
     $('#productPrices').replaceChildren(productPriceBlock(product));
     const facts = $('#productFacts'); facts.replaceChildren();
+    const identity = $('#productIdentity');
+    if (identity) {
+      identity.replaceChildren();
+      for (const [key, label] of [['marca', 'Marca'], ['fabricante', 'Fabricante'], ['conteudo', 'Conteúdo por unidade'], ['gtin', 'EAN/GTIN']]) {
+        if (typeof product[key] === 'string' && product[key].trim()) identity.append(ui('dt', '', label), ui('dd', '', product[key]));
+      }
+      identity.hidden = identity.children.length === 0;
+    }
+    for (const [key, label] of [['marca', 'Marca'], ['fabricante', 'Fabricante'], ['conteudo', 'Conteúdo por unidade'], ['gtin', 'EAN/GTIN']]) {
+      if (typeof product[key] === 'string' && product[key].trim()) facts.append(ui('dt', '', label), ui('dd', '', product[key]));
+    }
     Object.entries(product.especificacoes || {}).forEach(([label, value]) => { if (typeof value === 'string' && value.trim()) facts.append(ui('dt', '', label), ui('dd', '', value)); });
     const quantity = $('#productQuantity'), add = $('#addProduct');
     quantity.max = String(Math.max(1, purchaseLimit(product)));
@@ -878,6 +889,8 @@
     if (!catalogVerified || !validPrice(currentPrice(product))) return;
     const data = { '@context': 'https://schema.org', '@type': 'Product', name: product.nome, description, image: photos, sku: product.id, ...(product.marca ? { brand: { '@type': 'Brand', name: product.marca } } : {}), offers: { '@type': 'Offer', url: url.href, priceCurrency: 'BRL', price: currentPrice(product).toFixed(2), itemCondition: 'https://schema.org/NewCondition', availability: canPurchase(product) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock', seller: { '@type': 'Organization', name: config.brand.name } } };
     if (product.gtin && /^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(product.gtin)) data.gtin = product.gtin;
+    if (product.fabricante) data.manufacturer = { '@type': 'Organization', name: product.fabricante };
+    if (product.conteudo) data.additionalProperty = [{ '@type': 'PropertyValue', name: 'Conteúdo por unidade', value: product.conteudo }];
     const script = document.createElement('script'); script.type = 'application/ld+json'; script.id = 'productStructuredData';
     script.textContent = JSON.stringify(data); document.head.append(script);
   }

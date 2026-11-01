@@ -41,6 +41,7 @@ try {
  Invoke-RestMethod "$base/api/admin/login" -Method Post -WebSession $session -Headers @{'X-CSRF-Token'=$state.csrf} -ContentType 'application/json' -Body '{"username":"admin","password":"catalog-review-test-only-2026"}' | Out-Null
  $data=Invoke-RestMethod "$base/api/admin/data" -WebSession $session
  Check 'Admin retains the 119 legacy records for review' ($data.store.produtos.Count -eq 119)
+ Check 'Admin explicitly reports that saving does not publish offers' ($data.catalogReview -eq $true)
  [IO.File]::WriteAllText((Join-Path $testPath 'transactions.json'),'{"review-order":{"amount":100,"status":"PENDING","paymentMethod":"manual_pix","createdAt":1}}')
  $order=Invoke-RestMethod "$base/api/payments/review-order"
  Check 'Existing order status remains accessible' ($order.success -and $order.data.status -eq 'PENDING')

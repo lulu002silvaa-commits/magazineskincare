@@ -91,6 +91,7 @@ try {
   Check 'Busca de produtos sem acentos' "document.querySelectorAll('[data-edit]').length>0 && document.querySelectorAll('[data-edit]').length<12"
   Evaluate "document.querySelector('#productSearch').value='';document.querySelector('#productSearch').dispatchEvent(new Event('input'));document.querySelector('[data-edit]').click();true" | Out-Null
   Check 'Editor com todas as fotos' "document.querySelector('dialog').open && document.querySelectorAll('.image-row').length>=4"
+  Check 'Editor permite conferir marca fabricante conteúdo e código da embalagem' "['marca','fabricante','conteudo','gtin'].every(name=>document.querySelector('#productForm [name='+name+']')) && document.querySelector('#productForm [name=marca]').value==='Marca de teste'"
   WaitFor "document.fonts.check('13px AdminRoc') && [...document.querySelectorAll('.product-thumb')].every(img=>img.complete && img.naturalWidth>0)"
   Check 'Imagens e fontes carregam' "document.fonts.check('13px AdminRoc') && [...document.querySelectorAll('.product-thumb')].every(img=>img.complete && img.naturalWidth>0)"
   Screenshot 'editor.png'
@@ -106,6 +107,7 @@ try {
   WaitFor "document.querySelector('#productName')?.textContent.length>0"
   Check 'Loja usa preço salvo no admin' "document.querySelector('#productPrices').textContent.includes('52,34')"
   Check 'Galeria pública preservada' "document.querySelectorAll('.product-gallery-thumbnail').length>=4"
+  Check 'Ficha distingue marca fabricante conteúdo e vendedor' "document.querySelector('#productIdentity').textContent.includes('Fabricante de teste') && document.querySelector('#productIdentity').textContent.includes('40 g') && document.querySelector('.seller-disclosure').textContent.includes('Morgana Wagner de Souza LTDA')"
   Evaluate "document.querySelector('#addProduct').click();true" | Out-Null
   WaitFor "location.pathname.endsWith('/carrinho.html') && document.querySelector('#cartItems .cart-item')"
   Cdp 'Page.navigate' @{url=($base+'/carrinho.html')} | Out-Null

@@ -54,10 +54,12 @@ check('Login com sessão PHP', $status === 200 && !empty($login['csrf'])); $csrf
 [, $data] = request('/admin/data');
 check('Indicadores sem dados fictícios', $data['stats']['pix'] === 0 && $data['stats']['revenue'] === 0);
 $product = $catalog['products'][0]; $product['preco'] = 51.23; $product['descricao'] = 'Descrição atualizada em teste de integração.';
+$product['marca'] = 'Marca de teste'; $product['fabricante'] = 'Fabricante de teste'; $product['conteudo'] = '40 g';
 [$status, $saved] = request('/admin/product', 'POST', ['product' => $product, 'revision' => 0]); check('Editar produto no servidor', $status === 200 && $saved['revision'] === 1);
 [, $updated] = request('/catalog');
 check('Loja consulta o produto editado', $updated['products'][0]['preco'] === 51.23 && $updated['products'][0]['descricao'] === $product['descricao']);
 check('Galerias preservadas ao editar', $updated['products'][0]['imagens'] === $product['imagens']);
+check('Identificação da embalagem preservada sem inferir fabricante', $updated['products'][0]['marca'] === 'Marca de teste' && $updated['products'][0]['fabricante'] === 'Fabricante de teste' && $updated['products'][0]['conteudo'] === '40 g');
 $feedClient = curl_init($base . '/api/merchant-feed');
 curl_setopt($feedClient, CURLOPT_RETURNTRANSFER, true); $feedText = curl_exec($feedClient);
 $feed = simplexml_load_string($feedText);

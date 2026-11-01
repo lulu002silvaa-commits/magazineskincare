@@ -1,6 +1,6 @@
 # Revisão do catálogo — 01/11/2026
 
-O responsável informou que a empresa fabrica produtos próprios e não tem relação com a Creamy. O catálogo anteriormente publicado usava nomes, descrições, GTINs e fotos de produtos Creamy. Não é correto reaproveitar esses registros apenas trocando a marca, pois isso poderia atribuir ao produto próprio embalagem, composição e identificadores de outro produto.
+O responsável inicialmente informou fabricação própria sem relação com a Creamy e depois esclareceu que afirma fabricar produtos da marca Creamy mediante autorização. A autorização e os dados dos produtos efetivamente fabricados não foram apresentados para esta revisão técnica. Essas declarações não devem ser tratadas como confirmação ou negação documental de vínculo com a marca. O catálogo anterior usa nomes, descrições, GTINs e fotos de produtos Creamy; é necessário conferir a correspondência entre cada registro e o produto efetivamente vendido. Não é correto reaproveitar esses registros apenas trocando a marca, a composição ou os identificadores.
 
 ## Medidas implementadas
 
@@ -15,6 +15,8 @@ O responsável informou que a empresa fabrica produtos próprios e não tem rela
 ## O que falta para retomar as ofertas
 
 Receber e conferir marca real, nomes, volumes, preços, composição, modo de uso, fotos reais de embalagens, identificação do fabricante e documentação aplicável aos produtos efetivamente vendidos. Os GTINs e dados do catálogo antigo não devem ser atribuídos aos novos produtos.
+
+O editor administrativo passou a oferecer campos explícitos para marca, fabricante, conteúdo por unidade e EAN/GTIN. Esses campos aparecem na ficha do produto quando preenchidos e não certificam, por si, autorização ou regularização. Durante a revisão, salvar um produto preserva o registro no painel e não o publica; o painel informa essa distinção.
 
 Depois de cadastrar os produtos corretos, revisar anúncios, recursos e fontes de dados externas. Não há acesso às campanhas ou à contestação por meio deste repositório; esses conteúdos não foram alterados nem enviados automaticamente. O site temporariamente sem ofertas não é uma afirmação de que já está pronto para anunciar.
 
