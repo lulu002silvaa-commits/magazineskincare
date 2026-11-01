@@ -31,11 +31,11 @@ try {
         readfile($path); exit;
     }
     if ($route === '/catalog' && $method === 'GET') {
-        $store = store_data();
-        json_response(['products' => $store['produtos'], 'brand' => $store['loja'], 'revision' => $store['revision'] ?? 0]);
+        $store = public_store_data();
+        json_response(['products' => $store['produtos'], 'brand' => $store['loja'], 'revision' => $store['revision'] ?? 0, 'catalogReview' => catalog_under_review()]);
     }
     if ($route === '/store' && $method === 'GET') {
-        $store = store_data();
+        $store = public_store_data();
         unset($store['senhaAdmin'], $store['pagamento']['gateway']);
         json_response($store);
     }
@@ -309,6 +309,7 @@ try {
         json_response(['error' => 'Rota administrativa não encontrada.'], 404);
     }
     if ($route === '/payment-config' && $method === 'GET') {
+        if (catalog_under_review()) json_response(['method' => null, 'available' => false, 'message' => 'O catálogo está em atualização. Novas compras estão temporariamente indisponíveis.']);
         $store = store_data(); $mode = $store['pagamento']['metodo'] ?? 'pix'; $pix = $store['pix'] ?? [];
         $available = $mode === 'gateway' ? (getenv('BLACKCAT_API_KEY') ?: '') !== '' : valid_pix($pix);
         json_response(['method' => $mode, 'available' => $available, 'pix' => ['key' => $pix['chave'] ?? '', 'receiverName' => $pix['nome'] ?? '', 'receiverCity' => $pix['cidade'] ?? ''], 'message' => $available ? 'Pagamento disponível.' : 'A loja ainda não configurou o pagamento.']);

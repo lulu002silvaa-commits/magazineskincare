@@ -7,6 +7,7 @@ if (preg_match('~(?:^|/)(?:\.[^/]+|php|tests|scripts|backup[^/]*|Dockerfile|dock
     http_response_code(404); exit('Não encontrado.');
 }
 if (str_starts_with($path, '/api/')) { $_GET['route'] = substr($path, 4); require __DIR__ . '/api.php'; return true; }
+if ($path === '/js/products.js') { require __DIR__ . '/public-products.php'; return true; }
 if (preg_match('~^/public/images/uploads/([a-f0-9]{32}\.(?:jpg|png|webp))$~', $path, $image)) { $_GET['route'] = '/image/' . $image[1]; require __DIR__ . '/api.php'; return true; }
 if (in_array($path, ['/', '/index.html', '/produto.html', '/carrinho.html', '/checkout.html', '/empresa.html'], true)) {
     $_GET['file'] = $path === '/' ? 'index.html' : ltrim($path, '/');

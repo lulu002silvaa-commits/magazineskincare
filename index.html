@@ -5,22 +5,22 @@
   <meta name="google-site-verification" content="1l8xMaPw2x7d__gShZWMr9r6DWTEiakMajy_fAA_qi0" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#145493">
-  <meta name="description" content="Magazine do Skincare: produtos Creamy vendidos pela empresa identificada nesta loja.">
-  <title>Magazine do Skincare | Produtos Creamy</title>
+  <meta name="description" content="Magazine do Skincare: informações da loja, atendimento e catálogo de cuidados com a pele.">
+  <title>Magazine do Skincare | Cuidados com a pele</title>
   <link rel="preload" href="public/fonts/roc-grotesk-regular.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="preload" as="image" href="public/images/banners/home-4-mobile.png" media="(max-width: 650px)" fetchpriority="high">
-  <link rel="preload" as="image" href="public/images/banners/home-4-desktop.png" media="(min-width: 651px)" fetchpriority="high">
+  <link rel="preload" as="image" href="public/images/banners/magazine-catalog-mobile.svg" media="(max-width: 650px)" fetchpriority="high">
+  <link rel="preload" as="image" href="public/images/banners/magazine-catalog-desktop.svg" media="(min-width: 651px)" fetchpriority="high">
   <link rel="icon" href="public/images/brand/magazine-do-skincare.png" type="image/png">
-  <link rel="stylesheet" href="css/skin.css?v=10">
+  <link rel="stylesheet" href="css/skin.css?v=11">
   <link rel="stylesheet" href="css/commerce.css?v=25">
   <script src="js/deployment.js?v=10"></script>
   <script src="js/api-base.js?v=10"></script>
-  <script src="js/products.js?v=31" defer></script>
-  <script src="js/catalog.js?v=26" defer></script>
-  <script src="js/loja.js?v=37" defer></script>
+  <script src="js/products.js?v=32" defer></script>
+  <script src="js/catalog.js?v=27" defer></script>
+  <script src="js/loja.js?v=38" defer></script>
   <script src="js/marketing.js?v=2"></script>
 </head>
-<body data-page="home">
+<body data-page="home" class="catalog-review-mode">
   <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
   <div class="announcement" id="announcement"></div>
   <header class="site-header">
@@ -44,12 +44,14 @@
       <a href="#sobre">Sobre a loja</a>
     </nav>
   </header>
+<section class="seller-disclosure wrap" aria-label="Identificação da loja"><p><strong>Você está na Magazine do Skincare.</strong> Vendas e atendimento: Morgana Wagner de Souza LTDA · CNPJ 34.105.837/0001-17. <a href="empresa.html">Dados da empresa e condições de compra</a></p></section>
+<section class="catalog-review wrap" data-catalog-review role="status"><h2>Estamos atualizando nosso catálogo</h2><p>Novas compras estão temporariamente indisponíveis. Para acompanhar um pedido já realizado, <a href="empresa.html#atendimento">fale com o atendimento da loja</a>.</p></section>
 
   <main id="main-content">
     <h1 class="sr-only">Magazine do Skincare: conheça os produtos para sua rotina de cuidados com a pele</h1>
     <section class="hero wrap" aria-label="Campanhas e produtos em destaque">
       <div class="media-placeholder hero-media" data-image-key="heroDesktop" data-mobile-image-key="heroMobile" aria-label="Campanhas da loja">
-        <picture><source media="(max-width: 650px)" srcset="public/images/banners/home-4-mobile.png"><img class="hero-slide-image" src="public/images/banners/home-4-desktop.png" alt="Duo Glass Skin: Pore Refiner e Ceramide Skin Repair" width="1668" height="600" loading="eager" fetchpriority="high" decoding="async"></picture>
+        <picture><source media="(max-width: 650px)" srcset="public/images/banners/magazine-catalog-mobile.svg"><img class="hero-slide-image" src="public/images/banners/magazine-catalog-desktop.svg" alt="Magazine do Skincare: conheça o catálogo da loja" width="1668" height="600" loading="eager" fetchpriority="high" decoding="async"></picture>
         <span class="placeholder-leaf" aria-hidden="true">✳</span>
         <span class="placeholder-label">Conheça os cuidados para sua pele</span>
         <span class="placeholder-filename"></span>
@@ -73,10 +75,10 @@
       <div class="shelf-heading">
         <div>
           <div class="shelf-title-row">
-            <h2>Esquenta Black Friday</h2>
+            <h2>Catálogo da loja</h2>
             <a class="shelf-all-link" href="#catalogo-completo">Ver tudo <span aria-hidden="true">›</span></a>
           </div>
-          <p class="section-description">30% de desconto nos preços · Pix à vista · Frete grátis · Entrega em até 7 dias após o pagamento.</p>
+          <p class="section-description">Consulte os produtos e as condições de compra da Magazine do Skincare.</p>
         </div>
         <div class="category-tabs" role="group" aria-label="Coleções de produtos em destaque" id="categoryTabs"></div>
       </div>
@@ -125,7 +127,7 @@
     <section class="routine-section" id="rotinas">
       <div class="wrap split-feature">
         <div class="media-placeholder feature-media" data-image-key="routineDay" role="img" aria-label="Foto de uma rotina ou kit">
-          <picture><source media="(max-width: 650px)" srcset="public/images/banners/home-4-mobile.png"><img class="hero-slide-image" src="public/images/banners/home-4-desktop.png" alt="Duo Glass Skin: Pore Refiner e Ceramide Skin Repair" width="1668" height="600" loading="eager" fetchpriority="high" decoding="async"></picture>
+          <picture><source media="(max-width: 650px)" srcset="public/images/banners/magazine-catalog-mobile.svg"><img class="hero-slide-image" src="public/images/banners/magazine-catalog-desktop.svg" alt="Magazine do Skincare: conheça o catálogo da loja" width="1668" height="600" loading="eager" fetchpriority="high" decoding="async"></picture>
         <span class="placeholder-leaf" aria-hidden="true">✳</span>
           <span class="placeholder-label">Cuidados para sua rotina</span>
           <span class="placeholder-filename"></span>
@@ -161,10 +163,10 @@
 
   <footer class="site-footer" id="sobre">
     <div class="wrap footer-grid">
-      <div><a class="brand footer-brand" href="index.html"><img class="store-logo" src="public/images/brand/magazine-do-skincare.png" alt="Magazine do Skincare" width="240" height="80"></a><p class="footer-about">Loja operada por Magazine do Skincare Morgana Wagner de Souza LTDA. Creamy é uma das marcas de produtos oferecidas.</p></div>
+      <div><a class="brand footer-brand" href="index.html"><img class="store-logo" src="public/images/brand/magazine-do-skincare.png" alt="Magazine do Skincare" width="240" height="80"></a><p class="footer-about">Loja operada por Morgana Wagner de Souza LTDA. Nome fantasia: Magazine do Skincare.</p></div>
       <div><h2>Explore</h2><a href="#produtos">Produtos</a><a href="#rotinas">Rotinas</a><a href="#necessidades">Necessidades</a></div>
       <div><h2>Ajuda</h2><a href="carrinho.html">Sua sacola</a><a href="checkout.html">Finalizar pedido</a><a href="empresa.html">Informações da empresa</a><a href="empresa.html#atendimento">Fale com a loja</a><a href="empresa.html#devolucoes">Devoluções e reembolso</a><a href="empresa.html#privacidade">Privacidade</a><a href="empresa.html#entrega">Entrega</a><a href="https://wa.me/5511919756184" target="_blank" rel="noopener">WhatsApp: (11) 91975-6184</a><a href="mailto:morgana@extratosdaterra.com.br">morgana@extratosdaterra.com.br</a></div>
-      <div><h2>Dados da empresa</h2><p>Magazine do Skincare Morgana Wagner de Souza LTDA</p><p>CNPJ: 34.105.837/0001-17</p><address>Praça Sete de Setembro, 106, Sala 9<br>Centro, Palhoça — SC<br>CEP 88130-200</address></div>
+      <div><h2>Dados da empresa</h2><p>Morgana Wagner de Souza LTDA</p><p>CNPJ: 34.105.837/0001-17</p><address>Praça Sete de Setembro, 106, Sala 9<br>Centro, Palhoça — SC<br>CEP 88130-200</address></div>
     </div>
     <div class="wrap footer-bottom"><span>© <span id="currentYear"></span> Magazine do Skincare</span><span>Frete grátis. Pagamento por Pix.</span></div>
   </footer>

@@ -95,6 +95,19 @@ function campaign_attribution(mixed $input): array {
     return $result;
 }
 
+function catalog_under_review(): bool {
+    // Fixtures isoladas dos testes não representam ofertas públicas.
+    if (getenv('STORE_LOAD_ENV') === '0' && getenv('STORE_TEST_CATALOG_ACTIVE') === '1') return false;
+    $hosting = json_decode((string)file_get_contents(STORE_ROOT . '/store-hosting.json'), true, 512, JSON_THROW_ON_ERROR);
+    return ($hosting['catalogReview'] ?? true) !== false;
+}
+
+function public_store_data(): array {
+    $store = store_data();
+    if (catalog_under_review()) $store['produtos'] = [];
+    return $store;
+}
+
 function initial_products(): array {
     $source = (string)file_get_contents(STORE_ROOT . '/js/products.js');
     $source = preg_replace('/^\s*window\.CREAMY_PRODUCTS\s*=\s*/', '', $source);

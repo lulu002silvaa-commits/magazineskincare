@@ -37,6 +37,9 @@ const sandbox = { window: {} };
 vm.runInNewContext(await readFile(join(root, 'js', 'products.js'), 'utf8'), sandbox, { timeout: 2000 });
 const products = sandbox.window.CREAMY_PRODUCTS;
 if (!Array.isArray(products) || !products.length) throw new Error('Catálogo estático vazio.');
+if (hosting.catalogReview !== false) {
+  await writeFile(join(output, 'js', 'products.js'), 'window.CREAMY_PRODUCTS = [];\n');
+}
 const photos = new Set(products.flatMap(product => [product.imagem, ...(product.imagens || [])]));
 for (const path of photos) {
   if (typeof path !== 'string' || !path.startsWith('public/images/') || path.includes('..') || !await exists(join(output, path))) throw new Error(`Foto inválida ou ausente: ${path}`);
@@ -51,4 +54,4 @@ async function check(directory) {
   }
 }
 await check(output);
-console.log(`Vitrine HTML pronta: ${products.length} produtos, ${photos.size} fotos. Backend ${apiOrigin ? 'conectado à origem configurada' : 'não configurado; compras desativadas'}.`);
+console.log(`Vitrine HTML pronta: ${hosting.catalogReview !== false ? 0 : products.length} ofertas publicadas, ${photos.size} fotos preservadas. Backend ${apiOrigin ? 'conectado à origem configurada' : 'não configurado; compras desativadas'}.`);

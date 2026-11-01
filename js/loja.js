@@ -8,7 +8,7 @@
     launches: ["intensetx-acidotranexamico", "intensetx-vitaminacgold", "intensetx-ceramideskinrepair", "intensetx-peptide"]
   };
   const FEATURED_COLLECTIONS = [
-    { id: "favorites", label: "Mais Vendidos", matches: (product) => product.selo?.includes("Favoritos da Jade") || FEATURED_ORDER.favorites.includes(product.id) },
+    { id: "favorites", label: "Seleção da loja", matches: (product) => FEATURED_ORDER.favorites.includes(product.id) },
     { id: "duos", label: "Duos", matches: (product) => /^duo\b/i.test(product.nome || "") },
     { id: "routines", label: "Rotinas Completas", matches: (product) => /^(kit|combo)\b/i.test(product.nome || "") || product.categoria === "Combos" },
     { id: "antiacne", label: "Antiacne", matches: (product) => product.categoria === "Antiacne" }
@@ -876,7 +876,7 @@
     meta('og:description', description.slice(0, 200), true); meta('og:type', 'product', true); meta('og:url', url.href, true);
     if (photos.length) meta('og:image', photos[0], true);
     if (!catalogVerified || !validPrice(currentPrice(product))) return;
-    const data = { '@context': 'https://schema.org', '@type': 'Product', name: product.nome, description, image: photos, sku: product.id, brand: { '@type': 'Brand', name: 'Creamy' }, offers: { '@type': 'Offer', url: url.href, priceCurrency: 'BRL', price: currentPrice(product).toFixed(2), itemCondition: 'https://schema.org/NewCondition', availability: canPurchase(product) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock', seller: { '@type': 'Organization', name: config.brand.name } } };
+    const data = { '@context': 'https://schema.org', '@type': 'Product', name: product.nome, description, image: photos, sku: product.id, ...(product.marca ? { brand: { '@type': 'Brand', name: product.marca } } : {}), offers: { '@type': 'Offer', url: url.href, priceCurrency: 'BRL', price: currentPrice(product).toFixed(2), itemCondition: 'https://schema.org/NewCondition', availability: canPurchase(product) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock', seller: { '@type': 'Organization', name: config.brand.name } } };
     if (product.gtin && /^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(product.gtin)) data.gtin = product.gtin;
     const script = document.createElement('script'); script.type = 'application/ld+json'; script.id = 'productStructuredData';
     script.textContent = JSON.stringify(data); document.head.append(script);
@@ -1442,7 +1442,7 @@
   }
 
   function renderBranding() {
-    const titles = { home: 'Produtos Creamy', cart: 'Sua sacola', checkout: 'Finalizar pedido', product: 'Produto' };
+    const titles = { home: 'Cuidados com a pele', cart: 'Sua sacola', checkout: 'Finalizar pedido', product: 'Produto' };
     document.title = `${titles[document.body.dataset.page] || 'Loja'} | ${config.brand.name}`;
     $$(".brand-name").forEach((element) => {
       element.firstChild.textContent = config.brand.name;
@@ -1477,20 +1477,22 @@
     const timeout = window.setTimeout(() => controller.abort(), 30000);
     try {
       if (!connection.apiEnabled) {
-        if (!Array.isArray(config.products) || !config.products.length) throw new Error('Catálogo estático indisponível');
-        catalogVerified = true;
+        if (!config.catalogReview && (!Array.isArray(config.products) || !config.products.length)) throw new Error('Catálogo estático indisponível');
+        catalogVerified = !config.catalogReview;
       } else {
         const response = await fetch("/api/catalog", { cache: "no-store", signal: controller.signal });
         if (!response.ok) throw new Error('Catálogo indisponível');
         const result = await response.json();
+        // O bloqueio local também protege a vitrine durante a atualização do backend.
+        config.catalogReview = result.catalogReview !== false;
         if (Array.isArray(result.products)) {
-          config.products = result.products.map(product => {
+          config.products = (config.catalogReview ? [] : result.products).map(product => {
             if (!connection.apiOrigin) return product;
             const imageUrl = path => typeof path === 'string' && path.startsWith('public/images/uploads/') ? `${connection.apiOrigin}/${path}` : path;
             return { ...product, imagem: imageUrl(product.imagem), imagens: (product.imagens || []).map(imageUrl) };
           });
-          catalogVerified = true;
-          config.categories = [...new Set(result.products.map(product => product.categoria).filter(Boolean))];
+          catalogVerified = !config.catalogReview;
+          config.categories = [...new Set(config.products.map(product => product.categoria).filter(Boolean))];
         }
         if (result.brand && typeof result.brand.nome === "string") config.brand.name = result.brand.nome;
       }
@@ -1503,6 +1505,8 @@
       retry.type = 'button'; retry.textContent = 'Tentar novamente'; retry.onclick = () => window.location.reload();
       notice.append(retry); document.body.prepend(notice);
     } finally { window.clearTimeout(timeout); }
+    $$('[data-catalog-review]').forEach(element => { element.hidden = !config.catalogReview; });
+    document.body.classList.toggle('catalog-review-mode', config.catalogReview === true);
     updateCartCount();
     renderCategoryTabs();
     renderCatalog();

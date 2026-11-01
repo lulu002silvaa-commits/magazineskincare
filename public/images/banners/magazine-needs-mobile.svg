@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="800" viewBox="0 0 640 800">
+<defs><linearGradient id="bg"><stop stop-color="#eef9fa"/><stop offset="1" stop-color="#e8effb"/></linearGradient></defs>
+<rect width="640" height="800" fill="url(#bg)"/>
+<circle cx="610" cy="740" r="220" fill="#d7e9f3"/>
+<circle cx="640" cy="740" r="150" fill="none" stroke="#c0dfe9" stroke-width="2"/>
+<g font-family="Arial, sans-serif" fill="#073473">
+<text x="42" y="79" font-size="29" font-weight="700">Magazine do Skincare</text>
+<text x="42" y="117" font-size="18" fill="#356075">PRODUTOS PARA CUIDADOS COM A PELE</text>
+<text x="42" y="225" font-size="53" font-weight="700" letter-spacing="-1">Encontre</text><text x="42" y="286" font-size="53" font-weight="700" letter-spacing="-1">o cuidado para</text><text x="42" y="347" font-size="53" font-weight="700" letter-spacing="-1">a sua rotina.</text>
+
+<rect x="42" y="452" width="330" height="60" rx="30" fill="#073473"/>
+<text x="68" y="490" font-size="24" font-weight="700" fill="white">Conhecer a loja →</text>
+<rect x="42" y="565" width="550" height="48" rx="12" fill="white" fill-opacity=".8"/><text x="62" y="596" font-size="20">Seu tipo de pele</text><rect x="42" y="627" width="550" height="48" rx="12" fill="white" fill-opacity=".8"/><text x="62" y="658" font-size="20">Sua necessidade</text><rect x="42" y="689" width="550" height="48" rx="12" fill="white" fill-opacity=".8"/><text x="62" y="720" font-size="20">Sua escolha</text>
+</g></svg>

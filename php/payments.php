@@ -17,6 +17,7 @@ function gateway_request(string $path, ?array $payload = null): array {
 }
 
 if ($route === '/payments/blackcat' && $method === 'POST') {
+    if (catalog_under_review()) json_response(['error' => 'O catálogo está em atualização. Novas compras estão temporariamente indisponíveis.'], 503);
     $body = input_json(); $store = store_data();
     $mode = $store['pagamento']['metodo'] ?? 'pix'; $pix = $store['pix'] ?? [];
     if ($mode === 'gateway' && !(getenv('BLACKCAT_API_KEY') ?: '')) json_response(['error' => 'Gateway não configurado.'], 503);

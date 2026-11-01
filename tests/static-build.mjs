@@ -20,12 +20,15 @@ vm.runInNewContext(await readFile(join(dist, 'js/deployment.js'), 'utf8'), conte
 vm.runInNewContext(await readFile(join(dist, 'js/api-base.js'), 'utf8'), context);
 check('Vitrine estática não depende de API inexistente', context.window.StoreConnection.mode === 'static' && context.window.StoreConnection.apiEnabled === false);
 vm.runInNewContext(await readFile(join(dist, 'js/products.js'), 'utf8'), context);
-check('Catálogo completo preservado', context.window.CREAMY_PRODUCTS.length === 119);
+check('Catálogo anterior não é publicado durante a revisão', context.window.CREAMY_PRODUCTS.length === 0);
 const withdrawn = JSON.parse(await readFile(join(root, 'withdrawn-products.json'), 'utf8')).ids;
 check('Produtos retirados não estão no catálogo publicado', context.window.CREAMY_PRODUCTS.every(product => !withdrawn.includes(product.id)));
 check('Catálogo publicado não contém o ingrediente apontado', !/ghk[\s-]*cu|copper\s+tripeptide|peptide\s*cream/i.test(JSON.stringify(context.window.CREAMY_PRODUCTS)));
-const photos = new Set(context.window.CREAMY_PRODUCTS.flatMap(p => [p.imagem, ...p.imagens]));
-check('377 fotos presentes', photos.size === 377);
+const archived = { window: {} };
+vm.runInNewContext(await readFile(join(root, 'js/products.js'), 'utf8'), archived);
+check('119 cadastros anteriores preservados para revisão administrativa', archived.window.CREAMY_PRODUCTS.length === 119);
+const photos = new Set(archived.window.CREAMY_PRODUCTS.flatMap(p => [p.imagem, ...p.imagens]));
+check('Fotos anteriores preservadas sem publicar ofertas', photos.size === 377);
 for (const photo of photos) await access(join(dist, photo));
 const forbidden = [];
 async function inspect(directory) {

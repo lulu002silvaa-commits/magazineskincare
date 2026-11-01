@@ -20,7 +20,7 @@ function serve_merchant_document(string $route): never {
     $origin = 'https://magazineskincare.online';
     $hosting = json_decode((string)file_get_contents(STORE_ROOT . '/store-hosting.json'), true, 512, JSON_THROW_ON_ERROR);
     $mediaOrigin = rtrim($hosting['apiOrigin'], '/');
-    $store = store_data();
+    $store = public_store_data();
     header('Content-Type: application/xml; charset=utf-8');
     header('Cache-Control: no-store');
     header('X-Content-Type-Options: nosniff');
@@ -49,7 +49,7 @@ function serve_merchant_document(string $route): never {
             'image_link' => $imageUrl($product['imagem']),
             'price' => number_format(round((float)$price, 2), 2, '.', '') . ' BRL',
             'availability' => $available ? 'in_stock' : 'out_of_stock',
-            'condition' => 'new', 'brand' => $product['marca'] ?? 'Creamy',
+            'condition' => 'new', 'brand' => $product['marca'] ?? '',
             'product_type' => $product['categoria'] ?? '',
         ];
         if (isset($product['gtin']) && valid_gtin((string)$product['gtin'])) $fields['gtin'] = (string)$product['gtin'];

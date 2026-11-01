@@ -1,4 +1,34 @@
 ﻿$monitor=Cdp 'Page.addScriptToEvaluateOnNewDocument' @{source="window.__apiRequests=[];const staticFetch=window.fetch.bind(window);window.fetch=(url,options)=>{if(typeof url==='string' && url.includes('/api/'))window.__apiRequests.push(url);return staticFetch(url,options);};"}
+# O catálogo foi suspenso até receber os produtos reais fabricados pela loja.
+if ((Invoke-WebRequest ($base+'/js/catalog.js') -UseBasicParsing).Content.Contains('catalogReview: true')) {
+  Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
+  WaitFor "window.STORE_CONFIG?.catalogReview && document.querySelectorAll('.hero-slider-dot').length===3"
+  Check 'Revisão não publica o catálogo de outra marca' "window.CREAMY_PRODUCTS.length===0 && window.STORE_CONFIG.products.length===0 && !document.querySelector('#productGrid .product-card')"
+  Check 'Aviso explica indisponibilidade e mantém atendimento' "!document.querySelector('[data-catalog-review]').hidden && document.querySelector('[data-catalog-review] a').href.endsWith('empresa.html#atendimento')"
+  Check 'Vendedor identificado antes da vitrine' "document.querySelector('.seller-disclosure').textContent.includes('Morgana Wagner de Souza LTDA') && document.querySelector('.seller-disclosure').textContent.includes('34.105.837/0001-17')"
+  Check 'Campanhas usam identidade da própria loja' "window.STORE_CONFIG.images.heroSlides.every(s=>s.src.includes('/magazine-') && !/Creamy|Jade/.test(s.alt))"
+  foreach($width in 320,390,1440) {
+    Cdp 'Emulation.setDeviceMetricsOverride' @{width=$width;height=1000;deviceScaleFactor=1;mobile=($width -lt 700)} | Out-Null
+    Check ('Loja em revisão cabe em '+$width+'px') 'document.documentElement.scrollWidth<=innerWidth'
+  }
+  Screenshot 'catalogo-revisao-desktop.png'
+  Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
+  Screenshot 'catalogo-revisao-mobile.png'
+  Evaluate "localStorage.setItem('calma-pele-carrinho',JSON.stringify([{id:'creamy-calming-cream-1',quantity:1}]));true" | Out-Null
+  Cdp 'Page.navigate' @{url=($base+'/checkout.html')} | Out-Null
+  WaitFor "document.querySelector('#checkoutEmpty') && !document.querySelector('#checkoutEmpty').hidden"
+  Check 'Sacola antiga não permite nova compra' "document.querySelector('#reserveOrder').disabled && document.querySelector('#checkoutLayout').hidden && !document.querySelector('#pixCopyPaste').value"
+  Cdp 'Page.navigate' @{url=($base+'/produto.html?id=creamy-calming-cream-1')} | Out-Null
+  WaitFor "document.querySelector('#productNotFound') && !document.querySelector('#productNotFound').hidden"
+  Check 'Link antigo não oferece produto nem schema de venda' "document.querySelector('#productDetail').hidden && !document.querySelector('#productStructuredData')"
+  Cdp 'Page.navigate' @{url=($base+'/empresa.html')} | Out-Null
+  WaitFor "document.querySelector('#companyName')"
+  Check 'Razão social não mistura nome fantasia' "document.querySelector('#companyName').textContent==='Morgana Wagner de Souza LTDA'"
+  Check 'Informações públicas não alegam vínculo com a Creamy' "!document.body.textContent.includes('Creamy')"
+  if($script:errors.Count){throw ($script:errors -join ', ')}
+  Write-Output 'Vitrine em revisão validada sem ofertas nem cobranças.'
+  return
+}
 Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
 WaitFor "document.querySelectorAll('#productGrid .product-card').length===119"
 Check 'HTML carrega todos os produtos sem PHP' "document.querySelectorAll('#productGrid .product-card').length===119"
