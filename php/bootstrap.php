@@ -97,7 +97,7 @@ function campaign_attribution(mixed $input): array {
 
 function catalog_under_review(): bool {
     // Fixtures isoladas dos testes não representam ofertas públicas.
-    if (getenv('STORE_LOAD_ENV') === '0' && getenv('STORE_TEST_CATALOG_ACTIVE') === '1') return false;
+    if (getenv('STORE_LOAD_ENV') === '0' && in_array(getenv('STORE_TEST_CATALOG_ACTIVE'), ['0', '1'], true)) return getenv('STORE_TEST_CATALOG_ACTIVE') !== '1';
     $hosting = json_decode((string)file_get_contents(STORE_ROOT . '/store-hosting.json'), true, 512, JSON_THROW_ON_ERROR);
     return ($hosting['catalogReview'] ?? true) !== false;
 }

@@ -1,5 +1,9 @@
 # Revisão do catálogo — 01/11/2026
 
+## Situação em 02/11/2026
+
+Por solicitação expressa do responsável, o catálogo e as novas compras foram restaurados com os 119 cadastros preservados. O desconto existente não foi reaplicado. O modo de revisão foi desativado no backend e na vitrine, e os avisos de pausa foram retirados das páginas públicas. Permanecem a identificação da empresa, os campos de identificação dos produtos e a retirada anterior das 16 ofertas descritas em `withdrawn-products.json`. A retomada não comprova autorização de marca e não reativa nem altera a conta do Google Ads. As medidas abaixo registram a revisão anterior.
+
 O responsável inicialmente informou fabricação própria sem relação com a Creamy e depois esclareceu que afirma fabricar produtos da marca Creamy mediante autorização. A autorização e os dados dos produtos efetivamente fabricados não foram apresentados para esta revisão técnica. Essas declarações não devem ser tratadas como confirmação ou negação documental de vínculo com a marca. O catálogo anterior usa nomes, descrições, GTINs e fotos de produtos Creamy; é necessário conferir a correspondência entre cada registro e o produto efetivamente vendido. Não é correto reaproveitar esses registros apenas trocando a marca, a composição ou os identificadores.
 
 ## Medidas implementadas

@@ -10,7 +10,7 @@ function Check($label, $value){if(!$value){throw "FAILED: $label"}; Write-Output
 try {
  $env:STORE_DATA_DIR=$testPath
  $env:STORE_LOAD_ENV='0'
- $env:STORE_TEST_CATALOG_ACTIVE=''
+ $env:STORE_TEST_CATALOG_ACTIVE='0'
  $env:ADMIN_SYNC_PASSWORD='catalog-review-test-only-2026'
  $env:BLACKCAT_API_KEY=''
  $server=Start-Process -FilePath (Join-Path $root '.runtime/php/php.exe') -ArgumentList @('-c','php-local.ini','-S','127.0.0.1:8094','router.php') -WorkingDirectory $root -WindowStyle Hidden -PassThru -RedirectStandardError (Join-Path $testPath 'server.log')

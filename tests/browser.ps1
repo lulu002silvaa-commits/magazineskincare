@@ -225,7 +225,7 @@ try {
   Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
   WaitFor "document.querySelectorAll('.hero-slider-dot').length===3 && document.querySelector('.hero-slide-image').naturalWidth>0"
   Check 'Banner inicia sem esperar resposta do catálogo' "!document.querySelector('.store-notice') && document.querySelector('.hero-slide-image').complete"
-  Check 'Catálogo em revisão não exibe ofertas antes da consulta ao servidor' "document.querySelectorAll('#productGrid .product-card').length===0 && document.querySelectorAll('#productGrid button:not(:disabled)').length===0"
+  Check 'Vitrine aguarda confirmação de preço antes de permitir compra' "document.querySelectorAll('#productGrid .product-card').length===119 && document.querySelectorAll('#productGrid button:not(:disabled)').length===0"
   WaitFor "document.querySelector('.store-notice')"
   Check 'Falha no catálogo não permite comprar com preço antigo' "document.querySelector('.store-notice button')!==null && document.querySelectorAll('#productGrid button:not(:disabled)').length===0"
   Cdp 'Page.removeScriptToEvaluateOnNewDocument' @{identifier=$offline.identifier} | Out-Null

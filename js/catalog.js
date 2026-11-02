@@ -1,9 +1,9 @@
 window.STORE_CONFIG = {
-  catalogReview: true,
+  catalogReview: false,
   brand: {
     name: "Magazine do Skincare",
     tagline: "Produtos para sua rotina de cuidados com a pele",
-    announcement: "Magazine do Skincare · Catálogo em atualização",
+    announcement: "Magazine do Skincare · Produtos para sua rotina de cuidados com a pele",
     contactEmail: "morgana@extratosdaterra.com.br",
     contactText: "WhatsApp: (11) 91975-6184",
     logo: "public/images/brand/magazine-do-skincare.png"
@@ -38,8 +38,8 @@ window.STORE_CONFIG = {
     categorySensitive: "public/images/banners/magazine-catalog-desktop.svg",
     categoryHydration: "public/images/banners/magazine-catalog-desktop.svg"
   },
-  categories: [],
-  products: [],
+  categories: [...new Set((window.CREAMY_PRODUCTS || []).map(product => product.categoria).filter(Boolean))],
+  products: window.CREAMY_PRODUCTS || [],
   routines: [],
   articles: []
 };
