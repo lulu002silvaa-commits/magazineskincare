@@ -1,0 +1,52 @@
+/* Home inspirada na campanha de referência; identidade da loja preservada. */
+body[data-page=home] { background: #fff; }
+body[data-page=home] .announcement { height: 28px; min-height: 28px; padding: 5px max(24px,calc((100% - 1026px)/2)); background: #000; color: #fff; text-align: left; font-size: 11px; letter-spacing: 0; }
+.home-utility { position: absolute; top: 5px; right: max(24px,calc((100% - 1026px)/2)); display: flex; gap: 18px; color: #fff; font-size: 11px; }
+.home-utility a:hover { text-decoration: underline; }
+body[data-page=home] .home-promotion { background: #000; color: #fff; padding: 24px 24px 20px; }
+.home-promotion>div { width: min(1026px,100%); min-height: 52px; margin: auto; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.home-promotion h2 { margin: 0; color: #fff; font: 500 26px/1.2 var(--sans); letter-spacing: -.5px; }
+.home-promotion a { text-align: right; font-size: 25px; font-weight: 700; line-height: 1.15; }
+.home-promotion a span { display: block; margin-top: 5px; font-size: 12px; font-weight: 400; }
+body[data-page=home] .hero.wrap { position: relative; width: 100%; max-width: none; margin: 0; padding: 0; }
+body[data-page=home] .hero-media { width: 100%; aspect-ratio: 1668/600; border-radius: 0; }
+body[data-page=home] .hero-slider-controls { position: absolute; z-index: 3; bottom: 12px; left: 50%; transform: translateX(-50%); width: min(1026px,calc(100% - 32px)); min-height: 44px; margin: 0; gap: 6px; grid-template-columns: minmax(0,1fr) 44px 44px 44px; pointer-events: none; }
+body[data-page=home] .hero-slider-controls button { pointer-events: auto; box-shadow: none; }
+body[data-page=home] .hero-slider-dots { pointer-events: auto; }
+body[data-page=home] .hero-slider-dot { width: 12px; min-width: 12px; }
+body[data-page=home] .hero-slider-dot::after { width: 6px; height: 6px; background: #fff; }
+body[data-page=home] .seller-disclosure { width: min(1026px,calc(100% - 40px)); font-size: 11px; padding-block: 16px; }
+.home-whatsapp { position: fixed; right: 16px; bottom: 16px; z-index: 40; width: 58px; height: 58px; padding: 10px; border: 2px solid #fff; border-radius: 50%; background: #1ccc64; color: #fff; box-shadow: 0 0 0 1px #132f25,0 3px 10px #0002; }
+.home-whatsapp svg { width: 100%; height: 100%; }
+@media(min-width:901px) {
+  body[data-page=home] { background: linear-gradient(#000 0 190px,#fff 190px); }
+  body[data-page=home] .site-header { position: relative; top: auto; width: min(1026px,calc(100% - 48px)); min-height: 66px; margin: 0 auto; display: grid; grid-template-columns: 155px minmax(0,1fr) 38px 65px; align-items: center; gap: 12px; padding: 0 14px; border: 0; border-radius: 6px; }
+  body[data-page=home] .header-main { display: contents; }
+  body[data-page=home] .header-main>.brand { grid-column: 1; grid-row: 1; }
+  body[data-page=home] .header-main .store-logo { width: 150px; height: 56px; object-fit: contain; }
+  body[data-page=home] .main-nav { grid-column: 2; grid-row: 1; width: 100%; padding: 0; gap: 16px; min-height: 66px; justify-content: space-evenly; }
+  body[data-page=home] .main-nav a { font-size: 12px; white-space: nowrap; color: #777; }
+  body[data-page=home] .mobile-search-toggle { display: grid; place-items: center; grid-column: 3; grid-row: 1; border: 0; font-size: 28px; }
+  body[data-page=home] .cart-link { grid-column: 4; grid-row: 1; font-size: 11px; gap: 4px; }
+  body[data-page=home] .search-form { display: none; position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 5; height: 48px; background: #fff; box-shadow: 0 5px 20px #0002; }
+  body[data-page=home] .search-form.search-open { display: flex; }
+}
+@media(min-width:651px) and (max-width:900px) {
+  body[data-page=home] .site-header { margin: 0; border: 0; }
+  body[data-page=home] .announcement { padding-left: 20px; }
+  .home-utility { display: none; }
+}
+@media(max-width:650px) {
+  body[data-page=home] .announcement { display: block; height: auto; min-height: 28px; padding: 7px 12px; font-size: 10px; text-align: center; }
+  .home-utility { display: none; }
+  body[data-page=home] .site-header { position: relative; top: auto; margin: 0; width: 100%; border-radius: 0; box-shadow: none; }
+  body[data-page=home] .header-main { min-height: 72px; padding-block: 4px; }
+  body[data-page=home] .home-promotion { padding: 16px; }
+  .home-promotion>div { min-height: 38px; gap: 12px; }
+  .home-promotion h2 { font-size: 18px; max-width: 190px; }
+  .home-promotion a { font-size: 17px; white-space: nowrap; }
+  .home-promotion a span { font-size: 10px; }
+  body[data-page=home] .hero-media { aspect-ratio: 640/800; border-radius: 0; }
+  body[data-page=home] .hero-slider-controls { bottom: 8px; width: calc(100% - 24px); }
+  .home-whatsapp { width: 50px; height: 50px; right: 12px; bottom: 12px; }
+}
