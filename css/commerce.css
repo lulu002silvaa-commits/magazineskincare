@@ -3,7 +3,7 @@
 .product-card:hover{transform:translateY(-2px);box-shadow:0 8px 26px #054d990b}
 .product-card>a{display:block}.product-card .product-image{height:auto;aspect-ratio:1;background:#f2f2f2}
 .product-card .product-image img{object-fit:contain}
-.product-image-badge{position:absolute;z-index:2;top:15px;left:15px;max-width:calc(100% - 70px);padding:6px 15px;border-radius:30px;background:#054d99;color:#fff;font:700 12px/1.2 var(--sans)}
+.product-image-badge{position:absolute;z-index:2;top:15px;left:15px;max-width:calc(100% - 70px);padding:6px 15px;border-radius:30px;background:#000;color:#fff;font:700 12px/1.2 var(--sans)}
 .product-image-badge-stock{top:auto;bottom:14px;background:#fff;color:#777;border:1px solid #ddd}
 .product-use-icons{position:absolute;z-index:2;top:14px;right:14px;display:grid;gap:5px;pointer-events:none}
 .product-use-icon{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#fff;color:#929292;font:21px/1 Arial,sans-serif}
