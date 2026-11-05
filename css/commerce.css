@@ -338,3 +338,4 @@ body[data-page=home] .hero-slider-dot.active::after { background: #054d99; }
   body[data-page=home] .hero-media { aspect-ratio: 640 / 800; border-radius: 12px; }
   body[data-page=home] .hero-slider-controls { width: 100%; gap: 5px; margin-top: 10px; }
 }
+.product-loading-preview{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:36px;align-items:center}.product-loading-preview .product-detail-image{position:relative;aspect-ratio:1;background:#f4f4f4}.product-loading-preview img{object-fit:contain}.product-loading-preview p{color:#616161}@media(max-width:650px){.product-loading-preview{grid-template-columns:1fr;gap:20px}}

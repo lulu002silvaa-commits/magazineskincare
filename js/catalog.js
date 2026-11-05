@@ -9,42 +9,42 @@ window.STORE_CONFIG = {
     logo: "public/images/brand/magazine-do-skincare.png"
   },
   images: {
-    heroDesktop: "public/images/banners/black-friday-1-desktop.png",
-    heroMobile: "public/images/banners/black-friday-1-mobile.png",
+    heroDesktop: "public/images/banners/black-friday-1-desktop.webp",
+    heroMobile: "public/images/banners/black-friday-1-mobile.webp",
     heroSlides: [
     {
-        "src": "public/images/banners/black-friday-1-desktop.png",
-        "mobileSrc": "public/images/banners/black-friday-1-mobile.png",
+        "src": "public/images/banners/black-friday-1-desktop.webp",
+        "mobileSrc": "public/images/banners/black-friday-1-mobile.webp",
         "alt": "Creamy Days: descontos progressivos de Black Friday",
         "href": "#catalogo-completo"
     },
     {
-        "src": "public/images/banners/black-friday-2-desktop.png",
-        "mobileSrc": "public/images/banners/black-friday-2-mobile.png",
+        "src": "public/images/banners/black-friday-2-desktop.webp",
+        "mobileSrc": "public/images/banners/black-friday-2-mobile.webp",
         "alt": "Black Friday: campanha Peptide Cream",
         "href": "#catalogo-completo"
     },
     {
-        "src": "public/images/banners/black-friday-3-desktop.png",
-        "mobileSrc": "public/images/banners/black-friday-3-mobile.png",
+        "src": "public/images/banners/black-friday-3-desktop.webp",
+        "mobileSrc": "public/images/banners/black-friday-3-mobile.webp",
         "alt": "Creamy Days: produtos selecionados com desconto",
         "href": "#catalogo-completo"
     },
     {
-        "src": "public/images/banners/black-friday-4-desktop.png",
-        "mobileSrc": "public/images/banners/black-friday-4-mobile.png",
+        "src": "public/images/banners/black-friday-4-desktop.webp",
+        "mobileSrc": "public/images/banners/black-friday-4-mobile.webp",
         "alt": "Black Friday: campanha de brindes",
         "href": "empresa.html#promocoes"
     },
     {
-        "src": "public/images/banners/black-friday-5-desktop.png",
-        "mobileSrc": "public/images/banners/black-friday-5-mobile.png",
+        "src": "public/images/banners/black-friday-5-desktop.webp",
+        "mobileSrc": "public/images/banners/black-friday-5-mobile.webp",
         "alt": "Creamy e Jade Picon: favoritos da campanha",
         "href": "#catalogo-completo"
     }
 ],
     routineDay: "public/images/products/official-157906.png",
-    campaignSecondary: "public/images/banners/black-friday-3-desktop.png",
+    campaignSecondary: "public/images/banners/black-friday-3-desktop.webp",
     categoryOily: "public/images/products/official-157906.png",
     categoryDry: "public/images/products/official-157916.jpg",
     categorySensitive: "public/images/products/official-157672.png",

@@ -41,16 +41,16 @@ Evaluate "[...document.querySelectorAll('#marketingConsent button')].find(b=>b.t
 Check 'Recusar publicidade mantém acesso à vitrine' "!document.querySelector('#marketingConsent') && localStorage.getItem('store-marketing-consent')==='rejected' && document.querySelectorAll('#productGrid .product-card').length===119"
 Check 'Carrossel restaura as cinco campanhas originais' "document.querySelectorAll('.hero-slider-dot').length===5"
 Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
-WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('black-friday-1-mobile.png') && document.querySelector('.hero-slide-image').naturalWidth>0"
+WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('black-friday-1-mobile.webp') && document.querySelector('.hero-slide-image').naturalWidth>0"
 Check 'Banner mobile tem proporção vertical' "document.querySelector('.hero-media').getBoundingClientRect().height>document.querySelector('.hero-media').getBoundingClientRect().width*1.2"
 Screenshot 'banner-home-mobile.png'
 Evaluate "document.querySelector('[data-hero-next]').click();true" | Out-Null
-WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('black-friday-2-mobile.png')"
+WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('black-friday-2-mobile.webp')"
 Check 'Setas trocam versão mobile e indicador' "document.querySelectorAll('.hero-slider-dot')[1].getAttribute('aria-current')==='true'"
 Evaluate "document.querySelector('.hero-slider-pause').click();true" | Out-Null
 Check 'Carrossel pode ser pausado' "document.querySelector('.hero-slider-pause').getAttribute('aria-pressed')==='true'"
 Cdp 'Emulation.setDeviceMetricsOverride' @{width=1440;height=1000;deviceScaleFactor=1;mobile=$false} | Out-Null
-WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('black-friday-2-desktop.png')"
+WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('black-friday-2-desktop.webp')"
 Check 'Desktop usa banner horizontal original' "document.querySelector('.hero-media').getBoundingClientRect().width>document.querySelector('.hero-media').getBoundingClientRect().height*2.7"
 Screenshot 'banner-home-desktop.png'
 Evaluate "document.querySelector('#produtos').scrollIntoView({block:'start',behavior:'instant'});true" | Out-Null

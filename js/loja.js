@@ -16,6 +16,11 @@
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const config = window.STORE_CONFIG;
+  // Só substitui imagens locais que possuem uma versão otimizada verificada.
+  const imageAsset = (path, thumbnail = false) => {
+    const asset = window.STORE_IMAGE_ASSETS?.[path];
+    return asset ? (thumbnail ? asset.thumb : asset.src) : path;
+  };
   let activeCategory = "Todos";
   let activeSkin = "";
   let activeCollection = FEATURED_COLLECTIONS[0].id;
@@ -148,7 +153,7 @@
     return placeholder;
   }
 
-  function makeProductImage(product, className) {
+  function makeProductImage(product, className, thumbnail = true) {
     const figure = document.createElement("div");
     figure.className = className;
     const filename = typeof product.imagem === "string" ? product.imagem : "";
@@ -157,7 +162,7 @@
     if (!filename) return figure;
 
     const image = document.createElement("img");
-    image.src = filename;
+    image.src = imageAsset(filename, thumbnail);
     image.alt = `Foto de ${product.nome}`;
     image.loading = "lazy";
     image.decoding = "async";
@@ -194,7 +199,7 @@
         picture.append(mobileSource);
       }
       const image = document.createElement("img");
-      image.src = filename;
+      image.src = imageAsset(filename);
       image.alt = container.getAttribute("aria-label") || "";
       image.loading = container.classList.contains("hero-media") ? "eager" : "lazy";
       image.addEventListener("load", () => {
@@ -711,7 +716,7 @@
     const dots = $('#productGalleryDots'), dotButtons = [];
     const showImage = (index) => {
       selectedIndex = (index + images.length) % images.length;
-      mainImage.src = images[selectedIndex];
+      mainImage.src = imageAsset(images[selectedIndex]);
       mainImage.alt = `${product.nome} — foto ${selectedIndex + 1} de ${images.length}`;
       counter.textContent = `${selectedIndex + 1} / ${images.length}`;
       thumbnailButtons.forEach((button, buttonIndex) => {
@@ -732,7 +737,7 @@
       button.setAttribute("aria-label", `Ver foto ${index + 1} de ${images.length} de ${product.nome}`);
       button.setAttribute("aria-pressed", "false");
       const image = document.createElement("img");
-      image.src = path;
+      image.src = imageAsset(path, true);
       image.alt = "";
       image.loading = "lazy";
       image.addEventListener("error", () => {
@@ -904,7 +909,7 @@
 
   function giftCard(gift) {
     const card = ui('div', 'promotion-gift');
-    const image = ui('img'); image.src = gift.imagem; image.alt = gift.nome; image.loading = 'lazy';
+    const image = ui('img'); image.src = imageAsset(gift.imagem, true); image.alt = gift.nome; image.loading = 'lazy';
     const text = ui('div'); text.append(ui('strong', '', `${gift.nome} — Brinde`), ui('p', '', '1 unidade grátis · Compras acima de R$ 349'));
     card.append(image, text); return card;
   }
@@ -1486,6 +1491,20 @@
     initFeaturedCarousel();
     renderCategoryTabs();
     renderCatalog();
+    // A foto local aparece enquanto o servidor confere preço e estoque.
+    const detail = $('#productDetail');
+    const previewProduct = detail && productById(new URLSearchParams(location.search).get('id'));
+    let productPreview;
+    if (previewProduct) {
+      productPreview = ui('section', 'product-loading-preview');
+      const photo = makeProductImage(previewProduct, 'product-detail-image', false);
+      const image = $('img', photo);
+      if (image) { image.loading = 'eager'; image.fetchPriority = 'high'; }
+      const copy = ui('div');
+      copy.append(ui('h1', '', previewProduct.nome), ui('p', '', 'Atualizando preço e disponibilidade…'));
+      productPreview.append(photo, copy);
+      detail.before(productPreview);
+    }
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 30000);
     try {
@@ -1517,7 +1536,7 @@
       const retry = document.createElement('button');
       retry.type = 'button'; retry.textContent = 'Tentar novamente'; retry.onclick = () => window.location.reload();
       notice.append(retry); document.body.prepend(notice);
-    } finally { window.clearTimeout(timeout); }
+    } finally { window.clearTimeout(timeout); productPreview?.remove(); }
     $$('[data-catalog-review]').forEach(element => { element.hidden = !config.catalogReview; });
     document.body.classList.toggle('catalog-review-mode', config.catalogReview === true);
     updateCartCount();

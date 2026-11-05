@@ -8,3 +8,9 @@
 - `public/fonts/`: arquivos locais Roc Grotesk e Roc Grotesk Wide usados em `css/skin.css`.
 
 As fotos de produto usam `object-fit: contain` para preservar o enquadramento. As galerias têm miniaturas e controles de navegação. A loja não depende de URLs externas para suas imagens ou fontes.
+
+## Imagens otimizadas
+
+Os banners usam versões `.webp`. `js/image-assets.js` relaciona as fotos originais às versões WebP e às miniaturas `-420.webp` usadas na vitrine, sacola e checkout. As galerias e a prévia de produto usam a versão maior; fotos novas enviadas pelo painel continuam funcionando pelo caminho original. Os originais permanecem preservados.
+
+As 387 imagens foram reduzidas de 70.599.227 para 14.650.538 bytes (79,2%). As miniaturas das 377 fotos somam 3.258.102 bytes. Execute `node tests/image-assets.mjs` para conferir cobertura, arquivos WebP e redução de tamanho. `vercel.json` configura cache de imagens por sete dias; use um novo nome de arquivo ao substituir uma arte durante esse período.
