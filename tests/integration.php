@@ -114,7 +114,16 @@ $order['idempotencyKey'] = 'integration-payment-request'; $order['expectedAmount
 $order['attribution'] = ['utm_source' => 'google', 'utm_campaign' => 'busca-skincare', 'ignored' => 'not-saved'];
 $invalid = $order; $invalid['customer']['document']['number'] = '11111111111';
 [$status] = request('/payments/blackcat', 'POST', $invalid); check('CPF inválido rejeitado', $status === 422);
+$requestsPath = realpath(getenv('TEST_DATA_DIR') ?: '') . '/payment-requests.json';
+$isolatedRoot = realpath(__DIR__ . '/../.runtime');
+if (!$isolatedRoot || !str_starts_with($requestsPath, $isolatedRoot . DIRECTORY_SEPARATOR)) throw new RuntimeException('Teste de repetição exige pasta isolada');
+$fingerprint = hash('sha256', json_encode([$order['customer'], $order['shipping'], [$product['id'] => 2], 10246, 'pix', []], JSON_THROW_ON_ERROR));
+file_put_contents($requestsPath, json_encode([$order['idempotencyKey'] => ['fingerprint' => $fingerprint, 'createdAt' => time(), 'state' => 'unconfirmed']]));
+[$status] = request('/payments/blackcat', 'POST', $order);
+check('Resposta incerta não permite gerar cobrança duplicada', $status === 409);
+file_put_contents($requestsPath, json_encode([$order['idempotencyKey'] => ['fingerprint' => $fingerprint, 'createdAt' => time(), 'state' => 'rejected']]));
 [$status, $charge] = request('/payments/blackcat', 'POST', $order);
+check('Recusa explícita permite repetir a mesma tentativa', $status === 201);
 check('Pix manual calculado pelo servidor', $status === 201 && $charge['data']['amount'] === 10246 && $charge['data']['paymentMethod'] === 'manual_pix');
 check('Pix sem validade bancária não recebe expiração artificial', !isset($charge['data']['paymentData']['checkoutExpiresAt']));
 [$status, $repeated] = request('/payments/blackcat', 'POST', $order);

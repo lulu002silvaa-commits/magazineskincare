@@ -140,6 +140,26 @@ try {
             json_response(['success' => true, 'csrf' => $_SESSION['csrf']]);
         }
         require_admin();
+        if ($route === '/admin/payment-diagnostics' && $method === 'GET') {
+            require_once __DIR__ . '/php/gateway.php';
+            $requests = read_data('payment-requests');
+            $counts = ['completed' => 0, 'rejected' => 0, 'unconfirmed' => 0];
+            $failures = [];
+            foreach ($requests as $request) {
+                $state = isset($request['response']) ? 'completed' : (($request['state'] ?? '') === 'rejected' ? 'rejected' : 'unconfirmed');
+                $counts[$state]++;
+                if (isset($request['failure'])) $failures[] = $request['failure'];
+            }
+            usort($failures, fn($a, $b) => ($b['at'] ?? 0) <=> ($a['at'] ?? 0));
+            $diagnostic = ['configured' => (getenv('BLACKCAT_API_KEY') ?: '') !== '', 'requests' => $counts, 'recentFailures' => array_slice($failures, 0, 10)];
+            if (!$diagnostic['configured']) json_response($diagnostic + ['available' => false, 'reason' => 'configuration']);
+            try {
+                gateway_request('/sales/seller');
+                json_response($diagnostic + ['available' => true, 'reason' => null]);
+            } catch (GatewayException $error) {
+                json_response($diagnostic + ['available' => false, 'reason' => $error->reason, 'httpStatus' => $error->httpStatus]);
+            }
+        }
         if ($route === '/admin/logout' && $method === 'POST') {
             $_SESSION = [];
             $cookie = session_get_cookie_params();

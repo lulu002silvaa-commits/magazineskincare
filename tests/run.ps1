@@ -25,6 +25,8 @@ try {
   for($i=0;$i -lt 50;$i++) {try { $health = Invoke-RestMethod -Uri ($env:TEST_BASE_URL+'/api/health'); if($health.ok){$ready=$true;break} } catch {}; Start-Sleep -Milliseconds 100 }
   if(!$ready){throw 'Servidor de testes não iniciou.'}
   if($process.HasExited){throw 'O processo de testes encerrou. Confira se a porta 8092 está disponível.'}
+  & $runtime -c php-local.ini tests/gateway.php
+  if($LASTEXITCODE -ne 0){throw 'Falha na classificação de respostas do gateway.'}
   & $runtime -c php-local.ini tests/integration.php
   if($LASTEXITCODE -ne 0){throw 'Falha nos testes da API.'}
   & $runtime -c php-local.ini tests/geolocation.php

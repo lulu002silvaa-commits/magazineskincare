@@ -1,20 +1,7 @@
 <?php
 declare(strict_types=1);
 
-function gateway_request(string $path, ?array $payload = null): array {
-    if (!function_exists('curl_init')) throw new RuntimeException('Habilite a extensão cURL no PHP para usar BlackCat.');
-    $curl = curl_init('https://api.blackcatoficial.com/api' . $path);
-    $headers = ['Accept: application/json', 'X-API-Key: ' . (getenv('BLACKCAT_API_KEY') ?: '')];
-    $options = [CURLOPT_RETURNTRANSFER => true, CURLOPT_CONNECTTIMEOUT => 10, CURLOPT_TIMEOUT => 30, CURLOPT_FOLLOWLOCATION => false];
-    if ($payload !== null) { $headers[] = 'Content-Type: application/json'; $options[CURLOPT_POST] = true; $options[CURLOPT_POSTFIELDS] = json_encode($payload, JSON_THROW_ON_ERROR); }
-    $options[CURLOPT_HTTPHEADER] = $headers;
-    curl_setopt_array($curl, $options);
-    $raw = curl_exec($curl); $status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-    if ($raw === false || $status < 200 || $status >= 300) json_response(['error' => 'Não foi possível confirmar a resposta da BlackCat. Consulte o gateway antes de tentar novamente.'], 502);
-    $result = json_decode($raw, true);
-    if (!is_array($result)) json_response(['error' => 'Resposta inválida do gateway.'], 502);
-    return $result;
-}
+require_once __DIR__ . '/gateway.php';
 
 if ($route === '/payments/blackcat' && $method === 'POST') {
     if (catalog_under_review()) json_response(['error' => 'O catálogo está em atualização. Novas compras estão temporariamente indisponíveis.'], 503);
@@ -67,13 +54,26 @@ if ($route === '/payments/blackcat' && $method === 'POST') {
         if (isset($data[$requestKey])) {
             if (!hash_equals($data[$requestKey]['fingerprint'], $fingerprint)) json_response(['error' => 'Esta solicitação já foi usada com outros dados. Revise o pedido.'], 409);
             if (isset($data[$requestKey]['response'])) json_response($data[$requestKey]['response'], 200);
+            if (($data[$requestKey]['state'] ?? '') === 'rejected') {
+                $data[$requestKey] = ['fingerprint' => $fingerprint, 'createdAt' => time(), 'state' => 'processing'];
+                return $data;
+            }
             json_response(['error' => 'Essa tentativa ainda está em análise. Consulte a loja antes de gerar outra cobrança.'], 409);
         }
-        $data[$requestKey] = ['fingerprint' => $fingerprint, 'createdAt' => time()]; return $data;
+        $data[$requestKey] = ['fingerprint' => $fingerprint, 'createdAt' => time(), 'state' => 'processing']; return $data;
     });
     $id = 'MS' . bin2hex(random_bytes(11)); $status = 'PENDING'; $paymentData = []; $invoice = null;
     if ($mode === 'gateway') {
+        try {
         $reply = gateway_request('/sales/create-sale', ['amount' => $amount, 'currency' => 'BRL', 'paymentMethod' => 'pix', 'items' => $saleItems, 'customer' => ['name' => $customer['name'], 'email' => $customer['email'], 'phone' => $phone, 'document' => ['number' => $cpf, 'type' => 'cpf']], 'shipping' => array_merge($shipping, ['name' => $customer['name'], 'zipCode' => preg_replace('/\D/', '', $shipping['zipCode'])]), 'pix' => ['expiresInDays' => 1], 'externalRef' => $id]);
+        } catch (GatewayException $error) {
+            update_data('payment-requests', function ($data) use ($requestKey, $error) {
+                $data[$requestKey]['state'] = $error->definitive ? 'rejected' : 'unconfirmed';
+                $data[$requestKey]['failure'] = ['reason' => $error->reason, 'httpStatus' => $error->httpStatus, 'at' => time()];
+                return $data;
+            });
+            json_response(['error' => $error->getMessage(), 'code' => $error->reason, 'retryable' => $error->definitive], 502);
+        }
         $charge = $reply['data'] ?? [];
         if (!is_string($charge['transactionId'] ?? null) || !preg_match('/^[A-Za-z0-9_-]{1,100}$/', $charge['transactionId'])) json_response(['error' => 'O gateway não retornou uma cobrança válida.'], 502);
         $id = $charge['transactionId']; $paymentData = $charge['paymentData'] ?? []; $invoice = $charge['invoiceUrl'] ?? null;
@@ -105,7 +105,9 @@ if (($method === 'GET' && preg_match('~^/payments/([A-Za-z0-9_-]{1,100})$~', $ro
     }
     if (($record['paymentMethod'] ?? '') !== 'manual_pix') {
         if (!(getenv('BLACKCAT_API_KEY') ?: '')) json_response(['error' => 'Gateway não configurado.'], 503);
-        $reply = gateway_request('/sales/' . rawurlencode($id) . '/status'); $confirmed = $reply['data'] ?? [];
+        try { $reply = gateway_request('/sales/' . rawurlencode($id) . '/status'); }
+        catch (GatewayException $error) { json_response(['error' => $error->getMessage(), 'code' => $error->reason], 502); }
+        $confirmed = $reply['data'] ?? [];
         if (($confirmed['transactionId'] ?? null) !== $id || ($confirmed['amount'] ?? null) !== $record['amount'] || !in_array($confirmed['status'] ?? '', ['PENDING', 'PAID', 'CANCELLED', 'REFUNDED'], true)) json_response(['error' => 'Não foi possível confirmar o pagamento.'], 502);
         $record['status'] = $confirmed['status']; $record['paidAt'] = $confirmed['paidAt'] ?? null;
         $updated = update_data('transactions', function ($data) use ($id, $record) { $data[$id]['status'] = $record['status']; $data[$id]['paidAt'] = $record['paidAt']; return $data; });
