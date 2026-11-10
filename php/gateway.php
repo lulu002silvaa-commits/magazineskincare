@@ -8,6 +8,7 @@ final class GatewayException extends RuntimeException {
             'permission' => 'O provedor Pix não autorizou a conta da loja. Entre em contato com a loja.',
             'validation' => 'O provedor Pix recusou os dados do pedido. Confira os dados e tente novamente.',
             'rate_limit' => 'O provedor Pix está recebendo muitas solicitações. Aguarde um minuto e tente novamente.',
+            'provider_error' => 'A BlackCat retornou um erro interno ao gerar o Pix. A loja precisa conferir a tentativa no provedor antes de emitir outra cobrança.',
             default => 'Não foi possível confirmar a resposta do provedor Pix. Consulte a loja antes de tentar outra cobrança.'
         });
     }
@@ -20,7 +21,7 @@ function gateway_decode_response(string|false $raw, int $status): array {
     $result = json_decode($raw, true);
     $reason = match ($status) {
         401 => 'credentials', 403 => 'permission', 400, 422 => 'validation',
-        429 => 'rate_limit', default => 'unconfirmed'
+        429 => 'rate_limit', 500, 502, 503, 504 => 'provider_error', default => 'unconfirmed'
     };
     if ($status < 200 || $status >= 300) {
         $definitive = in_array($status, [400, 401, 403, 404, 405, 422, 429], true)

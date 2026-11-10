@@ -1252,6 +1252,7 @@
       } else {
         $("#pixTitle").textContent = "Realize o pagamento para garantir sua compra";
       }
+      if (!qr) $('#pixStatus').textContent = 'O QR Code não carregou. Use o código Pix copia e cola abaixo para pagar.';
       pollPayment(payment.transactionId, payment.paymentMethod === 'manual_pix');
       document.dispatchEvent(new CustomEvent('visitor-stage', { detail: 'pix_pending' }));
       commerceEvent('pix_generated', cart, { transaction_id: payment.transactionId });

@@ -1,6 +1,6 @@
 # Pagamento BlackCat
 
-O checkout disponibiliza o QR e o copia e cola por 10 minutos após a criação da cobrança. O servidor salva `paymentData.checkoutExpiresAt` em UTC e reutiliza o prazo original nas repetições do mesmo pedido. Ao terminar, a tela oculta os códigos, mas continua consultando pagamentos já realizados. Esse prazo não cancela a cobrança bancária: a API documenta apenas `pix.expiresInDays` em dias inteiros, mantido em 1 dia. Pix por chave também não possui cancelamento automático no banco.
+O checkout respeita a expiração informada pelo provedor e mantém a consulta de pagamentos após esse prazo. Não aplica expiração artificial a Pix por chave própria. A BlackCat recebe `pix.expiresInDays` em dias inteiros, mantido em 1 dia.
 
 O backend PHP utiliza a URL `https://api.blackcatoficial.com/api`, criação em `/sales/create-sale` e consulta em `/sales/{transactionId}/status`.
 
@@ -15,6 +15,14 @@ O servidor distingue recusas explícitas do provedor (credencial, permissão, va
 Com uma sessão administrativa autenticada, `GET /api/admin/payment-diagnostics` consulta `/sales/seller` sem criar cobrança. Retorna aceitação da conexão, classificação da falha e contagem das solicitações concluídas, recusadas e incertas, sem expor a chave ou os dados pessoais dos pedidos. Credencial aceita nessa consulta não garante que a conta tenha condições de emitir uma cobrança.
 
 Execute `tests/run.ps1` para validar a classificação dos erros e a repetição das tentativas com dados isolados. Os testes não criam cobranças externas.
+
+Uma resposta de cobrança aceita é salva antes das demais gravações, para permitir retomada após interrupção sem reenviar a criação. A referência enviada ao provedor também é preservada antes da chamada. Solicitações antigas que já ficaram sem confirmação continuam exigindo conferência.
+
+O copia e cola não depende da biblioteca de QR: se a biblioteca falhar, o código permanece disponível com uma orientação na tela. `node tests/payment-service.mjs` verifica essa situação e a preservação da tentativa após erro de rede.
+
+## Pix por chave própria
+
+No painel administrativo, selecione **Configurações → Chave Pix própria**, confira chave, titular e cidade e salve. O checkout gera o copia e cola e o QR localmente, com o valor calculado no servidor. O recebimento precisa ser conferido na conta da loja; gerar ou copiar o código não comprova pagamento.
 
 O PHP precisa de cURL e OpenSSL com certificados válidos. O runtime portátil já tem essas extensões e certificados configurados. Em hospedagem, use o certificado fornecido pelo servidor, mantendo a verificação HTTPS ativa.
 

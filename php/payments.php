@@ -50,20 +50,25 @@ if ($route === '/payments/blackcat' && $method === 'POST') {
     $requestKey = $body['idempotencyKey'] ?? bin2hex(random_bytes(20));
     if (!is_string($requestKey) || !preg_match('/^[a-zA-Z0-9_-]{12,100}$/', $requestKey)) throw new InvalidArgumentException('Identificador da solicitação inválido.');
     $fingerprint = hash('sha256', json_encode([$customer, $shipping, $requested, $amount, $mode, $gifts], JSON_THROW_ON_ERROR));
-    update_data('payment-requests', function ($data) use ($requestKey, $fingerprint) {
+    $externalRef = 'MS' . bin2hex(random_bytes(11));
+    $requests = update_data('payment-requests', function ($data) use ($requestKey, $fingerprint, $externalRef) {
         if (isset($data[$requestKey])) {
             if (!hash_equals($data[$requestKey]['fingerprint'], $fingerprint)) json_response(['error' => 'Esta solicitação já foi usada com outros dados. Revise o pedido.'], 409);
             if (isset($data[$requestKey]['response'])) json_response($data[$requestKey]['response'], 200);
+            if (isset($data[$requestKey]['charge'])) return $data;
             if (($data[$requestKey]['state'] ?? '') === 'rejected') {
-                $data[$requestKey] = ['fingerprint' => $fingerprint, 'createdAt' => time(), 'state' => 'processing'];
+                $data[$requestKey] = ['fingerprint' => $fingerprint, 'createdAt' => time(), 'state' => 'processing', 'externalRef' => $externalRef];
                 return $data;
             }
-            json_response(['error' => 'Essa tentativa ainda está em análise. Consulte a loja antes de gerar outra cobrança.'], 409);
+            json_response(['error' => 'O provedor não confirmou a criação deste Pix. A loja precisa conferir a tentativa na BlackCat antes de emitir outra cobrança.', 'code' => 'payment_unconfirmed'], 409);
         }
-        $data[$requestKey] = ['fingerprint' => $fingerprint, 'createdAt' => time(), 'state' => 'processing']; return $data;
+        $data[$requestKey] = ['fingerprint' => $fingerprint, 'createdAt' => time(), 'state' => 'processing', 'externalRef' => $externalRef]; return $data;
     });
-    $id = 'MS' . bin2hex(random_bytes(11)); $status = 'PENDING'; $paymentData = []; $invoice = null;
+    $id = $requests[$requestKey]['externalRef'] ?? $externalRef; $status = 'PENDING'; $paymentData = []; $invoice = null;
     if ($mode === 'gateway') {
+        $savedCharge = $requests[$requestKey]['charge'] ?? null;
+        if ($savedCharge) $reply = ['data' => $savedCharge];
+        else {
         try {
         $reply = gateway_request('/sales/create-sale', ['amount' => $amount, 'currency' => 'BRL', 'paymentMethod' => 'pix', 'items' => $saleItems, 'customer' => ['name' => $customer['name'], 'email' => $customer['email'], 'phone' => $phone, 'document' => ['number' => $cpf, 'type' => 'cpf']], 'shipping' => array_merge($shipping, ['name' => $customer['name'], 'zipCode' => preg_replace('/\D/', '', $shipping['zipCode'])]), 'pix' => ['expiresInDays' => 1], 'externalRef' => $id]);
         } catch (GatewayException $error) {
@@ -74,8 +79,16 @@ if ($route === '/payments/blackcat' && $method === 'POST') {
             });
             json_response(['error' => $error->getMessage(), 'code' => $error->reason, 'retryable' => $error->definitive], 502);
         }
+        }
         $charge = $reply['data'] ?? [];
         if (!is_string($charge['transactionId'] ?? null) || !preg_match('/^[A-Za-z0-9_-]{1,100}$/', $charge['transactionId'])) json_response(['error' => 'O gateway não retornou uma cobrança válida.'], 502);
+        // Salva a resposta bancária antes de consultas de localização e demais
+        // gravações. Uma interrupção posterior pode retomar sem criar outro Pix.
+        if (!$savedCharge) update_data('payment-requests', function ($data) use ($requestKey, $charge) {
+            $data[$requestKey]['charge'] = array_intersect_key($charge, array_flip(['transactionId', 'paymentData', 'invoiceUrl']));
+            $data[$requestKey]['state'] = 'created';
+            return $data;
+        });
         $id = $charge['transactionId']; $paymentData = $charge['paymentData'] ?? []; $invoice = $charge['invoiceUrl'] ?? null;
     }
     // Somente o banco/gateway determina a validade da cobrança.

@@ -26,6 +26,13 @@
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qr.createSvgTag(8, 4, 'QR Code Pix'))}`;
   }
 
+  function attachPixQr(paymentData, copyPaste) {
+    // O copia e cola continua disponível mesmo se a biblioteca de QR falhar.
+    try { paymentData.qrCodeBase64 = createPixQr(copyPaste); }
+    catch { paymentData.qrCodeBase64 = null; }
+    return paymentData;
+  }
+
   async function readApiResponse(response) {
     const body = await response.text();
     try {
@@ -99,7 +106,7 @@
       paymentIntent = intent;
       const config = await getConfig();
       if (!config.available) throw new Error(config.message || 'Pagamento temporariamente indisponível.');
-      if (config.method === "pix" && (!window.PixBR?.gerarPayload || typeof window.qrcode !== "function")) {
+      if (config.method === "pix" && !window.PixBR?.gerarPayload) {
         throw new Error("Não foi possível carregar o gerador de QR Pix. Atualize a página e tente novamente.");
       }
       const result = await request("/api/payments/blackcat", { method: "POST", body: JSON.stringify({ ...data, idempotencyKey: intent.key }) });
@@ -119,22 +126,21 @@
           txid: result.data.transactionId
         });
         result.data.paymentMethod = "manual_pix";
-        result.data.paymentData = {
+        result.data.paymentData = attachPixQr({
           ...result.data.paymentData,
           copyPaste,
-          qrCode: copyPaste,
-          qrCodeBase64: createPixQr(copyPaste)
-        };
+          qrCode: copyPaste
+        }, copyPaste);
       } else {
         const paymentData = result.data.paymentData || {};
-        const copyPaste = paymentData.copyPaste || paymentData.qrCode;
-        if (typeof copyPaste !== "string" || !copyPaste.trim().startsWith('000201')) {
+        const copyPaste = [paymentData.copyPaste, paymentData.qrCode]
+          .find(value => typeof value === 'string' && value.trim().startsWith('000201'))?.trim();
+        if (!copyPaste) {
           throw new Error("A cobrança foi criada, mas a BlackCat não devolveu o Pix copia e cola. Consulte a cobrança no painel da BlackCat antes de tentar novamente.");
         }
         paymentData.copyPaste = copyPaste.trim();
         // O copia e cola é a fonte da cobrança; imagens do gateway podem vir inválidas.
-        paymentData.qrCodeBase64 = createPixQr(paymentData.copyPaste);
-        result.data.paymentData = paymentData;
+        result.data.paymentData = attachPixQr(paymentData, paymentData.copyPaste);
       }
       return result;
     },

@@ -33,7 +33,13 @@ try {
   if($LASTEXITCODE -ne 0){throw 'Falha nos testes de localização.'}
   & $runtime -c php-local.ini tests/persistence.php
   if($LASTEXITCODE -ne 0){throw 'Falha nos testes de persistência.'}
-  if($Browser){& (Join-Path $PSScriptRoot 'browser.ps1')}
+  if($Browser){
+    # As verificações HTTP e de navegador possuem orçamentos independentes.
+    foreach($file in 'payment-limits.json','payment-limits.backup.json') {
+      [IO.File]::WriteAllText((Join-Path $testPath $file),'{}')
+    }
+    & (Join-Path $PSScriptRoot 'browser.ps1')
+  }
 } finally {
   if($process -and !$process.HasExited){Stop-Process -Id $process.Id -Force}
   if($process){$process.WaitForExit(5000) | Out-Null; $process.Dispose()}
