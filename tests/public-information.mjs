@@ -9,7 +9,7 @@ assert.equal(config.brand.announcements.length, 3);
 assert.ok(config.brand.announcements.every(message => !/PRIMEIRA5|R\$299|5% OFF/.test(message)));
 assert.ok(config.brand.announcements.some(message => message.includes('acima de R$349')));
 for (const slide of config.images.heroSlides) {
-  assert.ok(/\/black-friday-[1-5]-desktop\.webp$/.test(slide.src), 'Artes autorizadas solicitadas pelo usuário');
+  assert.ok(/\/magazine-offer-[1-5]-desktop\.webp$/.test(slide.src), 'Artes revisadas com ofertas reais do catálogo');
   for (const path of [slide.src, slide.mobileSrc]) await readFile(new URL(path, root));
 }
 const product = { id: 'test', nome: 'Cosmético', preco: 50, estoque: 3, descricao: 'Resultados comprovados em apenas 7 dias. Aqui na Creamy.', especificacoes: { 'Principais benefícios': 'Elimina a acne em 7 dias.', 'Composição': 'Aqua, Glycerin.', 'Como usar': 'Aplicar conforme o rótulo.' } };
@@ -29,4 +29,4 @@ for (const page of ['index.html', 'produto.html', 'carrinho.html', 'checkout.htm
   assert.ok(!/PRIMEIRA5/.test(html));
   assert.ok(html.indexOf('js/product-information.js') < html.indexOf('js/loja.js'));
 }
-console.log('Ofertas, banners próprios, privacidade e preservação de preço, estoque e instruções verificados.');
+console.log('Ofertas, banners revisados, privacidade e preservação de preço, estoque e instruções verificados.');

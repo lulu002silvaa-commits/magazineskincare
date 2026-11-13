@@ -30,3 +30,13 @@ body[data-page=home] .home-utility {
   }
 }
 body .announcement[hidden] { display: none; }
+
+/* Mantém a navegação fora dos preços e das condições impressas nas artes. */
+body[data-page=home] .hero-slider-controls {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  transform: none;
+  margin: 8px auto;
+}
+body[data-page=home] .hero-slider-dot::after { background: #145493; }

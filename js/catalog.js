@@ -14,38 +14,38 @@ window.STORE_CONFIG = {
   "logo": "public/images/brand/magazine-do-skincare.png"
 },
   images: {
-  "heroDesktop": "public/images/banners/black-friday-1-desktop.webp",
-  "heroMobile": "public/images/banners/black-friday-1-mobile.webp",
+  "heroDesktop": "public/images/banners/magazine-offer-1-desktop.webp",
+  "heroMobile": "public/images/banners/magazine-offer-1-mobile.webp",
   "heroSlides": [
     {
-      "src": "public/images/banners/black-friday-1-desktop.webp",
-      "mobileSrc": "public/images/banners/black-friday-1-mobile.webp",
-      "alt": "Campanha Creamy Days",
-      "href": "empresa.html#promocoes"
-    },
-    {
-      "src": "public/images/banners/black-friday-2-desktop.webp",
-      "mobileSrc": "public/images/banners/black-friday-2-mobile.webp",
-      "alt": "Campanha Peptide Cream da Creamy",
-      "href": "empresa.html#promocoes"
-    },
-    {
-      "src": "public/images/banners/black-friday-3-desktop.webp",
-      "mobileSrc": "public/images/banners/black-friday-3-mobile.webp",
-      "alt": "Produtos em destaque na campanha Creamy Days",
-      "href": "empresa.html#promocoes"
-    },
-    {
-      "src": "public/images/banners/black-friday-4-desktop.webp",
-      "mobileSrc": "public/images/banners/black-friday-4-mobile.webp",
-      "alt": "Campanha de brindes da Creamy",
-      "href": "empresa.html#promocoes"
-    },
-    {
-      "src": "public/images/banners/black-friday-5-desktop.webp",
-      "mobileSrc": "public/images/banners/black-friday-5-mobile.webp",
-      "alt": "Creamy e Jade Picon: produtos da coleção",
+      "src": "public/images/banners/magazine-offer-1-desktop.webp",
+      "mobileSrc": "public/images/banners/magazine-offer-1-mobile.webp",
+      "alt": "Skincare em oferta: até 30% em produtos selecionados; descontos já incluídos no catálogo",
       "href": "#catalogo-completo"
+    },
+    {
+      "src": "public/images/banners/magazine-offer-2-desktop.webp",
+      "mobileSrc": "public/images/banners/magazine-offer-2-mobile.webp",
+      "alt": "Ceramide Skin Repair: de R$59,99 por R$41,99; desconto já incluído",
+      "href": "produto.html?id=ceramide-skin-repair"
+    },
+    {
+      "src": "public/images/banners/magazine-offer-3-desktop.webp",
+      "mobileSrc": "public/images/banners/magazine-offer-3-mobile.webp",
+      "alt": "Sérum Hidratante: de R$35,99 por R$25,19; desconto já incluído",
+      "href": "produto.html?id=drops-serum-hidratante"
+    },
+    {
+      "src": "public/images/banners/magazine-offer-4-desktop.webp",
+      "mobileSrc": "public/images/banners/magazine-offer-4-mobile.webp",
+      "alt": "Ganhe 1 sérum de brinde em compras acima de R$349, sujeito à disponibilidade",
+      "href": "empresa.html#promocoes"
+    },
+    {
+      "src": "public/images/banners/magazine-offer-5-desktop.webp",
+      "mobileSrc": "public/images/banners/magazine-offer-5-mobile.webp",
+      "alt": "Duo Glass Skin: de R$189,98 por R$132,99; desconto já incluído",
+      "href": "produto.html?id=porerefiner-ceramideskinrepair"
     }
   ],
   "routineDay": "public/images/products/official-157906.png",
