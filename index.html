@@ -5,7 +5,7 @@
   <meta name="google-site-verification" content="1l8xMaPw2x7d__gShZWMr9r6DWTEiakMajy_fAA_qi0" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#145493">
-  <meta name="description" content="Magazine do Skincare: informações da loja, atendimento e catálogo de cuidados com a pele.">
+
   <title>Magazine do Skincare | Cuidados com a pele</title>
   <link rel="preload" href="public/fonts/roc-grotesk-regular.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="preload" as="image" href="public/images/banners/magazine-offer-1-mobile.webp" media="(max-width: 650px)" fetchpriority="high">
@@ -16,12 +16,12 @@
   <script src="js/deployment.js?v=10"></script>
   <script src="js/api-base.js?v=10"></script>
   <script src="js/product-information.js?v=1" defer></script><script src="js/products.js?v=33" defer></script>
-  <script src="js/catalog.js?v=38" defer></script>
-  <script src="js/image-assets.js?v=1" defer></script><script src="js/loja.js?v=44" defer></script>
+  <script src="js/catalog.js?v=39" defer></script>
+  <script src="js/image-assets.js?v=1" defer></script><script src="js/loja.js?v=45" defer></script>
   <script src="js/marketing.js?v=5"></script>
   <link rel="stylesheet" href="css/home-reference.css?v=1">
-  <link rel="stylesheet" href="css/promotion.css?v=3">
-</head>
+  <link rel="stylesheet" href="css/promotion.css?v=4">
+<meta name="description" content="Magazine do Skincare: catálogo de cuidados com a pele, preços e disponibilidade, pagamento por Pix e atendimento da loja."><link rel="canonical" href="https://magazineskincare.online/"><meta property="og:title" content="Magazine do Skincare"><meta property="og:description" content="Magazine do Skincare: catálogo de cuidados com a pele, preços e disponibilidade, pagamento por Pix e atendimento da loja."><meta property="og:type" content="website"><meta property="og:url" content="https://magazineskincare.online/"><meta property="og:image" content="https://magazineskincare.online/public/images/brand/magazine-do-skincare.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Magazine do Skincare","legalName":"Morgana Wagner de Souza LTDA","url":"https://magazineskincare.online/","logo":"https://magazineskincare.online/public/images/brand/magazine-do-skincare.png","email":"morgana@extratosdaterra.com.br","telephone":"+5511919756184"}</script></head>
 <body data-page="home">
   <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
   <div class="announcement" id="announcement">Cuidados com a pele • Conheça nosso catálogo</div>
@@ -123,11 +123,13 @@
         <div class="category-tabs catalog-category-tabs" role="group" aria-label="Filtrar produtos por categoria" id="catalogCategoryTabs"></div>
       </div>
       <p class="catalog-status" id="fullCatalogStatus" aria-live="polite"></p>
+      <div class="catalog-filter-summary"><p id="activeFilters" aria-live="polite">Exibindo todo o catálogo</p><button class="text-link" id="clearCatalogFilters" type="button" hidden>Limpar filtros</button></div>
       <div class="product-grid" id="productGrid"></div>
       <div class="empty-state" id="catalogEmpty" hidden>
         <span class="empty-flower" aria-hidden="true">✳</span>
         <h3>Nenhum produto nesta seleção</h3>
         <p>Nenhum produto corresponde aos filtros selecionados. Tente outra categoria ou ajuste a busca.</p>
+        <button type="button" class="button button-outline" id="clearEmptyFilters">Ver todos os produtos</button>
       </div>
     </section>
 
@@ -175,7 +177,7 @@
       <div><h2>Dados da empresa</h2><p>Morgana Wagner de Souza LTDA</p><p>CNPJ: 34.105.837/0001-17</p><address>Praça Sete de Setembro, 106, Sala 9<br>Centro, Palhoça — SC<br>CEP 88130-200</address></div>
     </div>
     <div class="wrap footer-bottom"><span>© <span id="currentYear"></span> Magazine do Skincare</span><span>Frete grátis. Pagamento por Pix.</span></div>
-  </footer>
+  <nav class="institutional-links" aria-label="Informações e políticas da loja"><a href="sobre.html">Sobre nós</a><a href="contato.html">Fale conosco</a><a href="privacidade.html">Política de privacidade</a><a href="cookies.html">Política de cookies</a><a href="termos.html">Termos de uso</a><a href="entrega.html">Entrega e frete</a><a href="trocas.html">Trocas e devoluções</a><a href="reembolso.html">Política de reembolso</a><a href="empresa.html">Dados da empresa e promoções</a></nav></footer>
   <a class="home-whatsapp" href="https://wa.me/5511919756184" target="_blank" rel="noopener" aria-label="Falar com a loja no WhatsApp"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M27 15.5a11 11 0 0 1-16.4 9.6L4 27l1.9-6.4A11 11 0 1 1 27 15.5Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11 9c-3 1-1 7 3 10s8 3 9 0l-4-2-2 2c-3-1-5-3-6-6l2-1Z" fill="currentColor"/></svg></a>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <noscript><p class="store-notice">Ative o JavaScript para consultar os produtos e utilizar a sacola.</p></noscript>

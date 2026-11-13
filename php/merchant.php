@@ -27,7 +27,7 @@ function serve_merchant_document(string $route): never {
     echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
     if ($route === '/sitemap') {
         echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
-        foreach ([$origin . '/', $origin . '/empresa.html'] as $url) echo '<url><loc>' . merchant_xml($url) . '</loc></url>';
+        foreach (['/', '/empresa.html', '/sobre.html', '/contato.html', '/privacidade.html', '/cookies.html', '/termos.html', '/entrega.html', '/trocas.html', '/reembolso.html'] as $path) echo '<url><loc>' . merchant_xml($origin . $path) . '</loc></url>';
         foreach ($store['produtos'] as $product) echo '<url><loc>' . merchant_xml($origin . '/produto.html?id=' . rawurlencode($product['id'])) . '</loc></url>';
         echo '</urlset>'; exit;
     }

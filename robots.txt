@@ -3,7 +3,5 @@ Allow: /
 Disallow: /admin.php
 Disallow: /admin.html
 Disallow: /api/
-Disallow: /checkout.html
-Disallow: /carrinho.html
 
 Sitemap: https://magazineskincare.online/sitemap.xml

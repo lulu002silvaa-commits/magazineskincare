@@ -69,8 +69,11 @@ check('Feed usa preço atual e identificador do produto', (string)$feedItem->id 
 check('Feed não contém ofertas retiradas nem identificadores fictícios', !preg_match('/ghk[\s-]*cu|copper\s+tripeptide|peptide\s*cream/iu', $feedText) && !str_contains($feedText, '<g:identifier_exists>no'));
 check('Feed inclui GTIN verificado do fabricante', (string)$feedItem->gtin === $product['gtin']);
 curl_setopt($feedClient, CURLOPT_URL, $base . '/api/sitemap'); $sitemapText = curl_exec($feedClient); $sitemap = simplexml_load_string($sitemapText); curl_close($feedClient);
-check('Sitemap inclui produtos públicos e informações da loja', $sitemap !== false && count($sitemap->url) === 121);
+check('Sitemap inclui produtos públicos e informações da loja', $sitemap !== false && count($sitemap->url) === 129 && str_contains($sitemapText, '/cookies.html') && str_contains($sitemapText, '/termos.html'));
 check('Sitemap não divulga painel nem checkout', !str_contains($sitemapText, 'admin.php') && !str_contains($sitemapText, 'checkout.html'));
+$seoClient = curl_init($base . '/produto.html?id=' . rawurlencode($product['id']));
+curl_setopt($seoClient, CURLOPT_RETURNTRANSFER, true); $seoText = curl_exec($seoClient); curl_close($seoClient);
+check('Produto tem preço e dados estruturados no HTML antes do JavaScript', str_contains($seoText, 'id="productStructuredData"') && str_contains($seoText, '"price":"51.23"') && str_contains($seoText, 'rel="canonical"') && str_contains($seoText, 'property="og:title"'));
 $blocked = $product; $blocked['id'] = 'antiaging-peptide-cream'; $blocked['nome'] = 'Produto retirado';
 [$status] = request('/admin/product', 'POST', ['product' => $blocked, 'revision' => 1, 'create' => true]);
 check('Produto retirado não pode voltar por renomeação', $status === 422);

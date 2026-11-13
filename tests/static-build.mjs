@@ -41,7 +41,7 @@ async function inspect(directory) {
 }
 await inspect(dist);
 check('PHP, credenciais, dados e backups fora da publicação HTML', forbidden.length === 0);
-for (const page of ['index.html', 'produto.html', 'carrinho.html', 'checkout.html', 'empresa.html', 'admin.html']) {
+for (const page of ['index.html', 'produto.html', 'carrinho.html', 'checkout.html', 'empresa.html', 'admin.html', 'sobre.html', 'contato.html', 'privacidade.html', 'cookies.html', 'termos.html', 'entrega.html', 'trocas.html', 'reembolso.html', '404.html']) {
   const html = await readFile(join(dist, page), 'utf8');
   for (const match of html.matchAll(/(?:src|href)="([^"?#]+)(?:\?[^"#]*)?"/g)) {
     const path = match[1]; if (/^(?:https?:|mailto:|tel:|data:|\/)/.test(path)) continue;

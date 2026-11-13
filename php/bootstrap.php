@@ -175,13 +175,19 @@ function input_json(): array {
     return $value;
 }
 
+function request_is_https(): bool {
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') return true;
+    if (getenv('RENDER') !== 'true' && getenv('STORE_TRUST_PROXY') !== '1') return false;
+    return strtolower(trim(explode(',', $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')[0])) === 'https';
+}
+
 function start_admin_session(): void {
     data_directory();
     $directory = STORE_DATA . '/sessions';
     if (!is_dir($directory)) mkdir($directory, 0700, true);
     session_save_path($directory);
     session_name('magazine_admin');
-    session_start(['use_strict_mode' => 1, 'cookie_httponly' => true, 'cookie_samesite' => 'Strict', 'cookie_secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off']);
+    session_start(['use_strict_mode' => 1, 'cookie_httponly' => true, 'cookie_samesite' => 'Strict', 'cookie_secure' => request_is_https()]);
     if (!isset($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32));
 }
 

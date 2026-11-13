@@ -40,3 +40,13 @@ body[data-page=home] .hero-slider-controls {
   margin: 8px auto;
 }
 body[data-page=home] .hero-slider-dot::after { background: #145493; }
+.catalog-filter-summary { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; font-size: 14px; }
+.catalog-filter-summary p { margin: 0; }
+.institutional-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 24px; padding: 24px 20px; border-top: 1px solid #dce7ed; font-size: 13px; line-height: 1.7; background: #f5f9fc; color: #073473; }
+.institutional-links a { text-decoration: underline; text-underline-offset: 3px; }
+.company-page { max-width: 1000px; padding-bottom: 48px; }
+.company-page p, .company-page li { line-height: 1.8; overflow-wrap: anywhere; }
+.company-page table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.company-page td,.company-page th { padding: 12px; text-align: left; border: 1px solid #dce7ed; overflow-wrap: anywhere; }
+:focus-visible { outline: 3px solid #1269b2; outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

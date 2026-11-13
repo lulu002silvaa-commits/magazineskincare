@@ -5,7 +5,7 @@
   const MAX_CART_QUANTITY = 20;
   const FEATURED_ORDER = {
     favorites: ["drops-serum-hidratante", "lip-balm-latte", "lip-balm-mocha-10g", "acido-salicilico-1"],
-    launches: ["intensetx-acidotranexamico", "intensetx-vitaminacgold", "intensetx-ceramideskinrepair", "intensetx-peptide"]
+    launches: ["vitamina-c-gold", "ceramide-skin-repair", "pore-refiner", "drops-serum-hidratante"]
   };
   const FEATURED_COLLECTIONS = [
     { id: "favorites", label: "Seleção da loja", matches: (product) => FEATURED_ORDER.favorites.includes(product.id) },
@@ -16,6 +16,7 @@
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const config = window.STORE_CONFIG;
+  let refreshHeroOffers = () => {};
   config.products = config.products.map(window.StoreProductInformation);
   // Só substitui imagens locais que possuem uma versão otimizada verificada.
   const imageAsset = (path, thumbnail = false) => {
@@ -257,6 +258,19 @@
     let paused = false;
     const show = (index) => {
       activeIndex = (index + slides.length) % slides.length;
+      const eligible = slide => {
+        if (slide.discountPercent) return config.products.some(product => product.disponivel !== false && (!Number.isInteger(product.estoque) || product.estoque > 0) && discountPercent(product) === slide.discountPercent);
+        if (slide.giftProductId) {
+          const gift = productById(slide.giftProductId);
+          return gift && gift.disponivel !== false && (!Number.isInteger(gift.estoque) || gift.estoque > 0);
+        }
+        if (!slide.offer) return true;
+        const product = productById(slide.offer.productId);
+        return product && product.disponivel !== false && (!Number.isInteger(product.estoque) || product.estoque > 0) && Math.round(currentPrice(product) * 100) === slide.offer.priceCents && Math.round(product.precoRegular * 100) === slide.offer.regularCents;
+      };
+      if (!slides.some(eligible)) { container.style.display = 'none'; controls.style.display = 'none'; return; }
+      container.style.display = ''; controls.style.display = '';
+      for (let attempt = 0; attempt < slides.length && !eligible(slides[activeIndex]); attempt++) activeIndex = (activeIndex + 1) % slides.length;
       source.srcset = slides[activeIndex].mobileSrc || slides[activeIndex].src;
       image.src = slides[activeIndex].src;
       container.dataset.activeSlide = String(activeIndex);
@@ -264,10 +278,12 @@
       campaignLink.href = slides[activeIndex].href || "#produtos";
       campaignLink.setAttribute("aria-label", `Ver campanha: ${slides[activeIndex].alt || "produtos em destaque"}`);
       $$(".hero-slider-dot", dots).forEach((dot, dotIndex) => {
+        dot.style.display = eligible(slides[dotIndex]) ? '' : 'none';
         dot.classList.toggle("active", dotIndex === activeIndex);
         dot.setAttribute("aria-current", String(dotIndex === activeIndex));
       });
     };
+    refreshHeroOffers = () => show(activeIndex);
     slides.forEach((slide, index) => {
       const dot = document.createElement("button");
       dot.type = "button";
@@ -544,14 +560,15 @@
     });
     const status = $("#fullCatalogStatus");
     const empty = $("#catalogEmpty");
+    const filterSummary = $('#activeFilters');
+    if (filterSummary) filterSummary.textContent = [searchTerm && `Busca: “${searchTerm}”`, activeCategory !== 'Todos' && `Categoria: ${activeCategory}`, activeSkin && `Tipo de pele: ${activeSkin}`].filter(Boolean).join(' · ') || 'Exibindo todo o catálogo';
+    const clearFilters = $('#clearCatalogFilters');
+    if (clearFilters) clearFilters.hidden = !searchTerm && activeCategory === 'Todos' && !activeSkin;
     if (status) status.textContent = `${products.length} ${products.length === 1 ? "produto encontrado" : "produtos encontrados"}`;
     if (empty) {
-      empty.hidden = config.products.length > 0;
-      if (config.products.length > 0 && products.length === 0) {
-        empty.hidden = false;
-        $("h3", empty).textContent = "Nenhum produto nesta seleção";
-        $("p", empty).textContent = "Tente outra categoria ou ajuste sua busca.";
-      }
+      empty.hidden = products.length > 0;
+      $('h3', empty).textContent = config.products.length ? 'Nenhum produto nesta seleção' : 'Catálogo temporariamente indisponível';
+      $('p', empty).textContent = config.products.length ? 'Limpe os filtros ou tente outro nome de produto.' : 'Consulte nosso atendimento para informações sobre os produtos. Nenhum pagamento será solicitado sem confirmação de disponibilidade.';
     }
     renderFeaturedProducts();
     renderNewProducts();
@@ -602,7 +619,7 @@
     const collection = FEATURED_COLLECTIONS.find((item) => item.id === activeCollection);
     const preferredOrder = FEATURED_ORDER[activeCollection] || [];
     const products = config.products.filter((product) =>
-      collection.matches(product) && matchesNeed(product) && matchesSearch(product)
+      collection.matches(product)
     ).sort((left, right) => {
       const leftIndex = preferredOrder.indexOf(left.id);
       const rightIndex = preferredOrder.indexOf(right.id);
@@ -877,6 +894,7 @@
   }
 
   function updateProductMetadata(product) {
+    $('#productStructuredData')?.remove();
     const url = new URL('/produto.html', 'https://magazineskincare.online'); url.searchParams.set('id', product.id);
     const description = productDescriptionFor(product).replace(/\s+/g, ' ').trim();
     const meta = (name, value, property = false) => {
@@ -1461,14 +1479,25 @@
       searchForm.addEventListener("submit", (event) => {
         event.preventDefault();
         searchTerm = $("#searchInput").value.trim();
+        activeCategory = 'Todos';
+        activeSkin = '';
+        renderCategoryTabs();
         renderCatalog();
         $("#catalogo-completo").scrollIntoView({ behavior: "smooth" });
       });
     }
+    const clearCatalogFilters = () => {
+      searchTerm = ''; activeCategory = 'Todos'; activeSkin = '';
+      if ($('#searchInput')) $('#searchInput').value = '';
+      renderCategoryTabs(); renderCatalog();
+    };
+    $('#clearCatalogFilters')?.addEventListener('click', clearCatalogFilters);
+    $('#clearEmptyFilters')?.addEventListener('click', clearCatalogFilters);
     $$(".need-card").forEach((card) => card.addEventListener("click", () => {
       activeCategory = card.dataset.filterCategory || "Todos";
       activeSkin = card.dataset.filterSkin || "";
       searchTerm = "";
+      if ($('#searchInput')) $('#searchInput').value = '';
       renderCategoryTabs();
       renderCatalog();
     }));
@@ -1531,6 +1560,7 @@
         const response = await fetch("/api/catalog", { cache: "no-store", signal: controller.signal });
         if (!response.ok) throw new Error('Catálogo indisponível');
         const result = await response.json();
+        if (!result || !Array.isArray(result.products) || typeof result.catalogReview !== 'boolean') throw new Error('Resposta de catálogo inválida');
         // O bloqueio local também protege a vitrine durante a atualização do backend.
         config.catalogReview = result.catalogReview !== false;
         if (Array.isArray(result.products)) {
@@ -1554,6 +1584,7 @@
       retry.type = 'button'; retry.textContent = 'Tentar novamente'; retry.onclick = () => window.location.reload();
       notice.append(retry); document.body.prepend(notice);
     } finally { window.clearTimeout(timeout); productPreview?.remove(); }
+    refreshHeroOffers();
     $$('[data-catalog-review]').forEach(element => { element.hidden = !config.catalogReview; });
     document.body.classList.toggle('catalog-review-mode', config.catalogReview === true);
     updateCartCount();
