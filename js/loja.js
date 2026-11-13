@@ -1415,8 +1415,22 @@
       if (open) $('#searchInput').focus();
     };
     const announcement = $("#announcement");
-    if (announcement && typeof config.brand.announcement === "string" && config.brand.announcement.trim()) {
-      announcement.textContent = config.brand.announcement;
+    const messages = (Array.isArray(config.brand.announcements) ? config.brand.announcements : [config.brand.announcement])
+      .filter(message => typeof message === 'string' && message.trim());
+    if (announcement && messages.length) {
+      let index = 0;
+      let timer;
+      announcement.textContent = messages[index];
+      const start = () => {
+        clearInterval(timer);
+        if (document.hidden || messages.length < 2) return;
+        timer = setInterval(() => {
+          index = (index + 1) % messages.length;
+          announcement.textContent = messages[index];
+        }, 5000);
+      };
+      document.addEventListener('visibilitychange', start);
+      start();
     } else if (announcement) {
       announcement.hidden = true;
     }

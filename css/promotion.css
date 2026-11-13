@@ -1,0 +1,32 @@
+/* Faixa de primeira compra, com leitura confortável em todas as telas. */
+body:not([data-page=checkout]) .announcement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  height: auto;
+  padding: 10px 20px;
+  background: #000;
+  color: #fff;
+  font-family: var(--sans, sans-serif);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -.2px;
+  text-align: center;
+  text-wrap: balance;
+}
+body[data-page=home] .home-utility {
+  position: static;
+  justify-content: flex-end;
+  padding: 6px max(24px, calc((100% - 1026px) / 2));
+  background: #000;
+}
+@media (max-width: 650px) {
+  body:not([data-page=checkout]) .announcement {
+    min-height: 60px;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}
+body .announcement[hidden] { display: none; }

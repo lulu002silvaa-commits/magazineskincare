@@ -3,7 +3,12 @@ window.STORE_CONFIG = {
   brand: {
     name: "Magazine do Skincare",
     tagline: "Produtos para sua rotina de cuidados com a pele",
-    announcement: "Magazine do Skincare · Produtos para sua rotina de cuidados com a pele",
+    announcement: "+5% OFF na primeira compra com o cupom PRIMEIRA5",
+    announcements: [
+      "+5% OFF na primeira compra com o cupom PRIMEIRA5",
+      "BRINDE em compras a partir de R$299",
+      "Ganhe 5% OFF no PIX!"
+    ],
     contactEmail: "morgana@extratosdaterra.com.br",
     contactText: "WhatsApp: (11) 91975-6184",
     logo: "public/images/brand/magazine-do-skincare.png"
