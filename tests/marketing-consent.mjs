@@ -29,7 +29,7 @@ const state = visit();
 choose(state, 'Aceitar');
 assert.equal(state.scripts.length, 2);
 assert.equal(state.context.window._tfa.length, 1);
-assert.equal(state.context.window._tfa[0].id, 2144289);
+assert.equal(state.context.window._tfa[0].id, 2144350);
 assert.equal(state.context.window._tfa[0].name, 'page_view');
 state.elements.find(element => element.tag === 'button').onclick();
 choose(state, 'Aceitar');

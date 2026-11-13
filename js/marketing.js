@@ -13,10 +13,10 @@
   function loadTaboola() {
     if (location.protocol !== 'https:' || !['magazineskincare.online', 'www.magazineskincare.online', 'magazineskincare.vercel.app'].includes(location.hostname) || document.getElementById('tb_tfa_script')) return;
     window._tfa = window._tfa || [];
-    window._tfa.push({ notify: 'event', name: 'page_view', id: 2144289 });
+    window._tfa.push({ notify: 'event', name: 'page_view', id: 2144350 });
     const script = document.createElement('script');
     script.async = true;
-    script.src = 'https://cdn.taboola.com/libtrc/unip/2144289/tfa.js';
+    script.src = 'https://cdn.taboola.com/libtrc/unip/2144350/tfa.js';
     script.id = 'tb_tfa_script';
     document.head.append(script);
   }
