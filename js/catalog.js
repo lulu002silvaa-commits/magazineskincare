@@ -14,26 +14,26 @@ window.STORE_CONFIG = {
   "logo": "public/images/brand/magazine-do-skincare.png"
 },
   images: {
-  "heroDesktop": "public/images/banners/magazine-catalog-desktop.svg",
-  "heroMobile": "public/images/banners/magazine-catalog-mobile.svg",
+  "heroDesktop": "public/images/banners/black-friday-5-desktop.webp",
+  "heroMobile": "public/images/banners/black-friday-5-mobile.webp",
   "heroSlides": [
     {
-      "src": "public/images/banners/magazine-catalog-desktop.svg",
-      "mobileSrc": "public/images/banners/magazine-catalog-mobile.svg",
-      "alt": "Catálogo da Magazine do Skincare",
+      "src": "public/images/banners/black-friday-5-desktop.webp",
+      "mobileSrc": "public/images/banners/black-friday-5-mobile.webp",
+      "alt": "Creamy e Jade Picon: produtos da coleção",
       "href": "#catalogo-completo"
     },
     {
-      "src": "public/images/banners/magazine-needs-desktop.svg",
-      "mobileSrc": "public/images/banners/magazine-needs-mobile.svg",
-      "alt": "Produtos por categoria e tipo de pele",
-      "href": "#necessidades"
+      "src": "public/images/banners/home-4-desktop.png",
+      "mobileSrc": "public/images/banners/home-4-mobile.png",
+      "alt": "Duo Glass Skin da Creamy: Pore Refiner e Ceramide Skin Repair",
+      "href": "produto.html?id=porerefiner-ceramideskinrepair"
     },
     {
-      "src": "public/images/banners/magazine-service-desktop.svg",
-      "mobileSrc": "public/images/banners/magazine-service-mobile.svg",
-      "alt": "Dados da loja e condições de compra",
-      "href": "empresa.html"
+      "src": "public/images/banners/home-3-desktop.png",
+      "mobileSrc": "public/images/banners/home-3-mobile.png",
+      "alt": "Sérum hidratante de brinde em compras acima de R$349, sujeito à disponibilidade",
+      "href": "empresa.html#promocoes"
     }
   ],
   "routineDay": "public/images/products/official-157906.png",

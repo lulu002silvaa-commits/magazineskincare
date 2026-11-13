@@ -39,18 +39,18 @@ Check 'Google Ads configurado sem carregar tag externa em testes locais' "window
 Check 'Publicidade começa recusada até escolha do visitante' "window.dataLayer.some(e=>e[0]==='consent' && e[1]==='default' && e[2].ad_storage==='denied') && !!document.querySelector('#marketingConsent')"
 Evaluate "[...document.querySelectorAll('#marketingConsent button')].find(b=>b.textContent==='Recusar').click();true" | Out-Null
 Check 'Recusar publicidade mantém acesso à vitrine' "!document.querySelector('#marketingConsent') && localStorage.getItem('store-marketing-consent')==='rejected' && document.querySelectorAll('#productGrid .product-card').length===119"
-Check 'Carrossel usa tr?s campanhas da pr?pria loja' "document.querySelectorAll('.hero-slider-dot').length===3"
+Check 'Carrossel usa três artes autorizadas' "document.querySelectorAll('.hero-slider-dot').length===3"
 Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
-WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('magazine-catalog-mobile.svg') && document.querySelector('.hero-slide-image').naturalWidth>0"
+WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('black-friday-5-mobile.webp') && document.querySelector('.hero-slide-image').naturalWidth>0"
 Check 'Banner mobile tem proporção vertical' "document.querySelector('.hero-media').getBoundingClientRect().height>document.querySelector('.hero-media').getBoundingClientRect().width*1.2"
 Screenshot 'banner-home-mobile.png'
 Evaluate "document.querySelector('[data-hero-next]').click();true" | Out-Null
-WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('magazine-needs-mobile.svg')"
+WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('home-4-mobile.png')"
 Check 'Setas trocam versão mobile e indicador' "document.querySelectorAll('.hero-slider-dot')[1].getAttribute('aria-current')==='true'"
 Evaluate "document.querySelector('.hero-slider-pause').click();true" | Out-Null
 Check 'Carrossel pode ser pausado' "document.querySelector('.hero-slider-pause').getAttribute('aria-pressed')==='true'"
 Cdp 'Emulation.setDeviceMetricsOverride' @{width=1440;height=1000;deviceScaleFactor=1;mobile=$false} | Out-Null
-WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('magazine-needs-desktop.svg')"
+WaitFor "document.querySelector('.hero-slide-image').currentSrc.includes('home-4-desktop.png')"
 Check 'Desktop usa banner horizontal da loja' "document.querySelector('.hero-media').getBoundingClientRect().width>document.querySelector('.hero-media').getBoundingClientRect().height*2.7"
 Screenshot 'banner-home-desktop.png'
 Evaluate "document.querySelector('#produtos').scrollIntoView({block:'start',behavior:'instant'});true" | Out-Null

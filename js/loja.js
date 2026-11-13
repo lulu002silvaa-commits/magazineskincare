@@ -282,7 +282,7 @@
     const start = () => {
       stop();
       if (!hovered && !focused && !paused && !document.hidden && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        timer = window.setInterval(() => show(activeIndex + 1), 6000);
+        timer = window.setInterval(() => show(activeIndex + 1), 5000);
       }
     };
     const stop = () => window.clearInterval(timer);

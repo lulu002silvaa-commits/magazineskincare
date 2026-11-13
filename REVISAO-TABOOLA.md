@@ -7,7 +7,7 @@ Data: 13/11/2026. Domínio: https://magazineskincare.online.
 - Removidas as chamadas para PRIMEIRA5, 5% adicional no Pix e brinde a partir de R$299. Não havia correspondência com as regras do pagamento.
 - Mantida a condição real do brinde: valor dos produtos após descontos estritamente acima de R$349, sujeito à disponibilidade e limitado a um por pedido. Nenhuma regra financeira foi alterada.
 - Mantida a troca das três mensagens da faixa a cada cinco segundos.
-- Substituídas as campanhas promocionais da Creamy e a campanha com celebridade por três banners da Magazine do Skincare, com destinos coerentes com os textos dos botões. O banner secundário também foi substituído.
+- Após confirmação expressa de autorização pelo usuário, o carrossel principal utiliza três artes da Creamy: coleção com Jade Picon, Duo Glass Skin e sérum de brinde acima de R$349. Foram excluídas as artes com desconto progressivo, desconto extra no Pix, urgência de 48 horas, Peptide Cream e brinde acima de R$299, pois essas ofertas não correspondem ao catálogo ou às regras da loja. O banner secundário mantém a identidade da Magazine do Skincare. O carrossel principal troca a cada cinco segundos, com controles de pausa e navegação.
 - Identificação do vendedor movida para antes do banner principal. Acrescentada informação de que a loja é independente e não é o site oficial da Creamy.
 - Acrescentadas informações sobre Taboola, finalidades, dados envolvidos, consentimento e revogação na política de privacidade.
 - Google Ads e Taboola carregam após a aceitação da publicidade. A revogação salva a recusa e recarrega a página; os cookies previamente definidos podem ser removidos pelo visitante no navegador.
