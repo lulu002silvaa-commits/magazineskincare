@@ -66,4 +66,8 @@ const productionContext = { window: {} };
 vm.runInNewContext(await readFile(join(root, 'dist-test-production/js/deployment.js'), 'utf8'), productionContext);
 check('Endereço padrão de produção aponta para PHP publicado', productionContext.window.STORE_DEPLOYMENT.apiOrigin === 'https://magazineskincare.onrender.com');
 check('Painel de produção usa mesma hospedagem do backend', productionContext.window.STORE_DEPLOYMENT.adminUrl === 'https://magazineskincare.onrender.com/admin.php');
+const vercelBuild = build({ VERCEL: '1', STORE_STATIC_DIRECTORY: 'dist-test-vercel', STORE_STATIC_OFFLINE: '0' });
+check('Build Vercel concluído para páginas de produto via PHP', vercelBuild.status === 0);
+const hasPhysicalProduct = await access(join(root, 'dist-test-vercel/produto.html')).then(() => true, () => false);
+check('Arquivo estático não intercepta o proxy de SEO na Vercel', !hasPhysicalProduct);
 console.log(`${checks} verificações do build HTML passaram.`);

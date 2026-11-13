@@ -57,4 +57,7 @@ async function check(directory) {
   }
 }
 await check(output);
+// Na Vercel o arquivo físico teria precedência sobre o proxy externo. A rota
+// publicada usa o PHP para metadados atuais; o HTML continua nos builds locais.
+if (process.env.VERCEL === '1' && !offline) await rm(join(output, 'produto.html'));
 console.log(`Vitrine HTML pronta: ${hosting.catalogReview !== false ? 0 : products.length} ofertas publicadas, ${photos.size} fotos preservadas. Backend ${apiOrigin ? 'conectado à origem configurada' : 'não configurado; compras desativadas'}.`);

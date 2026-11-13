@@ -52,7 +52,7 @@ O PageSpeed Insights respondeu HTTP 429 na consulta desta auditoria. Não foi at
 
 ## Testes executados
 
-- Build estático: 30 verificações, incluindo dependências das oito páginas novas e exclusão de PHP, dados, credenciais e backups do pacote público.
+- Build estático: 32 verificações, incluindo dependências das oito páginas novas, exclusão de PHP, dados, credenciais e backups do pacote público e precedência do proxy de produto na Vercel. O build local preserva produto.html; na Vercel, a rota é atendida pelo PHP.
 - API PHP com dados isolados: autenticação, CSRF, catálogo, edição, conflitos, imagens, proteção de arquivos, feed, sitemap, coleta operacional, bloqueios e pagamentos. Adicionada conferência de SEO do produto antes do JavaScript.
 - Navegador com PHP: painel, catálogo, galeria, sacola, identificação, endereço, Pix/QR/cópia, expiração real, confirmação e prevenção de cobranças duplicadas. Sem cobranças externas reais.
 - Navegador estático: catálogo anônimo, busca, galeria, sacola, ausência de pagamento simulado sem backend, privacidade, brinde e layouts de 320 a 1920 pixels.
@@ -66,7 +66,7 @@ O PageSpeed Insights respondeu HTTP 429 na consulta desta auditoria. Não foi at
 
 Vitrine e institucionais: `index.html`, `produto.html`, `carrinho.html`, `checkout.html`, `empresa.html`, `sobre.html`, `contato.html`, `privacidade.html`, `cookies.html`, `termos.html`, `entrega.html`, `trocas.html`, `reembolso.html`, `404.html` e `css/promotion.css`.
 
-Lógica e configuração: `js/loja.js`, `js/catalog.js`, `php/bootstrap.php`, `php/merchant.php`, `public-page.php`, `router.php`, `.htaccess`, `vercel.json` e `scripts/build-static.mjs`.
+Lógica e configuração: `js/loja.js`, `js/catalog.js`, `php/bootstrap.php`, `php/merchant.php`, `public-page.php`, `router.php`, `.htaccess`, `vercel.json`, `robots.txt` e `scripts/build-static.mjs`.
 
 Verificação: `tests/integration.php`, `tests/static-build.mjs`, `tests/audit-browser.ps1`, `tests/security-proxy.php` e `tests/site-links.mjs`. Os testes existentes de marketing, pagamento e revisão pública foram preservados e executados.
 
