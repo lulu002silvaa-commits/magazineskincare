@@ -105,7 +105,19 @@ function catalog_under_review(): bool {
 function public_store_data(): array {
     $store = store_data();
     if (catalog_under_review()) $store['produtos'] = [];
+    $store['produtos'] = array_map('public_product_information', $store['produtos']);
     return $store;
+}
+
+function public_product_information(array $product): array {
+    $claims = '/garant(?:e|em|id[oa]s?)|comprovad|clinicamente|curar?\b|elimina|regenera|síntese|estimula.{0,50}(?:colágeno|adipócitos)|(?:apenas|em)\s+\d+\s+(?:dias|semanas)|24\s*(?:h\b|horas)|aqui na Creamy|tratamento.{0,25}(?:acne|rosácea|melasma)/iu';
+    if (preg_match($claims, (string)($product['descricao'] ?? ''))) {
+        $product['descricao'] = 'Cosmético para a rotina de cuidados com a pele. Confira a composição, o modo de uso e as advertências na embalagem. Os resultados variam de pessoa para pessoa.';
+    }
+    if (preg_match($claims, (string)($product['especificacoes']['Principais benefícios'] ?? ''))) {
+        $product['especificacoes']['Principais benefícios'] = 'Consulte a composição e as indicações cosméticas da embalagem para escolher o produto adequado à sua rotina.';
+    }
+    return $product;
 }
 
 function initial_products(): array {

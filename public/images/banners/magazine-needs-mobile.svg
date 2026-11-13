@@ -9,6 +9,6 @@
 <text x="42" y="225" font-size="53" font-weight="700" letter-spacing="-1">Encontre</text><text x="42" y="286" font-size="53" font-weight="700" letter-spacing="-1">o cuidado para</text><text x="42" y="347" font-size="53" font-weight="700" letter-spacing="-1">a sua rotina.</text>
 
 <rect x="42" y="452" width="330" height="60" rx="30" fill="#073473"/>
-<text x="68" y="490" font-size="24" font-weight="700" fill="white">Conhecer a loja →</text>
+<text x="68" y="490" font-size="24" font-weight="700" fill="white">Explorar categorias →</text>
 <rect x="42" y="565" width="550" height="48" rx="12" fill="white" fill-opacity=".8"/><text x="62" y="596" font-size="20">Seu tipo de pele</text><rect x="42" y="627" width="550" height="48" rx="12" fill="white" fill-opacity=".8"/><text x="62" y="658" font-size="20">Sua necessidade</text><rect x="42" y="689" width="550" height="48" rx="12" fill="white" fill-opacity=".8"/><text x="62" y="720" font-size="20">Sua escolha</text>
 </g></svg>

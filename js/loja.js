@@ -16,6 +16,7 @@
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const config = window.STORE_CONFIG;
+  config.products = config.products.map(window.StoreProductInformation);
   // Só substitui imagens locais que possuem uma versão otimizada verificada.
   const imageAsset = (path, thumbnail = false) => {
     const asset = window.STORE_IMAGE_ASSETS?.[path];
@@ -1534,6 +1535,7 @@
         config.catalogReview = result.catalogReview !== false;
         if (Array.isArray(result.products)) {
           config.products = (config.catalogReview ? [] : result.products).map(product => {
+            product = window.StoreProductInformation(product);
             if (!connection.apiOrigin) return product;
             const imageUrl = path => typeof path === 'string' && path.startsWith('public/images/uploads/') ? `${connection.apiOrigin}/${path}` : path;
             return { ...product, imagem: imageUrl(product.imagem), imagens: (product.imagens || []).map(imageUrl) };

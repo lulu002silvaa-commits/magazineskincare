@@ -35,10 +35,13 @@ await writeFile(join(output, 'js', 'deployment.js'), `// Configuração pública
 
 const sandbox = { window: {} };
 vm.runInNewContext(await readFile(join(root, 'js', 'products.js'), 'utf8'), sandbox, { timeout: 2000 });
+vm.runInNewContext(await readFile(join(root, 'js', 'product-information.js'), 'utf8'), sandbox, { timeout: 2000 });
 const products = sandbox.window.CREAMY_PRODUCTS;
 if (!Array.isArray(products) || !products.length) throw new Error('Catálogo estático vazio.');
 if (hosting.catalogReview !== false) {
   await writeFile(join(output, 'js', 'products.js'), 'window.CREAMY_PRODUCTS = [];\n');
+} else {
+  await writeFile(join(output, 'js', 'products.js'), `window.CREAMY_PRODUCTS = ${JSON.stringify(products.map(sandbox.window.StoreProductInformation))};\n`);
 }
 const photos = new Set(products.flatMap(product => [product.imagem, ...(product.imagens || [])]));
 for (const path of photos) {

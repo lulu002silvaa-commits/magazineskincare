@@ -9,6 +9,6 @@
 <text x="88" y="234" font-size="65" font-weight="700" letter-spacing="-1">Encontre o cuidado</text><text x="88" y="307" font-size="65" font-weight="700" letter-spacing="-1">para a sua rotina.</text>
 <text x="88" y="398" font-size="24" fill="#356075">Navegue pelo tipo de pele e pela categoria do produto.</text>
 <rect x="88" y="447" width="340" height="60" rx="30" fill="#073473"/>
-<text x="114" y="485" font-size="24" font-weight="700" fill="white">Conhecer a loja →</text>
+<text x="114" y="485" font-size="24" font-weight="700" fill="white">Explorar categorias →</text>
 <rect x="1110" y="180" width="470" height="48" rx="12" fill="white" fill-opacity=".8"/><text x="1130" y="211" font-size="23">Seu tipo de pele</text><rect x="1110" y="242" width="470" height="48" rx="12" fill="white" fill-opacity=".8"/><text x="1130" y="273" font-size="23">Sua necessidade</text><rect x="1110" y="304" width="470" height="48" rx="12" fill="white" fill-opacity=".8"/><text x="1130" y="335" font-size="23">Sua escolha</text>
 </g></svg>

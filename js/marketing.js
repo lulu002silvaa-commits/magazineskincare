@@ -22,11 +22,14 @@
   }
   if (choice === 'accepted') loadTaboola();
   // Não envia visitas nem compras dos testes locais para a conta de anúncios.
-  if (location.protocol === 'https:' && ['magazineskincare.online', 'www.magazineskincare.online', 'magazineskincare.vercel.app'].includes(location.hostname)) {
+  function loadGoogleAds() {
+    if (location.protocol !== 'https:' || !['magazineskincare.online', 'www.magazineskincare.online', 'magazineskincare.vercel.app'].includes(location.hostname) || document.getElementById('store_google_ads')) return;
     const script = document.createElement('script'); script.async = true;
+    script.id = 'store_google_ads';
     script.src = 'https://www.googletagmanager.com/gtag/js?id=AW-18464200120';
     document.head.append(script);
   }
+  if (choice === 'accepted') loadGoogleAds();
   function showPreferences() {
     document.querySelector('#marketingConsent')?.remove();
     const banner = document.createElement('section'); banner.id = 'marketingConsent';
@@ -38,10 +41,12 @@
     for (const [label, accepted] of [['Aceitar', true], ['Recusar', false]]) {
       const button = document.createElement('button'); button.type = 'button'; button.textContent = label;
       button.onclick = () => {
+        const needsReload = !accepted && !!(document.getElementById('tb_tfa_script') || document.getElementById('store_google_ads'));
         window.gtag('consent', 'update', consent(accepted));
         try { localStorage.setItem('store-marketing-consent', accepted ? 'accepted' : 'rejected'); } catch { /* Opcional. */ }
-        if (accepted) loadTaboola();
+        if (accepted) { loadTaboola(); loadGoogleAds(); }
         banner.remove();
+        if (needsReload) location.reload();
       };
       banner.append(button);
     }
