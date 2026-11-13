@@ -223,7 +223,7 @@ try {
   Screenshot 'loja-desktop.png'
   $offline=Cdp 'Page.addScriptToEvaluateOnNewDocument' @{source="const originalFetch=window.fetch.bind(window);window.fetch=(url,options)=>typeof url==='string' && url.includes('/api/catalog')?new Promise(resolve=>setTimeout(()=>resolve(new Response('{}',{status:503,headers:{'Content-Type':'application/json'}})),5000)):originalFetch(url,options);"}
   Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
-  WaitFor "document.querySelectorAll('.hero-slider-dot').length===3 && document.querySelector('.hero-slide-image').naturalWidth>0"
+  WaitFor "document.querySelectorAll('.hero-slider-dot').length===5 && document.querySelector('.hero-slide-image').naturalWidth>0"
   Check 'Banner inicia sem esperar resposta do catálogo' "!document.querySelector('.store-notice') && document.querySelector('.hero-slide-image').complete"
   Check 'Vitrine aguarda confirmação de preço antes de permitir compra' "document.querySelectorAll('#productGrid .product-card').length===119 && document.querySelectorAll('#productGrid button:not(:disabled)').length===0"
   WaitFor "document.querySelector('.store-notice')"

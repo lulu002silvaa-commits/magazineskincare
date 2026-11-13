@@ -9,7 +9,7 @@ assert.equal(config.brand.announcements.length, 3);
 assert.ok(config.brand.announcements.every(message => !/PRIMEIRA5|R\$299|5% OFF/.test(message)));
 assert.ok(config.brand.announcements.some(message => message.includes('acima de R$349')));
 for (const slide of config.images.heroSlides) {
-  assert.ok(['black-friday-5-desktop.webp', 'home-4-desktop.png', 'home-3-desktop.png'].some(file => slide.src.endsWith('/' + file)), 'Artes autorizadas sem as ofertas incompatíveis dos demais banners');
+  assert.ok(/\/black-friday-[1-5]-desktop\.webp$/.test(slide.src), 'Artes autorizadas solicitadas pelo usuário');
   for (const path of [slide.src, slide.mobileSrc]) await readFile(new URL(path, root));
 }
 const product = { id: 'test', nome: 'Cosmético', preco: 50, estoque: 3, descricao: 'Resultados comprovados em apenas 7 dias. Aqui na Creamy.', especificacoes: { 'Principais benefícios': 'Elimina a acne em 7 dias.', 'Composição': 'Aqua, Glycerin.', 'Como usar': 'Aplicar conforme o rótulo.' } };
@@ -26,7 +26,7 @@ assert.ok(company.includes('Taboola (Realize)') && company.includes('Não há cu
 assert.ok(company.includes('exatamente R$ 349') && company.includes('não se aplica'));
 for (const page of ['index.html', 'produto.html', 'carrinho.html', 'checkout.html']) {
   const html = await readFile(new URL(page, root), 'utf8');
-  assert.ok(!/PRIMEIRA5|black-friday-[1-4]/.test(html));
+  assert.ok(!/PRIMEIRA5/.test(html));
   assert.ok(html.indexOf('js/product-information.js') < html.indexOf('js/loja.js'));
 }
 console.log('Ofertas, banners próprios, privacidade e preservação de preço, estoque e instruções verificados.');

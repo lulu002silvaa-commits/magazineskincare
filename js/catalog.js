@@ -14,26 +14,38 @@ window.STORE_CONFIG = {
   "logo": "public/images/brand/magazine-do-skincare.png"
 },
   images: {
-  "heroDesktop": "public/images/banners/black-friday-5-desktop.webp",
-  "heroMobile": "public/images/banners/black-friday-5-mobile.webp",
+  "heroDesktop": "public/images/banners/black-friday-1-desktop.webp",
+  "heroMobile": "public/images/banners/black-friday-1-mobile.webp",
   "heroSlides": [
+    {
+      "src": "public/images/banners/black-friday-1-desktop.webp",
+      "mobileSrc": "public/images/banners/black-friday-1-mobile.webp",
+      "alt": "Campanha Creamy Days",
+      "href": "empresa.html#promocoes"
+    },
+    {
+      "src": "public/images/banners/black-friday-2-desktop.webp",
+      "mobileSrc": "public/images/banners/black-friday-2-mobile.webp",
+      "alt": "Campanha Peptide Cream da Creamy",
+      "href": "empresa.html#promocoes"
+    },
+    {
+      "src": "public/images/banners/black-friday-3-desktop.webp",
+      "mobileSrc": "public/images/banners/black-friday-3-mobile.webp",
+      "alt": "Produtos em destaque na campanha Creamy Days",
+      "href": "empresa.html#promocoes"
+    },
+    {
+      "src": "public/images/banners/black-friday-4-desktop.webp",
+      "mobileSrc": "public/images/banners/black-friday-4-mobile.webp",
+      "alt": "Campanha de brindes da Creamy",
+      "href": "empresa.html#promocoes"
+    },
     {
       "src": "public/images/banners/black-friday-5-desktop.webp",
       "mobileSrc": "public/images/banners/black-friday-5-mobile.webp",
       "alt": "Creamy e Jade Picon: produtos da coleção",
       "href": "#catalogo-completo"
-    },
-    {
-      "src": "public/images/banners/home-4-desktop.png",
-      "mobileSrc": "public/images/banners/home-4-mobile.png",
-      "alt": "Duo Glass Skin da Creamy: Pore Refiner e Ceramide Skin Repair",
-      "href": "produto.html?id=porerefiner-ceramideskinrepair"
-    },
-    {
-      "src": "public/images/banners/home-3-desktop.png",
-      "mobileSrc": "public/images/banners/home-3-mobile.png",
-      "alt": "Sérum hidratante de brinde em compras acima de R$349, sujeito à disponibilidade",
-      "href": "empresa.html#promocoes"
     }
   ],
   "routineDay": "public/images/products/official-157906.png",
