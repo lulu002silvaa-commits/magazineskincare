@@ -10,6 +10,17 @@
   window.gtag('consent', 'default', consent(choice === 'accepted'));
   window.gtag('js', new Date());
   window.gtag('config', window.StoreMarketing.googleAdsId, { allow_enhanced_conversions: false });
+  function loadTaboola() {
+    if (location.protocol !== 'https:' || !['magazineskincare.online', 'www.magazineskincare.online', 'magazineskincare.vercel.app'].includes(location.hostname) || document.getElementById('tb_tfa_script')) return;
+    window._tfa = window._tfa || [];
+    window._tfa.push({ notify: 'event', name: 'page_view', id: 2144289 });
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://cdn.taboola.com/libtrc/unip/2144289/tfa.js';
+    script.id = 'tb_tfa_script';
+    document.head.append(script);
+  }
+  if (choice === 'accepted') loadTaboola();
   // Não envia visitas nem compras dos testes locais para a conta de anúncios.
   if (location.protocol === 'https:' && ['magazineskincare.online', 'www.magazineskincare.online', 'magazineskincare.vercel.app'].includes(location.hostname)) {
     const script = document.createElement('script'); script.async = true;
@@ -29,6 +40,7 @@
       button.onclick = () => {
         window.gtag('consent', 'update', consent(accepted));
         try { localStorage.setItem('store-marketing-consent', accepted ? 'accepted' : 'rejected'); } catch { /* Opcional. */ }
+        if (accepted) loadTaboola();
         banner.remove();
       };
       banner.append(button);
