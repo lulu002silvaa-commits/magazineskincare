@@ -1,5 +1,13 @@
 Cdp 'Page.navigate' @{url=($base+'/index.html')} | Out-Null
 WaitFor "document.querySelectorAll('#productGrid .product-card').length===119"
+Check 'Rodapé anterior preserva acesso compacto às políticas' "!!document.querySelector('footer .footer-policies') && !document.querySelector('footer > .institutional-links')"
+Evaluate "document.querySelector('.footer-policies').open=true;true" | Out-Null
+Check 'Menu de políticas abre com os nove destinos existentes' "document.querySelector('.footer-policies').open && document.querySelectorAll('.footer-policies .institutional-links a').length===9"
+foreach($width in 320,1440) {
+  Cdp 'Emulation.setDeviceMetricsOverride' @{width=$width;height=950;deviceScaleFactor=1;mobile=($width -lt 700)} | Out-Null
+  Check ('Rodapé aberto cabe em '+$width+'px') 'document.documentElement.scrollWidth<=innerWidth'
+}
+Evaluate "document.querySelector('.footer-policies').open=false;true" | Out-Null
 Evaluate "[...document.querySelectorAll('#catalogCategoryTabs button')].find(b=>b.textContent==='Haircare').click();document.querySelector('#searchInput').value='mandelico';document.querySelector('#searchForm').requestSubmit();true" | Out-Null
 Check 'Busca remove categoria anterior em vez de gerar vazio indevido' "document.querySelectorAll('#productGrid .product-card').length>0 && document.querySelector('#activeFilters').textContent.includes('mandelico') && !document.querySelector('#activeFilters').textContent.includes('Haircare')"
 Evaluate "document.querySelector('#searchInput').value='produto-que-nao-existe-xyz';document.querySelector('#searchForm').requestSubmit();true" | Out-Null
