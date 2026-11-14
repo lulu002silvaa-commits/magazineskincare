@@ -1,0 +1,895 @@
+{
+  "checked": "2026-11-14",
+  "source": "Catálogo público oficial do fabricante; correspondência exata de linkText",
+  "products": {
+    "creamy-calming-cream-1": {
+      "name": "Gel-creme Hidratante Calmante - Calming Cream",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/creamy-calming-cream-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "414",
+      "gtin": "7898965429195"
+    },
+    "ceramide-skin-repair": {
+      "name": "Ceramide Skin Repair",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/ceramide-skin-repair/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "678",
+      "gtin": "7908791003213"
+    },
+    "protetor-solar-watery-fluid-fps-50": {
+      "name": "Protetor Solar Watery Fluid FPS 50",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/protetor-solar-watery-fluid-fps-50/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "668",
+      "gtin": "7908791001769"
+    },
+    "limpador-facial-antioleosidade-1": {
+      "name": "Limpador Facial Antioleosidade 300ml",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/limpador-facial-antioleosidade-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "642",
+      "gtin": "7908791001721"
+    },
+    "gel-de-limpeza": {
+      "name": "Gel de Limpeza",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/gel-de-limpeza/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "598",
+      "gtin": "7908791001318"
+    },
+    "vitamina-c-gold": {
+      "name": "Sérum Antioxidante Clareador - Vitamina C Gold",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/vitamina-c-gold/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "570",
+      "gtin": "7908791000960"
+    },
+    "protetor-solar-fps60-watery-lotion": {
+      "name": "Protetor Solar Watery Lotion FPS 60",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/protetor-solar-fps60-watery-lotion/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "450",
+      "gtin": "7898965429508"
+    },
+    "drops-serum-hidratante": {
+      "name": "Sérum Hidratante com Ácido Hialurônico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/drops-serum-hidratante/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "438",
+      "gtin": "7898965429379"
+    },
+    "acido-mandelico": {
+      "name": "Gel Clareador Antiacne - Ácido Mandélico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/acido-mandelico/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "2",
+      "gtin": "7898965429041"
+    },
+    "intense-tx": {
+      "name": "Clareador - Intense TX",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/intense-tx/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "692",
+      "gtin": "7908791003299"
+    },
+    "hydragel-oil-control": {
+      "name": "Hydragel Oil Control",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/hydragel-oil-control/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "685",
+      "gtin": "7908791003244"
+    },
+    "retinal-eye-cream": {
+      "name": "Creme Antirrugas para Olhos - Retinal Eye Cream",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/retinal-eye-cream/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "681",
+      "gtin": "7908791003305"
+    },
+    "pore-refiner": {
+      "name": "Pore Refiner - Suavizador de Poros",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/pore-refiner/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "680",
+      "gtin": "7908791003220"
+    },
+    "serum-antiacne-acne-defense-5d": {
+      "name": "Sérum Antiacne Acne Defense 5D",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/serum-antiacne-acne-defense-5d/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "676",
+      "gtin": "7908791002506"
+    },
+    "emulsao-de-limpeza": {
+      "name": "Emulsão de Limpeza",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/emulsao-de-limpeza/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "599",
+      "gtin": "7908791001325"
+    },
+    "serum-facial-anti-aging-retinal-30-g": {
+      "name": "Sérum Anti idade - Retinal",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/serum-facial-anti-aging-retinal-30-g/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "520",
+      "gtin": "7908791000366"
+    },
+    "limpador-facial-glicerinado": {
+      "name": "Limpador Facial Glicerinado",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/limpador-facial-glicerinado/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "515",
+      "gtin": "7908791000571"
+    },
+    "eye-cream": {
+      "name": "Creme Clareador para Olhos - Eye Cream",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/eye-cream/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "440",
+      "gtin": "7898965429461"
+    },
+    "acido-salicilico-1": {
+      "name": "Tônico Antioleosidade - Ácido Salicílico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/acido-salicilico-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "415",
+      "gtin": "7898965429232"
+    },
+    "acido-tranexamico-5478624": {
+      "name": "Tônico Clareador - Ácido Tranexâmico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/acido-tranexamico-5478624/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "7",
+      "gtin": "7898965429126"
+    },
+    "vitamina-c": {
+      "name": "Sérum Antioxidante - Vitamina C",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/vitamina-c/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "6",
+      "gtin": "7898965429102"
+    },
+    "acido-glicolico": {
+      "name": "Esfoliante Químico - Ácido Glicólico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/acido-glicolico/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "3",
+      "gtin": "7898965429058"
+    },
+    "hidratante-corporal-ceramide-200ml": {
+      "name": "Loção Hidratante Fortalecedora - Ceramide Body Cream 200ml",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/hidratante-corporal-ceramide-200ml/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "602",
+      "gtin": "7908791001202"
+    },
+    "niacinamide-b-complex": {
+      "name": "Sérum Fortalecedor Antioleosidade - Niacinamide B",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/niacinamide-b-complex/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "497",
+      "gtin": "7908791000007"
+    },
+    "retinol-1": {
+      "name": "Retinol - Creme Corretivo Anti sinais",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/retinol-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "425",
+      "gtin": "7898965429249"
+    },
+    "hidratante-corporal-ceramide-400ml": {
+      "name": "Loção Hidratante Fortalecedora - Ceramide Body Cream 400ml",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/hidratante-corporal-ceramide-400ml/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "568",
+      "gtin": "7908791000779"
+    },
+    "serum-facial-adapalenato": {
+      "name": "Sérum Antiacne Adapalenato",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/serum-facial-adapalenato/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "551",
+      "gtin": "7908791000830"
+    },
+    "glicointense-peel-30-g": {
+      "name": "Gel-creme Retexturizador Antioleosidade - Glicointense Peel",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/glicointense-peel-30-g/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "484",
+      "gtin": "7898965429720"
+    },
+    "drops-serum-antiaging": {
+      "name": "Sérum de Prevenção Anti idade",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/drops-serum-antiaging/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "439",
+      "gtin": "7898965429362"
+    },
+    "duo-antiacne-hidrata-controla": {
+      "name": "Duo Antiacne - Hidrata & Controla",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-antiacne-hidrata-controla/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "689"
+    },
+    "duo-antioleosidade-limpa-e-hidrata": {
+      "name": "Duo Antioleosidade - Limpa & Hidrata",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-antioleosidade-limpa-e-hidrata/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "687"
+    },
+    "duo-hidratante-acalma-e-repara": {
+      "name": "Duo Hidratante - Acalma & Repara",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-hidratante-acalma-e-repara/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "679"
+    },
+    "lip-balm-incolor-1": {
+      "name": "Creme de Tratamento Labial - Lip Balm Incolor",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/lip-balm-incolor-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "638",
+      "gtin": "7908791001332"
+    },
+    "lip-balm-mocha-10g": {
+      "name": "Creme Hidratante Labial - Lip Balm Mocha",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/lip-balm-mocha-10g/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "535",
+      "gtin": "7908791000731"
+    },
+    "lip-balm-chai-10g": {
+      "name": "Creme Hidratante Labial - Lip Balm Chai",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/lip-balm-chai-10g/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "534",
+      "gtin": "7908791000724"
+    },
+    "lip-balm-latte": {
+      "name": "Creme Hidratante Labial - Lip Balm Latte",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/lip-balm-latte/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "533",
+      "gtin": "7908791000717"
+    },
+    "duo-protetor-solar-e-calming-cream": {
+      "name": "Duo Protetor Solar + Calming Cream",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-protetor-solar-e-calming-cream/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "510"
+    },
+    "duo-glicolico-e-mandelico": {
+      "name": "Duo para Poros - Ácido Glicólico + Ácido Mandélico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-glicolico-e-mandelico/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "493"
+    },
+    "duo-calming-cream-e-gel-de-limpeza": {
+      "name": "Duo Calming Cream + Gel de Limpeza",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-calming-cream-e-gel-de-limpeza/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "489"
+    },
+    "acido-latico": {
+      "name": "Sérum Renovador Suave - Ácido Lático",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/acido-latico/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "5",
+      "gtin": "7898965429096"
+    },
+    "porerefiner-ceramideskinrepair": {
+      "name": "Duo Glass Skin - Pore Refiner + Ceramide Skin Repair",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/porerefiner-ceramideskinrepair/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "698"
+    },
+    "intensetx-vitaminacgold": {
+      "name": "Duo Intense TX + Vitamina C Gold",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/intensetx-vitaminacgold/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "695"
+    },
+    "intensetx-ceramideskinrepair": {
+      "name": "Duo Intense TX + Ceramide Skin Repair",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/intensetx-ceramideskinrepair/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "694"
+    },
+    "duo-essencial-pele-oleosa": {
+      "name": "Duo Essencial - Pele Oleosa",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-essencial-pele-oleosa/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "688"
+    },
+    "duo-retinal": {
+      "name": "Duo Retinal - Rosto & Olhos",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-retinal/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "684"
+    },
+    "duo-para-olhos-clareador-antirrugas": {
+      "name": "Duo para Olhos - Clareador e Antirrugas",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-para-olhos-clareador-antirrugas/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "683"
+    },
+    "rotina-antiacne-creamy": {
+      "name": "Rotina Antiacne",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-antiacne-creamy/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "677"
+    },
+    "kit-anti-manchas-1": {
+      "name": "Kit Anti-Manchas",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-anti-manchas-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "622"
+    },
+    "rotina-para-pele-oleosa-1": {
+      "name": "Rotina para Pele Oleosa",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-para-pele-oleosa-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "615"
+    },
+    "duo-retinal-calming-cream": {
+      "name": "Duo Anti-Idade - Retinal + Calming Cream",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-retinal-calming-cream/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "592"
+    },
+    "duo-mandelico-tranexamico": {
+      "name": "Duo Antimanchas - Ácido Mandélico + Ácido Tranexâmico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-mandelico-tranexamico/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "524"
+    },
+    "creme-de-reconstrucao-capilar-sem-enxague": {
+      "name": "Creme de Reconstrução Capilar sem Enxágue 50g",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/creme-de-reconstrucao-capilar-sem-enxague/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "511",
+      "gtin": "7908791000199"
+    },
+    "refil-acido-glocolico-30-g": {
+      "name": "Refil Ácido Glicólico 30g",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/refil-acido-glocolico-30-g/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "499",
+      "gtin": "7898965429966"
+    },
+    "refil-acido-mandelico-30-g": {
+      "name": "Refil Ácido Mandélico 30g",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/refil-acido-mandelico-30-g/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "498",
+      "gtin": "7898965429959"
+    },
+    "rotina-antiacne-oleosa": {
+      "name": "Rotina Acne e Antioleosidade",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-antiacne-oleosa/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "459"
+    },
+    "intensetx-acidotranexamico": {
+      "name": "Duo Intense TX + Ácido Tranexâmico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/intensetx-acidotranexamico/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "697"
+    },
+    "intensetx-calmingcream": {
+      "name": "Duo Intense TX + Calming Cream",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/intensetx-calmingcream/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "696"
+    },
+    "rotina-da-jade": {
+      "name": "Rotina de Skincare Jade Picon",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-da-jade/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "691"
+    },
+    "kit-antioleosidade-1": {
+      "name": "Kit Antioleosidade",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-antioleosidade-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "667"
+    },
+    "duo-limpador-antioleosidade-salicilico": {
+      "name": "Duo Limpador Antioleosidade + Ácido Salicílico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-limpador-antioleosidade-salicilico/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "666"
+    },
+    "kit-anti-idade-1": {
+      "name": "Kit Anti-Idade",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-anti-idade-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "623"
+    },
+    "rotina-cuidado-basico-1": {
+      "name": "Rotina Cuidado Básico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-cuidado-basico-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "613"
+    },
+    "duo-limpador-glicerinado-calming-cream": {
+      "name": "Duo Limpador Glicerinado + Calming Cream",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-limpador-glicerinado-calming-cream/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "528"
+    },
+    "duo-niacinamide-calming-cream": {
+      "name": "Duo Niacinamide + Calming Cream",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-niacinamide-calming-cream/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "523"
+    },
+    "duo-tranexamico-calming-cream": {
+      "name": "Duo Ácido Tranexâmico + Calming Cream",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-tranexamico-calming-cream/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "522"
+    },
+    "duo-protetor-solar-e-vitamina-c": {
+      "name": "Duo Protetor Solar + Vitamina C",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-protetor-solar-e-vitamina-c/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "507",
+      "gtin": "7899219892994"
+    },
+    "duo-calming-cream-e-vitamina-c": {
+      "name": "Duo Calming Cream + Vitamina C",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-calming-cream-e-vitamina-c/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "492"
+    },
+    "duo-calming-cream-e-retinol": {
+      "name": "Duo Calming Cream + Retinol",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-calming-cream-e-retinol/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "491"
+    },
+    "duo-calming-cream-e-mandelico": {
+      "name": "Duo Calming Cream + Mandélico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-calming-cream-e-mandelico/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "490"
+    },
+    "calming-body-cream": {
+      "name": "Calming Body Cream",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/calming-body-cream/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "483",
+      "gtin": "7898994328704"
+    },
+    "antimanchas-oleosa-mista": {
+      "name": "Rotina Antimanchas - Pele Oleosa ou Mista",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/antimanchas-oleosa-mista/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "456"
+    },
+    "intensive-repair-cream": {
+      "name": "Creme Hidratante Antivermelhidão - Intensive Cream",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/intensive-repair-cream/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "437",
+      "gtin": "7898965429348"
+    },
+    "kit-controle-de-poros-1": {
+      "name": "Kit Controle de Poros",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-controle-de-poros-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "624"
+    },
+    "rotina-para-pele-madura-1": {
+      "name": "Rotina para Pele Madura",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-para-pele-madura-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "619"
+    },
+    "rotina-para-pele-seca-1": {
+      "name": "Rotina para Pele Seca",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-para-pele-seca-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "618"
+    },
+    "rotina-para-pele-mista-1": {
+      "name": "Rotina para Pele Mista",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-para-pele-mista-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "616"
+    },
+    "kit-anti-aging-30-mais-rotina-completa": {
+      "name": "Kit Anti-Aging 30+ Rotina Completa",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-anti-aging-30-mais-rotina-completa/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "554",
+      "gtin": "7898727315209"
+    },
+    "duo-glicolico-tranexamico": {
+      "name": "Duo Glicólico + Tranexâmico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-glicolico-tranexamico/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "543"
+    },
+    "duo-limpador-glicerinado-protetor-solar": {
+      "name": "Duo Limpador Glicerinado + Protetor Solar",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-limpador-glicerinado-protetor-solar/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "529"
+    },
+    "duo-protetor-solar-e-serum-hidratante": {
+      "name": "Duo Protetor Solar + Sérum Hidratante",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-protetor-solar-e-serum-hidratante/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "509"
+    },
+    "duo-protetor-solar-e-niacinamide": {
+      "name": "Duo Protetor Solar + Niacinamide",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-protetor-solar-e-niacinamide/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "508"
+    },
+    "duo-mandelico-e-salicilico": {
+      "name": "Duo Mandélico + Salicílico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-mandelico-e-salicilico/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "494"
+    },
+    "rotina-antimanchas-seca": {
+      "name": "Rotina Antimanchas - Pele Seca ou Balanceada",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-antimanchas-seca/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "457"
+    },
+    "kit-antirrugas-firmador": {
+      "name": "Kit Antirrugas Firmador",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-antirrugas-firmador/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "686"
+    },
+    "kit-antiacne-1": {
+      "name": "Kit Antiacne",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-antiacne-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "621"
+    },
+    "kit-essencial": {
+      "name": "Kit Essencial",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-essencial/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "620"
+    },
+    "kit-rotina-essencial": {
+      "name": "KIT ESSENCIAL",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-rotina-essencial/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "574",
+      "gtin": "7894310934147"
+    },
+    "duo-limpador-glicerinado-glicolico": {
+      "name": "Duo Limpador Glicerinado + Glicólico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-limpador-glicerinado-glicolico/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "532"
+    },
+    "duo-limpador-glicerinado-niacinamide": {
+      "name": "Duo Limpador Glicerinado + Niacinamide",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-limpador-glicerinado-niacinamide/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "531"
+    },
+    "duo-glicointense-niacinamide": {
+      "name": "Duo para Acne - Glicointense Peel + Niacinamide B Complex 20%",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-glicointense-niacinamide/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "521"
+    },
+    "refil-serum-facial-vitamina-c": {
+      "name": "Refil Sérum Facial Vitamina C 30ml",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/refil-serum-facial-vitamina-c/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "500",
+      "gtin": "7898965429973"
+    },
+    "duo-mandelico-e-vita-c": {
+      "name": "Duo Mandélico + Vitamina C",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-mandelico-e-vita-c/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "495"
+    },
+    "duo-calming-cream-e-calming-body-cream": {
+      "name": "Duo Calming Cream + Calming Body Cream",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-calming-cream-e-calming-body-cream/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "488"
+    },
+    "rotina-prevencao-oleosa": {
+      "name": "Rotina Anti-Aging Prevenção - Pele Oleosa ou Mista",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-prevencao-oleosa/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "463"
+    },
+    "rotina-antiacne-antioleosidade-seca": {
+      "name": "Rotina Acne e Antioleosidade - Pele Seca ou Balanceada",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-antiacne-antioleosidade-seca/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "461"
+    },
+    "duo-ceramide-body-cream-lip-incolor": {
+      "name": "Duo Ceramide Body Cream + Lip Incolor",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-ceramide-body-cream-lip-incolor/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "640"
+    },
+    "kit-top-sellers": {
+      "name": "KIT TOP SELLERS",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-top-sellers/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "572",
+      "gtin": "7895045340364"
+    },
+    "kit-anti-aging-30-mais-noturno": {
+      "name": "Kit Anti-Aging 30+ Noturno",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-anti-aging-30-mais-noturno/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "553",
+      "gtin": "7898144806212"
+    },
+    "duo-latico-tranexamico": {
+      "name": "Duo Lático + Tranexâmico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-latico-tranexamico/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "544"
+    },
+    "duo-vitamina-c-acido-tranexanico": {
+      "name": "Duo Vitamina C + Ácido Tranexâmico",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-vitamina-c-acido-tranexanico/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "539"
+    },
+    "rotina-manutencao-seca": {
+      "name": "Rotina de Manutenção - Pele Seca ou Balanceada",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-manutencao-seca/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "469"
+    },
+    "rotina-manutencao-oleosa": {
+      "name": "Rotina de Manutenção - Pele Oleosa ou Mista",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-manutencao-oleosa/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "468"
+    },
+    "rotina-prevencao-seca": {
+      "name": "Rotina Anti-Aging Prevenção - Pele Seca ou Balanceada",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-prevencao-seca/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "464"
+    },
+    "rotina-para-pele-sensivel-1": {
+      "name": "Rotina para Pele Sensível",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-para-pele-sensivel-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "617"
+    },
+    "duo-acido-glicolico-mais-refil-30g": {
+      "name": "Duo Ácido Glicólico + Refil",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-acido-glicolico-mais-refil-30g/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "563",
+      "gtin": "7897032664026"
+    },
+    "duo-limpador-glicerinado-calming-body-cream": {
+      "name": "Duo Limpador Glicerinado + Calming Body Cream",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-limpador-glicerinado-calming-body-cream/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "530"
+    },
+    "duo-serum-vitamina-c-mais-refil-30ml": {
+      "name": "DUO SÉRUM FACIAL VITAMINA C + REFIL 30ML",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-serum-vitamina-c-mais-refil-30ml/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "562",
+      "gtin": "7896244235406"
+    },
+    "kit-skincare-anti-aging-30-mais-diurno": {
+      "name": "Kit Anti-Aging 30+ Diurno",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-skincare-anti-aging-30-mais-diurno/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "552",
+      "gtin": "7898463279407"
+    },
+    "rotina-anticne-sensivel": {
+      "name": "Rotina Acne e Antioleosidade - Pele Sensível e Reativa",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-anticne-sensivel/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "460"
+    },
+    "kit-the-coffe-colletion": {
+      "name": "Kit Lip Balm The Coffee Collection",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-the-coffe-colletion/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "541"
+    },
+    "duo-serum-acido-latico-mais-refil-30g-1": {
+      "name": "DUO SÉRUM FACIAL ÁCIDO LÁTICO + REFIL 30G",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-serum-acido-latico-mais-refil-30g-1/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "565",
+      "gtin": "7898954743660"
+    },
+    "duo-acido-mandelico-mais-refil-30g": {
+      "name": "Duo Ácido Mandélico + Refil 30g",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-acido-mandelico-mais-refil-30g/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "561",
+      "gtin": "7895494693066"
+    },
+    "kit-anti-aging-50-mais-diurno": {
+      "name": "Kit Anti-Aging 50+ Diurno",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-anti-aging-50-mais-diurno/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "558",
+      "gtin": "7897811996058"
+    },
+    "kit-anti-aging-40-mais-diurno": {
+      "name": "Kit Anti-Aging 40+ Diurno",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/kit-anti-aging-40-mais-diurno/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "555",
+      "gtin": "7892985669142"
+    },
+    "refil-serum-facil-acido-latico": {
+      "name": "Refil Sérum Facil Ácido Lático 30ml",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/refil-serum-facil-acido-latico/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "501",
+      "gtin": "7898965429980"
+    },
+    "rotina-antimanchas-sensivel": {
+      "name": "Rotina Antimanchas - Pele Sensível e Reativa",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/rotina-antimanchas-sensivel/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "458"
+    },
+    "duo-gel-creme-retinol-mais-refil-30g": {
+      "name": "DUO GEL CREME RETINOL + REFIL 30G",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/duo-gel-creme-retinol-mais-refil-30g/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "564",
+      "gtin": "7891938665507"
+    },
+    "refil-gel-creme-retinol": {
+      "name": "Refil Gel Creme Retinol 30g",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/refil-gel-creme-retinol/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "502",
+      "gtin": "7898965429997"
+    },
+    "mini-retinol": {
+      "name": "Mini Retinol",
+      "brand": "Creamy",
+      "source": "https://www.creamy.com.br/mini-retinol/p",
+      "checked": "2026-11-14",
+      "sourceProductId": "480",
+      "gtin": "7898965429386"
+    }
+  }
+}

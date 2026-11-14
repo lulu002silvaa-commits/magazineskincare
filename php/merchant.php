@@ -49,13 +49,15 @@ function serve_merchant_document(string $route): never {
             'image_link' => $imageUrl($product['imagem']),
             'price' => number_format(round((float)$price, 2), 2, '.', '') . ' BRL',
             'availability' => $available ? 'in_stock' : 'out_of_stock',
-            'condition' => 'new', 'brand' => $product['marca'] ?? '',
+            'condition' => 'new',
             'product_type' => $product['categoria'] ?? '',
         ];
+        if (!empty($product['marca'])) $fields['brand'] = $product['marca'];
         if (isset($product['gtin']) && valid_gtin((string)$product['gtin'])) $fields['gtin'] = (string)$product['gtin'];
         if (!empty($product['mpn'])) $fields['mpn'] = (string)$product['mpn'];
         echo '<item>';
         foreach ($fields as $name => $value) echo '<g:' . $name . '>' . merchant_xml((string)$value) . '</g:' . $name . '>';
+        echo '<g:shipping><g:country>BR</g:country><g:price>0.00 BRL</g:price></g:shipping>';
         $additional = array_values(array_diff(array_unique($product['imagens'] ?? []), [$product['imagem']]));
         foreach (array_slice($additional, 0, 10) as $image) echo '<g:additional_image_link>' . merchant_xml($imageUrl($image)) . '</g:additional_image_link>';
         echo '</item>';

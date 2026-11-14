@@ -912,6 +912,8 @@
     if (photos.length) meta('og:image', photos[0], true);
     if (!catalogVerified || !validPrice(currentPrice(product))) return;
     const data = { '@context': 'https://schema.org', '@type': 'Product', name: product.nome, description, image: photos, sku: product.id, ...(product.marca ? { brand: { '@type': 'Brand', name: product.marca } } : {}), offers: { '@type': 'Offer', url: url.href, priceCurrency: 'BRL', price: currentPrice(product).toFixed(2), itemCondition: 'https://schema.org/NewCondition', availability: canPurchase(product) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock', seller: { '@type': 'Organization', name: config.brand.name } } };
+    data.offers.shippingDetails = { '@type': 'OfferShippingDetails', shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'BR' }, shippingRate: { '@type': 'MonetaryAmount', value: '0.00', currency: 'BRL' } };
+    data.offers.hasMerchantReturnPolicy = { '@type': 'MerchantReturnPolicy', applicableCountry: 'BR', returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow', merchantReturnDays: 7, merchantReturnLink: 'https://magazineskincare.online/trocas.html' };
     if (product.gtin && /^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(product.gtin)) data.gtin = product.gtin;
     if (product.fabricante) data.manufacturer = { '@type': 'Organization', name: product.fabricante };
     if (product.conteudo) data.additionalProperty = [{ '@type': 'PropertyValue', name: 'Conteúdo por unidade', value: product.conteudo }];
@@ -1539,8 +1541,8 @@
     // A foto local aparece enquanto o servidor confere preço e estoque.
     const detail = $('#productDetail');
     const previewProduct = detail && productById(new URLSearchParams(location.search).get('id'));
-    let productPreview;
-    if (previewProduct) {
+    let productPreview = $('#serverProductSummary');
+    if (previewProduct && !productPreview) {
       productPreview = ui('section', 'product-loading-preview');
       const photo = makeProductImage(previewProduct, 'product-detail-image', false);
       const image = $('img', photo);

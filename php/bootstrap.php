@@ -67,7 +67,7 @@ function update_data(string $name, callable $mutate, array $fallback = []): arra
 }
 
 function valid_gtin(string $value): bool {
-    if (!preg_match('/^(?:\d{8}|\d{12}|\d{13}|\d{14})$/', $value)) return false;
+    if (!preg_match('/^(?:\d{8}|\d{12}|\d{13}|\d{14})$/', $value) || preg_match('/^0+$/', $value)) return false;
     $sum = 0;
     for ($i = strlen($value) - 2, $weight = 3; $i >= 0; $i--, $weight = 4 - $weight) $sum += (int)$value[$i] * $weight;
     return (10 - $sum % 10) % 10 === (int)$value[strlen($value) - 1];
@@ -110,7 +110,7 @@ function public_store_data(): array {
 }
 
 function public_product_information(array $product): array {
-    $claims = '/garant(?:e|em|id[oa]s?)|comprovad|clinicamente|curar?\b|elimina|regenera|síntese|estimula.{0,50}(?:colágeno|adipócitos)|(?:apenas|em)\s+\d+\s+(?:dias|semanas)|24\s*(?:h\b|horas)|aqui na Creamy|tratamento.{0,25}(?:acne|rosácea|melasma)/iu';
+    $claims = '/garant(?:e|em|id[oa]s?)|comprovad|clinicamente|curar?\b|elimina|regenera|síntese|estimula.{0,50}(?:colágeno|adipócitos)|(?:apenas|em)\s+\d+\s+(?:dias|semanas)|24\s*(?:h\b|horas)|resultados.{0,30}(?:rápid|eficaz|garant)|sem irritar|sem efeitos colaterais|definitiv|aqui na Creamy|tratamento.{0,25}(?:acne|rosácea|melasma)/iu';
     if (preg_match($claims, (string)($product['descricao'] ?? ''))) {
         $product['descricao'] = 'Cosmético para a rotina de cuidados com a pele. Confira a composição, o modo de uso e as advertências na embalagem. Os resultados variam de pessoa para pessoa.';
     }
@@ -151,6 +151,7 @@ function store_data(): array {
     foreach ($store['produtos'] as &$product) {
         $original = $originals[$product['id']] ?? [];
         if (empty($product['gtin']) && ($original['nome'] ?? '') === $product['nome'] && !empty($original['gtin'])) $product['gtin'] = $original['gtin'];
+        if (empty($product['marca']) && ($original['nome'] ?? '') === $product['nome'] && !empty($original['marca'])) $product['marca'] = $original['marca'];
     }
     unset($product);
     return $store;
