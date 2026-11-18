@@ -69,6 +69,13 @@ try {
   Check 'Falha temporária não apaga dados exibidos no painel' "document.querySelectorAll('tbody tr').length===window.panelRows && document.querySelectorAll('#stats .stat').length===5"
   Evaluate "window.fetch=window.panelFetch;true" | Out-Null
   Check 'Menu lateral e tabelas' "!!document.querySelector('.sidebar') && document.querySelectorAll('table').length===2"
+  Evaluate "window.stablePanelNode=document.querySelector('#content').firstElementChild;document.querySelector('#refresh').click();true" | Out-Null
+  WaitFor "document.querySelector('#notice').textContent==='Painel atualizado.'"
+  Check 'Dados identicos nao recriam as tabelas' "document.querySelector('#content').firstElementChild===window.stablePanelNode"
+  Evaluate "document.querySelector('[data-page=settings]').click();document.querySelector('#settingsForm [name=name]').value='Alteracao ainda nao salva';window.settingsNode=document.querySelector('#settingsForm');window.settingsFetch=window.fetch;window.fetch=async(url,options)=>{const r=await window.settingsFetch(url,options);if(String(url).includes(encodeURIComponent('/admin/data'))){const d=await r.json();d.stats.online+=123;return new Response(JSON.stringify(d),{status:200,headers:{'Content-Type':'application/json'}});}return r;};document.querySelector('#refresh').click();true" | Out-Null
+  WaitFor "document.querySelector('#notice').textContent==='Painel atualizado.'"
+  Check 'Atualizacao preserva formulario de configuracoes e mostra armazenamento' "document.querySelector('#settingsForm')===window.settingsNode && document.querySelector('#settingsForm [name=name]').value==='Alteracao ainda nao salva' && !!document.querySelector('#storageStatus')"
+  Evaluate "window.fetch=window.settingsFetch;document.querySelector('[data-page=dashboard]').click();document.querySelector('#refresh').click();true" | Out-Null
   Check 'Painel exibe limpeza de gerados e status aprovado' "!!document.querySelector('#clearGenerated') && document.querySelector('#content').textContent.includes('Aprovado')"
   Check 'Exclusão individual aparece na tabela de Pix' "document.querySelectorAll('[data-delete-payment]').length>0"
   Check 'Áudio solicitado pode ser carregado pelo navegador' "(async()=>{const audio=new Audio('/public/audio/pix-gerado.mp3');return await new Promise(resolve=>{const timer=setTimeout(()=>resolve(false),8000);audio.oncanplay=()=>{clearTimeout(timer);resolve(audio.duration>0);};audio.onerror=()=>{clearTimeout(timer);resolve(false);};audio.load();});})()"

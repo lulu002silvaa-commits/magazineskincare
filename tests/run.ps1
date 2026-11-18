@@ -33,6 +33,8 @@ try {
   if($LASTEXITCODE -ne 0){throw 'Falha nos testes de localização.'}
   & $runtime -c php-local.ini tests/persistence.php
   if($LASTEXITCODE -ne 0){throw 'Falha nos testes de persistência.'}
+  & $runtime -c php-local.ini tests/admin-session.php
+  if($LASTEXITCODE -ne 0){throw 'Falha nos testes da sessão administrativa.'}
   if($Browser){
     # As verificações HTTP e de navegador possuem orçamentos independentes.
     foreach($file in 'payment-limits.json','payment-limits.backup.json') {

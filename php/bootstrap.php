@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 const STORE_ROOT = __DIR__ . '/..';
+const ADMIN_SESSION_IDLE_SECONDS = 3600;
 date_default_timezone_set('America/Sao_Paulo');
 if (getenv('STORE_LOAD_ENV') !== '0' && is_file(STORE_ROOT . '/.env')) {
     foreach (file(STORE_ROOT . '/.env', FILE_IGNORE_NEW_LINES) as $line) {
@@ -182,13 +183,39 @@ function request_is_https(): bool {
     return strtolower(trim(explode(',', $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')[0])) === 'https';
 }
 
+function storage_diagnostics(): array {
+    $render = getenv('RENDER') === 'true';
+    $directory = realpath(STORE_DATA);
+    $persistent = null;
+    if ($render && is_readable('/proc/mounts')) {
+        $persistent = false;
+        foreach (file('/proc/mounts', FILE_IGNORE_NEW_LINES) as $line) {
+            $fields = preg_split('/\s+/', $line);
+            $mount = str_replace(['\\040', '\\011', '\\134'], [' ', "\t", '\\'], $fields[1] ?? '');
+            // A container root/overlay is not a persistent data volume.
+            if ($mount !== '/' && $mount !== '' && $directory !== false &&
+                ($directory === $mount || str_starts_with($directory, rtrim($mount, '/') . '/'))) {
+                $persistent = true;
+                break;
+            }
+        }
+    }
+    return ['render' => $render, 'persistentDisk' => $persistent,
+        'writable' => $directory !== false && is_writable($directory),
+        'sessionIdleSeconds' => ADMIN_SESSION_IDLE_SECONDS];
+}
+
 function start_admin_session(): void {
     data_directory();
     $directory = STORE_DATA . '/sessions';
     if (!is_dir($directory)) mkdir($directory, 0700, true);
     session_save_path($directory);
     session_name('magazine_admin');
-    session_start(['use_strict_mode' => 1, 'cookie_httponly' => true, 'cookie_samesite' => 'Strict', 'cookie_secure' => request_is_https()]);
+    if (!session_start(['use_strict_mode' => 1, 'use_only_cookies' => 1,
+        'gc_maxlifetime' => ADMIN_SESSION_IDLE_SECONDS, 'cookie_path' => '/',
+        'cookie_httponly' => true, 'cookie_samesite' => 'Strict', 'cookie_secure' => request_is_https()])) {
+        throw new RuntimeException('Não foi possível manter a sessão. Verifique o armazenamento do servidor.');
+    }
     if (!isset($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32));
 }
 
@@ -201,7 +228,7 @@ function require_csrf(): void {
 }
 
 function require_admin(): void {
-    if (empty($_SESSION['admin']) || time() - ($_SESSION['lastActive'] ?? 0) > 3600) {
+    if (empty($_SESSION['admin']) || time() - ($_SESSION['lastActive'] ?? 0) > ADMIN_SESSION_IDLE_SECONDS) {
         unset($_SESSION['admin']);
         json_response(['error' => 'Entre no painel para continuar.'], 401);
     }

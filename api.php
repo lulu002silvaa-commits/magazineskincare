@@ -105,7 +105,7 @@ try {
         start_admin_session();
         if ($method !== 'GET') require_csrf();
         if ($route === '/admin/session' && $method === 'GET') {
-            $authenticated = !empty($_SESSION['admin']) && time() - ($_SESSION['lastActive'] ?? 0) <= 3600;
+            $authenticated = !empty($_SESSION['admin']) && time() - ($_SESSION['lastActive'] ?? 0) <= ADMIN_SESSION_IDLE_SECONDS;
             json_response(['authenticated' => $authenticated, 'csrf' => $_SESSION['csrf'], 'setupRequired' => !auth_configured(), 'setupAllowed' => in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true), 'username' => getenv('ADMIN_USERNAME') ?: 'admin']);
         }
         if ($route === '/admin/setup' && $method === 'POST') {
@@ -140,6 +140,9 @@ try {
             json_response(['success' => true, 'csrf' => $_SESSION['csrf']]);
         }
         require_admin();
+        if ($route === '/admin/storage' && $method === 'GET') {
+            json_response(storage_diagnostics());
+        }
         if ($route === '/admin/payment-diagnostics' && $method === 'GET') {
             require_once __DIR__ . '/php/gateway.php';
             $requests = read_data('payment-requests');

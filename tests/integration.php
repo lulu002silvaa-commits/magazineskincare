@@ -39,6 +39,7 @@ check('Backend não libera CORS para qualquer domínio', !isset($headers['access
 [, , $headers] = request('/admin/session', 'GET', null, null, null, 'https://magazineskincare.vercel.app');
 check('Login do painel continua restrito à hospedagem PHP', !isset($headers['access-control-allow-origin']));
 [$status] = request('/admin/data'); check('Dados administrativos protegidos', $status === 401);
+[$status] = request('/admin/storage'); check('Diagnóstico de armazenamento exige login', $status === 401);
 [, $session] = request('/admin/session'); $csrf = $session['csrf'];
 check('Primeiro acesso permite criar a senha local', $session['setupRequired'] && $session['setupAllowed']);
 [$status] = request('/admin/setup', 'POST', ['password' => 'curta']); check('Senha inicial curta rejeitada', $status === 422);
@@ -50,6 +51,8 @@ check('Senha salva apenas como hash', $auth['hash'] !== 'php-admin-test-only-202
 [$status] = request('/admin/login', 'POST', ['username' => 'admin', 'password' => 'incorreta']); check('Senha incorreta rejeitada', $status === 401);
 [$status, $login] = request('/admin/login', 'POST', ['username' => 'admin', 'password' => 'php-admin-test-only-2026']);
 check('Login com sessão PHP', $status === 200 && !empty($login['csrf'])); $csrf = $login['csrf'];
+[$status, $storage] = request('/admin/storage');
+check('Diagnóstico autenticado confirma gravação sem expor caminhos ou chaves', $status === 200 && $storage['writable'] && $storage['sessionIdleSeconds'] === 3600 && count($storage) === 4);
 [$status] = request('/admin/settings', 'POST', [], null, 'invalido'); check('Token CSRF inválido rejeitado', $status === 403);
 [, $data] = request('/admin/data');
 check('Indicadores sem dados fictícios', $data['stats']['pix'] === 0 && $data['stats']['revenue'] === 0);
