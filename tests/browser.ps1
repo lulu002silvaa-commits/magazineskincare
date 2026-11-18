@@ -236,6 +236,13 @@ try {
   WaitFor "document.querySelector('.store-notice')"
   Check 'Falha no catálogo não permite comprar com preço antigo' "document.querySelector('.store-notice button')!==null && document.querySelectorAll('#productGrid button:not(:disabled)').length===0"
   Cdp 'Page.removeScriptToEvaluateOnNewDocument' @{identifier=$offline.identifier} | Out-Null
+  Cdp 'Emulation.setDeviceMetricsOverride' @{width=1440;height=1000;deviceScaleFactor=1;mobile=$false} | Out-Null
+  Cdp 'Page.navigate' @{url=($base+'/produto.html?id=kit-skincare-anti-aging-30-mais-diurno')} | Out-Null
+  WaitFor "document.querySelector('#productMainImage')?.complete && document.querySelector('#productMainImage').naturalWidth>0 && !document.querySelector('#productDetail').hidden"
+  Check 'Produto com foto unica ocupa a largura da galeria no desktop' "document.querySelector('#productThumbnails').hidden && document.querySelector('#productMainImageContainer').getBoundingClientRect().width>=document.querySelector('#productGallery').getBoundingClientRect().width*.9"
+  Cdp 'Emulation.setDeviceMetricsOverride' @{width=390;height=844;deviceScaleFactor=1;mobile=$true} | Out-Null
+  Check 'Foto unica ocupa a largura no celular' "document.querySelector('#productMainImageContainer').getBoundingClientRect().width>=window.innerWidth-30"
+  Screenshot 'single-image-product-mobile.png'
   Check 'Sem exceções JavaScript' 'true'
   if($script:errors.Count){throw ($script:errors -join ', ')}
   Write-Output 'Verificação de navegador concluída.'

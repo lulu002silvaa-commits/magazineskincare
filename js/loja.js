@@ -776,6 +776,7 @@
     previous.addEventListener("click", () => showImage(selectedIndex - 1));
     next.addEventListener("click", () => showImage(selectedIndex + 1));
     if (images.length < 2) {
+      $("#productGallery").classList.add('is-single-image');
       previous.hidden = true;
       next.hidden = true;
       counter.hidden = true;
